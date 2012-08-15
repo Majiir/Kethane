@@ -1,15 +1,31 @@
-﻿using System;
+﻿/*
+ * Code copyright 2012 by Kulesz
+ * This file is part of MMI Kethane Plugin.
+ *
+ * MMI Kethane Plugin is a free software: you can redistribute it and/or modify it under the 
+ * terms of the GNU General Public License as published by the Free Software Foundation, 
+ * either version 3 of the License, or (at your option) any later version. MMI Kethane Plugin 
+ * is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even 
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+ * See the GNU General Public License for more details.
+ * 
+ * Some elements of this application are inspired or based on code written by members of KSP 
+ * community (with respect to the license), especially:
+ * 
+ * Zoxygene (Life Support) mod        http://kerbalspaceprogram.com/forum/showthread.php/8949-PLUGIN-PART-0-16-Zoxygene-(Life-Support)-mod-v0-6-1-(12-07-28)    
+ * ISA MapSat        http://kerbalspaceprogram.com/forum/showthread.php/9396-0-16-ISA-MapSat-Satellite-mapping-module-and-map-generation-tool-v3-1-0
+ * Anatid Robotics / MuMech - MechJeb        http://kerbalspaceprogram.com/forum/showthread.php/12384-PLUGIN-PART-0-16-Anatid-Robotics-MuMech-MechJeb-Autopilot-v1-9
+*/
+
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 public class MMI_Kethane_Tank : Part
 {
     [KSPField(guiActive = true, guiName = "Kethane", guiFormat = "#0.##")]
-    public float Kethane;
-     
+    public float Kethane = 0;
+
     [KSPField(guiActive = true, guiName = "Capacity", guiFormat = "#0.##")]
-    public float Capacity;
+    public float Capacity = 100;
 
     public float DryMass = 0.25f;
     private float KethaneDensity = 0.001f;
@@ -33,10 +49,7 @@ public class MMI_Kethane_Tank : Part
     protected override void onPartUpdate()
     {
         this.mass = DryMass + Kethane * KethaneDensity;
-
         info.SetValue(Capacity == 0 ? 0 : Kethane / Capacity, 0, 1);
-        //if (Kethane >= 0.999f * Capacity || Kethane < 0.001f)
-           
     }
 
     public override void onFlightStateSave(Dictionary<string, KSPParseable> partDataCollection)

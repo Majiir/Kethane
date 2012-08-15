@@ -6,6 +6,8 @@
        free to modify as long as a) original author is mentioned, and b) 
        you distribute your code under the same license. */
 
+// Used by MMI Kethane plugin
+
 using UnityEngine;
 using System.Collections.Generic;
 

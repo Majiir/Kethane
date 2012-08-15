@@ -1,9 +1,30 @@
-﻿using System;
+﻿/*
+ * Code copyright 2012 by Kulesz
+ * This file is part of MMI Kethane Plugin.
+ *
+ * MMI Kethane Plugin is a free software: you can redistribute it and/or modify it under the 
+ * terms of the GNU General Public License as published by the Free Software Foundation, 
+ * either version 3 of the License, or (at your option) any later version. MMI Kethane Plugin 
+ * is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even 
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+ * See the GNU General Public License for more details.
+ * 
+ * Some elements of this application are inspired or based on code written by members of KSP 
+ * community (with respect to the license), especially:
+ * 
+ * Zoxygene (Life Support) mod        http://kerbalspaceprogram.com/forum/showthread.php/8949-PLUGIN-PART-0-16-Zoxygene-(Life-Support)-mod-v0-6-1-(12-07-28)    
+ * ISA MapSat        http://kerbalspaceprogram.com/forum/showthread.php/9396-0-16-ISA-MapSat-Satellite-mapping-module-and-map-generation-tool-v3-1-0
+ * Anatid Robotics / MuMech - MechJeb        http://kerbalspaceprogram.com/forum/showthread.php/12384-PLUGIN-PART-0-16-Anatid-Robotics-MuMech-MechJeb-Autopilot-v1-9
+*/
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 
+/// <summary>
+///  Based on Zoxygene extractor
+/// </summary>
 public class MMI_Kethane_Extractor : Part
 {
     #region Fields
@@ -15,7 +36,7 @@ public class MMI_Kethane_Extractor : Part
     private Transform BaseTransform, Cyl1Transform, Cyl2Transform, Cyl3Transform;
 
     // Do we want arm to go down, or up?
-    private bool ArmWantDown = false;
+    private bool ArmWantToGoDown = false;
 
     // Used to handle physics properly
     private int JustLoaded = 0, JustUnpacked = 0;
@@ -262,11 +283,6 @@ public class MMI_Kethane_Extractor : Part
             DigEffects[i].name = "DigEffect" + i.ToString();
             DigEffects[i].transform.parent = BaseTransform;
 
-            //DigEffects[i].AddComponent<Rigidbody>();
-            //DigEffects[i].rigidbody.mass = 0.01f;
-            //DigEffects[i].rigidbody.useGravity = false;
-            //DigEffects[i].rigidbody.collisionDetectionMode = CollisionDetectionMode.Continuous;
-
             DigEffects[i].gameObject.active = false;
         }
 
@@ -290,22 +306,14 @@ public class MMI_Kethane_Extractor : Part
         return true;
     }
 
-    protected override void onPartDeactivate()
-    {
-        this.stackIcon.SetIconColor(XKCDColors.SlateGrey);
-        this.stackIcon.ClearInfoBoxes();
-    }
-
     private void ActivateEffects()
     {
-        this.stackIcon.SetIconColor(XKCDColors.LightGrassGreen);
         foreach (GameObject Effect in DigEffects)
             Effect.gameObject.active = true;
     }
 
     private void DeactivateEffects()
     {
-        this.stackIcon.SetIconColor(XKCDColors.LightGrassGreen);
         foreach (GameObject Effect in DigEffects)
             Effect.gameObject.active = false;
     }
@@ -349,7 +357,7 @@ public class MMI_Kethane_Extractor : Part
 
         if ((WarpRate <= 2) && (JustUnpacked == 0))
         {
-            if (ArmWantDown)
+            if (ArmWantToGoDown)
                 HandleDeployment(Time.deltaTime);
             else
                 HandleDeployment(Time.deltaTime, false);
@@ -418,10 +426,10 @@ public class MMI_Kethane_Extractor : Part
 
         if ((WarpRate <= 2) && (this.vessel.isActiveVessel) && ValidConfiguration)
         {
-            if (ArmWantDown)
-                ArmWantDown = false;
+            if (ArmWantToGoDown)
+                ArmWantToGoDown = false;
             else
-                ArmWantDown = true;
+                ArmWantToGoDown = true;
         }
     }
 
@@ -458,12 +466,12 @@ public class MMI_Kethane_Extractor : Part
 
     public override void onFlightStateSave(Dictionary<string, KSPParseable> partDataCollection)
     {
-        partDataCollection.Add("WantDown", new KSPParseable((object)this.ArmWantDown, KSPParseable.Type.BOOL));
+        partDataCollection.Add("WantDown", new KSPParseable((object)this.ArmWantToGoDown, KSPParseable.Type.BOOL));
     }
 
     public override void onFlightStateLoad(Dictionary<string, KSPParseable> parsedData)
     {
-        this.ArmWantDown = bool.Parse(parsedData["WantDown"].value);
+        this.ArmWantToGoDown = bool.Parse(parsedData["WantDown"].value);
         JustLoaded = 300;
     }
 }

@@ -1,8 +1,25 @@
-﻿using System;
+﻿/*
+ * Code copyright 2012 by Kulesz
+ * This file is part of MMI Kethane Plugin.
+ *
+ * MMI Kethane Plugin is a free software: you can redistribute it and/or modify it under the 
+ * terms of the GNU General Public License as published by the Free Software Foundation, 
+ * either version 3 of the License, or (at your option) any later version. MMI Kethane Plugin 
+ * is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even 
+ * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+ * See the GNU General Public License for more details.
+ * 
+ * Some elements of this application are inspired or based on code written by members of KSP 
+ * community (with respect to the license), especially:
+ * 
+ * Zoxygene (Life Support) mod        http://kerbalspaceprogram.com/forum/showthread.php/8949-PLUGIN-PART-0-16-Zoxygene-(Life-Support)-mod-v0-6-1-(12-07-28)    
+ * ISA MapSat        http://kerbalspaceprogram.com/forum/showthread.php/9396-0-16-ISA-MapSat-Satellite-mapping-module-and-map-generation-tool-v3-1-0
+ * Anatid Robotics / MuMech - MechJeb        http://kerbalspaceprogram.com/forum/showthread.php/12384-PLUGIN-PART-0-16-Anatid-Robotics-MuMech-MechJeb-Autopilot-v1-9
+*/
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using KSP;
 using UnityEngine;
 
 public class MMI_Kethane_Controller : Part
@@ -185,7 +202,6 @@ public class MMI_Kethane_Controller : Part
     {
         if (vessel.mainBody != null)
         {
-            //Set all the pixels to black. If you don't do this the image contains random junk.
             for (int y = 0; y < DebugTex.height; y++)
                 for (int x = 0; x < DebugTex.width; x++)
                     DebugTex.SetPixel(x, y, Color.black);
@@ -197,7 +213,6 @@ public class MMI_Kethane_Controller : Part
 
             foreach (KethaneDeposit KD in Deposits.Deposits)
             {
-
                 for (int k = 0; k < KD.Vertices.Count - 1; k++)
                 {
                     Point p = (KD.Vertices[k] / Width) * DebugTex.width;
@@ -208,11 +223,10 @@ public class MMI_Kethane_Controller : Part
 
             if (this.vessel != null)
             {
-                int x = getPixelX(vessel.mainBody.GetLongitude(vessel.transform.position), DebugTex.width);
-                int y = getPixelY(vessel.mainBody.GetLatitude(vessel.transform.position), DebugTex.height);
+                int x = GetXOnMap(vessel.mainBody.GetLongitude(vessel.transform.position), DebugTex.width);
+                int y = GetYOnMap(vessel.mainBody.GetLatitude(vessel.transform.position), DebugTex.height);
                 DebugTex.SetPixel(x, y, Color.white);
             }
-
             DebugTex.Apply();
         }
     }
@@ -228,8 +242,8 @@ public class MMI_Kethane_Controller : Part
 
                 if (this.vessel != null)
                 {
-                    int x = getPixelX(vessel.mainBody.GetLongitude(vessel.transform.position), planetTex.width);
-                    int y = getPixelY(vessel.mainBody.GetLatitude(vessel.transform.position), planetTex.height);
+                    int x = GetXOnMap(vessel.mainBody.GetLongitude(vessel.transform.position), planetTex.width);
+                    int y = GetYOnMap(vessel.mainBody.GetLatitude(vessel.transform.position), planetTex.height);
                     if (deposit)
                         planetTex.SetPixel(x, y, XKCDColors.Green);
                     else
@@ -329,21 +343,18 @@ public class MMI_Kethane_Controller : Part
     /// </summary>
     private bool CanVesselPumpKethane(Vessel v)
     {
-        int FoundTanks = 0;
-        int FoundPumps = 0;
-        int FoundControllers = 0;
+        int PFoundTanks = 0;
+        int PFoundPumps = 0;
 
         for (int i = 0; i <= v.parts.Count - 1; i++)
         {
             if (Misc.SMatch(v.parts.ElementAt(i).GetType().Name, "MMI_Kethane_Tank"))
-                FoundTanks++;
-            else if (Misc.SMatch(v.parts.ElementAt(i).GetType().Name, "MMI_Kethane_Controller"))
-                FoundControllers++;
+                PFoundTanks++;
             else if (Misc.SMatch(v.parts.ElementAt(i).GetType().Name, "MMI_Kethane_Pump"))
-                FoundPumps++;
+                PFoundPumps++;
         }
 
-        if (FoundPumps > 0 && FoundControllers > 0 && FoundTanks > 0)
+        if (PFoundPumps > 0 && PFoundTanks > 0)
             return true;
         else
             return false;
@@ -528,7 +539,7 @@ public class MMI_Kethane_Controller : Part
 
         GameObject obj = new GameObject("PumpLine" + vessel.name);
         PumpLine = obj.AddComponent<LineRenderer>();
-        PumpLine.transform.parent = transform; // ...child to our part...
+        PumpLine.transform.parent = transform;
         PumpLine.useWorldSpace = false;
         PumpLine.transform.localPosition = Vector3.zero;
         PumpLine.transform.localEulerAngles = Vector3.zero;
@@ -839,7 +850,7 @@ public class MMI_Kethane_Controller : Part
         if (IsPumping)
         {
             Vessel v = VesselsAround.vessels.Find(ves => ves == VesselToPumpTo);
-            if (v != null)
+            if (v != null && CanVesselPumpKethane(v))
             {
                 float d = (this.vessel.transform.position - v.transform.position).sqrMagnitude;
                 if (d > 50 * 50)
@@ -913,7 +924,7 @@ public class MMI_Kethane_Controller : Part
     }
 
     /// <summary>
-    /// Get true altitude above terrain (copied from MuMech lib)
+    /// Get true altitude above terrain (from MuMech lib)
     /// Also from: http://kerbalspaceprogram.com/forum/index.php?topic=10324.msg161923#msg161923
     /// </summary>
     private double GetTrueAltitude()
@@ -960,7 +971,7 @@ public class MMI_Kethane_Controller : Part
 
             double Altitude = GetTrueAltitude();
             TimerThreshold = DetectorPart.DetectingPeriod + Altitude * 0.000005d; // 0,5s delay at 100km
-   
+
             if (TimerEcho >= TimerThreshold)
             {
                 if (DepositUnder != null && Altitude <= DetectorPart.DetectingHeight && DepositUnder.Kethane >= 1.0f)
@@ -1034,7 +1045,7 @@ public class MMI_Kethane_Controller : Part
             HandleDetection();
         }
         if (this.gameObject.active && ValidConfiguration && WarpRate < 2)
-        {         
+        {
             HandlePumping();
             HandleDetection();
             HandleConversion();
@@ -1044,9 +1055,9 @@ public class MMI_Kethane_Controller : Part
     }
 
     /// <summary>
-    /// Get x pixel position on image
+    /// Get x pixel position on map
     /// </summary>
-    private static int getPixelX(double lon, int width)
+    private static int GetXOnMap(double lon, int width)
     {
         int pixelX = -1;
         pixelX = (int)Math.Round((lon + 180d) * ((double)width / 360d));
@@ -1054,9 +1065,9 @@ public class MMI_Kethane_Controller : Part
     }
 
     /// <summary>
-    /// Get y pixel position on image
+    /// Get y pixel position on map
     /// </summary>
-    private static int getPixelY(double lat, int height)
+    private static int GetYOnMap(double lat, int height)
     {
         int pixelY = -1;
         pixelY = (int)Math.Round(((90d - lat) * ((double)height / 180d)));
@@ -1070,8 +1081,6 @@ public class MMI_Kethane_Controller : Part
 
         if (vessel.mainBody != null && PlanetTextures.ContainsKey(vessel.mainBody.name))
             GUILayout.Box(PlanetTextures[vessel.mainBody.name]);
-
-        GUILayout.Label("", KGuiStyleLabels);
 
         if (FoundDetectors > 0 && DetectorPart != null)
         {
@@ -1377,16 +1386,13 @@ public class MMI_Kethane_Controller : Part
 
         #region Info
 
-
-
-
         GUILayout.Label("", KGuiStyleLabels);
 
         DetectorWindowShow = GUILayout.Toggle(DetectorWindowShow, "Detecting");
         PumpWindowShow = GUILayout.Toggle(PumpWindowShow, "Pumping");
         ExtractorWindowShow = GUILayout.Toggle(ExtractorWindowShow, "Extracting");
         ConverterWindowShow = GUILayout.Toggle(ConverterWindowShow, "Converting");
-        DebugWindowShow = GUILayout.Toggle(DebugWindowShow, "DEBUG");
+        //DebugWindowShow = GUILayout.Toggle(DebugWindowShow, "DEBUG");
 
         #endregion
 
