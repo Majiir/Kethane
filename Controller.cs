@@ -644,8 +644,8 @@ public class MMI_Kethane_Controller : Part
     /// </summary>
     private float? ConvertKethaneToFuel()
     {
-        float AmountToGive = ConversionSpeed * ConversionRatio * Time.deltaTime;
-        float AmountToTake = ConversionSpeed * Time.deltaTime;
+        float AmountToGive = ConversionSpeed * ConversionRatio * Time.deltaTime * TimeWarp.CurrentRate;
+        float AmountToTake = ConversionSpeed * Time.deltaTime * TimeWarp.CurrentRate;
         float FreeSpace = GetAvailableFuelSpace();
         float KethaneAvailable = GetAvailableKethane(this.vessel);
 
@@ -686,8 +686,8 @@ public class MMI_Kethane_Controller : Part
     /// </summary>
     private float? ConvertKethaneToRCSFuel()
     {
-        float AmountToGive = ConversionSpeed * (1.25f * ConversionRatio > 1 ? 1 : 1.25f * ConversionRatio) * Time.deltaTime;
-        float AmountToTake = ConversionSpeed * Time.deltaTime;
+        float AmountToGive = ConversionSpeed * (1.25f * ConversionRatio > 1 ? 1 : 1.25f * ConversionRatio) * Time.deltaTime * TimeWarp.CurrentRate;
+        float AmountToTake = ConversionSpeed * Time.deltaTime * TimeWarp.CurrentRate;
         float FreeSpace = GetAvailableRCSFuelSpace();
         float KethanAvailable = GetAvailableKethane(this.vessel);
 
@@ -860,7 +860,7 @@ public class MMI_Kethane_Controller : Part
                     PumpLine.SetWidth(0, 0);
                     return;
                 }
-                float Amount = PumpingSpeed * Time.deltaTime;
+                float Amount = PumpingSpeed * Time.deltaTime * TimeWarp.CurrentRate;
                 Vector3 LPoint = transform.InverseTransformPoint(VesselToPumpTo.transform.position);
                 PumpLine.SetPosition(1, LPoint);
                 PumpLine.SetWidth(0.5f, 0.5f);
@@ -967,7 +967,7 @@ public class MMI_Kethane_Controller : Part
     {
         if (DetectorPart != null && IsDetecting && this.vessel != null && this.vessel.gameObject.active)
         {
-            TimerEcho += Time.deltaTime;
+            TimerEcho += Time.deltaTime * (1 + Math.Log(TimeWarp.CurrentRate));
 
             double Altitude = GetTrueAltitude();
             TimerThreshold = DetectorPart.DetectingPeriod + Altitude * 0.000005d; // 0,5s delay at 100km
@@ -1009,9 +1009,9 @@ public class MMI_Kethane_Controller : Part
                 {
                     float DrillDepth = ExtractorPart.DrillDepth();
 
-                    if ((DrillDepth >= DepositUnder.Depth) && (DrillDepth > 0))
+                    if ((ExtractorPart.DrillDeploymentState == MMI_Kethane_Extractor.DeployState.Deployed) && (((DrillDepth >= DepositUnder.Depth) && (DrillDepth > 0)) || vessel.Landed))
                     {
-                        float Amount = Time.deltaTime * 1.25f;
+                        float Amount = Time.deltaTime * TimeWarp.CurrentRate * 1.25f;
                         if (DepositUnder.Kethane >= Amount)
                         {
                             float FreeSpace = GetAvailableKethaneSpace(this.vessel);
@@ -1038,16 +1038,13 @@ public class MMI_Kethane_Controller : Part
         if (WarpRate == 0)
             WarpRate = 1;
 
-        if (this.gameObject.active && ValidConfiguration && WarpRate < 11)
+        if (this.gameObject.active && ValidConfiguration)
         {
             VerifyConfiguration();
             GetDepositUnderVessel();
             HandleDetection();
-        }
-        if (this.gameObject.active && ValidConfiguration && WarpRate < 2)
-        {
+
             HandlePumping();
-            HandleDetection();
             HandleConversion();
             HandleRCSConversion();
             HandleDrilling();
