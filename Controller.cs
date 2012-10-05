@@ -562,7 +562,7 @@ public class MMI_Kethane_Controller : Part
     {
         foreach (Part PartToPumpTo in this.vessel.parts)
         {
-            if (PartToPumpTo is RCSFuelTank && (PartToPumpTo.State == PartStates.ACTIVE || PartToPumpTo.State == PartStates.IDLE))
+            if (PartToPumpTo is RCSFuelTank && (PartToPumpTo.State != PartStates.DEAD))
             {
                 RCSFuelTank TankToPumpTo = (RCSFuelTank)PartToPumpTo;
                 if (TankToPumpTo.fuel < RCSFuelTanksCapacities[TankToPumpTo.name])
@@ -586,7 +586,7 @@ public class MMI_Kethane_Controller : Part
     {
         foreach (Part PartToPumpTo in this.vessel.parts)
         {
-            if (PartToPumpTo is FuelTank && (PartToPumpTo.State == PartStates.ACTIVE || PartToPumpTo.State == PartStates.IDLE))
+            if (PartToPumpTo is FuelTank && (PartToPumpTo.State != PartStates.DEAD))
             {
                 FuelTank TankToPumpTo = (FuelTank)PartToPumpTo;
                 if (TankToPumpTo.fuel < FuelTanksCapacities[TankToPumpTo.name])
