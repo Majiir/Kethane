@@ -366,6 +366,7 @@ public class MMI_Kethane_Controller : Part
     private void FillFuelTankDictionary()
     {
         FuelTanksCapacities = new Dictionary<string, float>();
+        if (this.vessel == null) return;
         foreach (Part FuelTankPart in this.vessel.parts)
         {
             if (FuelTankPart is FuelTank && (FuelTankPart.State == PartStates.ACTIVE || FuelTankPart.State == PartStates.IDLE))
@@ -383,6 +384,7 @@ public class MMI_Kethane_Controller : Part
     private void FillRCSFuelTankDictionary()
     {
         RCSFuelTanksCapacities = new Dictionary<string, float>();
+        if (this.vessel == null) return;
         foreach (Part RCSFuelTankPart in this.vessel.parts)
         {
             if (RCSFuelTankPart is RCSFuelTank && (RCSFuelTankPart.State == PartStates.ACTIVE || RCSFuelTankPart.State == PartStates.IDLE))
