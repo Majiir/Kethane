@@ -11,6 +11,8 @@
 using UnityEngine;
 using System.Collections.Generic;
 
+namespace Kethane
+{
 internal class NearestVessels
 {
     public List<Vessel> vessels = new List<Vessel>();
@@ -97,4 +99,5 @@ internal class NearestVessels
                 return v;
         return null;
     }
+}
 }

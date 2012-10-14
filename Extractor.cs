@@ -22,6 +22,8 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
+namespace Kethane
+{
 /// <summary>
 ///  Based on Zoxygene extractor
 /// </summary>
@@ -474,5 +476,6 @@ public class MMI_Kethane_Extractor : Part
         this.ArmWantToGoDown = bool.Parse(parsedData["WantDown"].value);
         JustLoaded = 300;
     }
+}
 }
 

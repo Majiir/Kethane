@@ -19,6 +19,8 @@
 
 using System.Collections.Generic;
 
+namespace Kethane
+{
 public class MMI_Kethane_Tank : Part
 {
     [KSPField(guiActive = true, guiName = "Kethane", guiFormat = "#0.##")]
@@ -61,6 +63,7 @@ public class MMI_Kethane_Tank : Part
     {
         this.Kethane = float.Parse(parsedData["Kethane"].value);
     }
+}
 }
 
 

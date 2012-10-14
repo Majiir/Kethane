@@ -20,6 +20,8 @@
 using System;
 using UnityEngine;
 
+namespace Kethane
+{
 public class MMI_Kethane_Detector : Part
 {
     public float DetectingPeriod = 1.0f; // sec 
@@ -79,4 +81,5 @@ public class MMI_Kethane_Detector : Part
         if (Math.Abs(alpha - LocV) > 0.1f)
             RotV.RotateAroundLocal(new Vector3(1, 0, 0), (alpha > LocV ? 0.25f : -0.25f) * Time.deltaTime);
     }
+}
 }

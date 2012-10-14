@@ -17,6 +17,8 @@
  * Anatid Robotics / MuMech - MechJeb        http://kerbalspaceprogram.com/forum/showthread.php/12384-PLUGIN-PART-0-16-Anatid-Robotics-MuMech-MechJeb-Autopilot-v1-9
 */
 
+namespace Kethane
+{
 internal class Misc
 {
     // From Zoxygene plugin
@@ -32,4 +34,5 @@ internal class Misc
 
         return true;
     }
+}
 }

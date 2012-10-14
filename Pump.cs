@@ -17,6 +17,8 @@
  * Anatid Robotics / MuMech - MechJeb        http://kerbalspaceprogram.com/forum/showthread.php/12384-PLUGIN-PART-0-16-Anatid-Robotics-MuMech-MechJeb-Autopilot-v1-9
 */
 
+namespace Kethane
+{
 public class MMI_Kethane_Pump : Part
 {
     public float PumpingSpeed = 2.0f;
@@ -27,4 +29,5 @@ public class MMI_Kethane_Pump : Part
         this.stackIcon.SetIconColor(XKCDColors.LightGrassGreen);
         this.stackIconGrouping = StackIconGrouping.SAME_MODULE;
     }
+}
 }

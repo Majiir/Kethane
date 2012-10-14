@@ -17,6 +17,8 @@
  * Anatid Robotics / MuMech - MechJeb        http://kerbalspaceprogram.com/forum/showthread.php/12384-PLUGIN-PART-0-16-Anatid-Robotics-MuMech-MechJeb-Autopilot-v1-9
 */
 
+namespace Kethane
+{
 public class MMI_Kethane_Converter : Part
 {
     public float ConversionRatio = 0.25f; // How many fuel from one unit of Kethane
@@ -28,4 +30,5 @@ public class MMI_Kethane_Converter : Part
         this.stackIcon.SetIconColor(XKCDColors.LightGrassGreen);
         this.stackIconGrouping = StackIconGrouping.SAME_MODULE;
     }
+}
 }
