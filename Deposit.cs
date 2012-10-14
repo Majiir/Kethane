@@ -70,7 +70,7 @@ public class Polygon
 }
 
 [Serializable]
-class KethaneDeposit
+public class KethaneDeposit
 {
     public Point Position { get; set; }
     public float Radius { get; set; }
@@ -107,7 +107,7 @@ class KethaneDeposit
 }
 
 [Serializable]
-class KethaneDeposits
+public class KethaneDeposits
 {
     public List<KethaneDeposit> Deposits = new List<KethaneDeposit>();
     public float Width;
