@@ -19,20 +19,20 @@
 
 namespace Kethane
 {
-internal class Misc
-{
-    // From Zoxygene plugin
-
-    public static bool SMatch(string input, string pattern)
+    internal class Misc
     {
-        if (input.Length < pattern.Length)
-            return false;
+        // From Zoxygene plugin
 
-        for (int i = 0; i < (pattern.Length - 1); i++)
-            if (pattern[i] != input[i])
+        public static bool SMatch(string input, string pattern)
+        {
+            if (input.Length < pattern.Length)
                 return false;
 
-        return true;
+            for (int i = 0; i < (pattern.Length - 1); i++)
+                if (pattern[i] != input[i])
+                    return false;
+
+            return true;
+        }
     }
-}
 }

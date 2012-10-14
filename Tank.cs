@@ -21,50 +21,47 @@ using System.Collections.Generic;
 
 namespace Kethane
 {
-public class MMI_Kethane_Tank : Part
-{
-    [KSPField(guiActive = true, guiName = "Kethane", guiFormat = "#0.##")]
-    public float Kethane = 0;
-
-    [KSPField(guiActive = true, guiName = "Capacity", guiFormat = "#0.##")]
-    public float Capacity = 100;
-
-    public float DryMass = 0.25f;
-    private float KethaneDensity = 0.001f;
-    protected VInfoBox info;
-
-    protected override void onPartStart()
+    public class MMI_Kethane_Tank : Part
     {
-        this.stackIcon.SetIcon(DefaultIcons.FUEL_TANK);
-        this.stackIcon.SetIconColor(XKCDColors.LightGrassGreen);
-        this.stackIconGrouping = StackIconGrouping.SAME_MODULE;
+        [KSPField(guiActive = true, guiName = "Kethane", guiFormat = "#0.##")]
+        public float Kethane = 0;
 
-        info = this.stackIcon.DisplayInfo();
-        info.SetLength(1.0f);
-        info.SetMsgBgColor(XKCDColors.OliveGreen);
-        info.SetMsgTextColor(XKCDColors.LightGrassGreen);
-        info.SetMessage("Kethane");
-        info.SetProgressBarBgColor(XKCDColors.LightGrassGreen);
-        info.SetProgressBarColor(XKCDColors.LightGrassGreen);
-    }
+        [KSPField(guiActive = true, guiName = "Capacity", guiFormat = "#0.##")]
+        public float Capacity = 100;
 
-    protected override void onPartUpdate()
-    {
-        this.mass = DryMass + Kethane * KethaneDensity;
-        info.SetValue(Capacity == 0 ? 0 : Kethane / Capacity, 0, 1);
-    }
+        public float DryMass = 0.25f;
+        private float KethaneDensity = 0.001f;
+        protected VInfoBox info;
 
-    public override void onFlightStateSave(Dictionary<string, KSPParseable> partDataCollection)
-    {
-        partDataCollection.Add("Kethane", new KSPParseable((object)this.Kethane, KSPParseable.Type.FLOAT));
-    }
+        protected override void onPartStart()
+        {
+            this.stackIcon.SetIcon(DefaultIcons.FUEL_TANK);
+            this.stackIcon.SetIconColor(XKCDColors.LightGrassGreen);
+            this.stackIconGrouping = StackIconGrouping.SAME_MODULE;
 
-    public override void onFlightStateLoad(Dictionary<string, KSPParseable> parsedData)
-    {
-        this.Kethane = float.Parse(parsedData["Kethane"].value);
+            info = this.stackIcon.DisplayInfo();
+            info.SetLength(1.0f);
+            info.SetMsgBgColor(XKCDColors.OliveGreen);
+            info.SetMsgTextColor(XKCDColors.LightGrassGreen);
+            info.SetMessage("Kethane");
+            info.SetProgressBarBgColor(XKCDColors.LightGrassGreen);
+            info.SetProgressBarColor(XKCDColors.LightGrassGreen);
+        }
+
+        protected override void onPartUpdate()
+        {
+            this.mass = DryMass + Kethane * KethaneDensity;
+            info.SetValue(Capacity == 0 ? 0 : Kethane / Capacity, 0, 1);
+        }
+
+        public override void onFlightStateSave(Dictionary<string, KSPParseable> partDataCollection)
+        {
+            partDataCollection.Add("Kethane", new KSPParseable((object)this.Kethane, KSPParseable.Type.FLOAT));
+        }
+
+        public override void onFlightStateLoad(Dictionary<string, KSPParseable> parsedData)
+        {
+            this.Kethane = float.Parse(parsedData["Kethane"].value);
+        }
     }
 }
-}
-
-
-

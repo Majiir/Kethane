@@ -13,91 +13,91 @@ using System.Collections.Generic;
 
 namespace Kethane
 {
-internal class NearestVessels
-{
-    public List<Vessel> vessels = new List<Vessel>();
-    private List<float> distances = new List<float>();
-
-    public void List(Vessel around, float maxRange)
+    internal class NearestVessels
     {
-        vessels.Clear();
-        distances.Clear();
+        public List<Vessel> vessels = new List<Vessel>();
+        private List<float> distances = new List<float>();
 
-        Vector3 p = Vector3.zero, p1 = Vector3.zero;
-
-        try
+        public void List(Vessel around, float maxRange)
         {
-            p = around.findWorldCenterOfMass();
-        }
-        catch
-        {
-            //            Debug.Log( "NearestVessels: findWorldCenterOfMass failed for vessel " 
-            //                       + around.vesselName );
-            return;
-        }
+            vessels.Clear();
+            distances.Clear();
 
-        maxRange *= maxRange;
-
-        foreach (Vessel v in FlightGlobals.Vessels)
-        {
-            if (v == around)
-                continue;
+            Vector3 p = Vector3.zero, p1 = Vector3.zero;
 
             try
             {
-                p1 = v.findWorldCenterOfMass();
+                p = around.findWorldCenterOfMass();
             }
             catch
             {
-                // Sometimes debris become 'invisible' for an unknown reason.
-                // findWorldCenterOfMass then fails horribly.
-                //                Debug.Log( "NearestVessels: findWorldCenterOfMass failed for vessel " 
-                //                           + v.vesselName );
-                continue;
+                //            Debug.Log( "NearestVessels: findWorldCenterOfMass failed for vessel " 
+                //                       + around.vesselName );
+                return;
             }
 
-            float d = (p1 - p).sqrMagnitude;
-            if (d > maxRange)
-                continue;
+            maxRange *= maxRange;
 
-            bool added = false;
-            for (int i = 0; i < distances.Count; i++)
-                if (d < distances[i])
+            foreach (Vessel v in FlightGlobals.Vessels)
+            {
+                if (v == around)
+                    continue;
+
+                try
                 {
-                    distances.Insert(i, d);
-                    vessels.Insert(i, v);
-
-                    added = true;
-                    break;
+                    p1 = v.findWorldCenterOfMass();
+                }
+                catch
+                {
+                    // Sometimes debris become 'invisible' for an unknown reason.
+                    // findWorldCenterOfMass then fails horribly.
+                    //                Debug.Log( "NearestVessels: findWorldCenterOfMass failed for vessel " 
+                    //                           + v.vesselName );
+                    continue;
                 }
 
-            if (!added)
-            {
-                distances.Add(d);
-                vessels.Add(v);
+                float d = (p1 - p).sqrMagnitude;
+                if (d > maxRange)
+                    continue;
+
+                bool added = false;
+                for (int i = 0; i < distances.Count; i++)
+                    if (d < distances[i])
+                    {
+                        distances.Insert(i, d);
+                        vessels.Insert(i, v);
+
+                        added = true;
+                        break;
+                    }
+
+                if (!added)
+                {
+                    distances.Add(d);
+                    vessels.Add(v);
+                }
             }
         }
-    }
 
-    public Vessel Next(Vessel v)
-    {
-        if (vessels.Count <= 0)
+        public Vessel Next(Vessel v)
+        {
+            if (vessels.Count <= 0)
+                return null;
+
+            int i = vessels.IndexOf(v);
+            if ((i < 0) || (i >= vessels.Count - 1))
+                i = 0;
+            else
+                i++;
+            return vessels[i];
+        }
+
+        public Vessel Find(string vesselName)
+        {
+            foreach (Vessel v in vessels)
+                if (v.vesselName == vesselName)
+                    return v;
             return null;
-
-        int i = vessels.IndexOf(v);
-        if ((i < 0) || (i >= vessels.Count - 1))
-            i = 0;
-        else
-            i++;
-        return vessels[i];
+        }
     }
-
-    public Vessel Find(string vesselName)
-    {
-        foreach (Vessel v in vessels)
-            if (v.vesselName == vesselName)
-                return v;
-        return null;
-    }
-}
 }
