@@ -20,7 +20,7 @@
 using System;
 using UnityEngine;
 
-class MMI_Kethane_Detector : Part
+public class MMI_Kethane_Detector : Part
 {
     public float DetectingPeriod = 1.0f; // sec 
     public float DetectingHeight = 150000.0f; // meters
