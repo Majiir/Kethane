@@ -11,7 +11,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-class NearestVessels
+internal class NearestVessels
 {
     public List<Vessel> vessels = new List<Vessel>();
     private List<float> distances = new List<float>();
