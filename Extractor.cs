@@ -22,457 +22,459 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-/// <summary>
-///  Based on Zoxygene extractor
-/// </summary>
-public class MMI_Kethane_Extractor : Part
+namespace Kethane
 {
-    #region Fields
-
-    // Is vessel configuration valid? (has controller and tank)
-    private bool ValidConfiguration = false;
-
-    // Part transforms
-    private Transform BaseTransform, Cyl1Transform, Cyl2Transform, Cyl3Transform;
-
-    // Do we want arm to go down, or up?
-    private bool ArmWantToGoDown = false;
-
-    // Used to handle physics properly
-    private int JustLoaded = 0, JustUnpacked = 0;
-
-    // Digging effects
-    private const int EffectsNumber = 4;
-    private GameObject[] DigEffects = new GameObject[EffectsNumber];
-    private Vector3[] DigEffectRotations = new Vector3[EffectsNumber];
-    private Vector3 HitPoint = new Vector3();
-
-    // Mask used in collision (to hit only planet collider)
-    int CollsionLayerMask = 0;
-
-    // Drill turning when inside and outside ground
-    protected static AudioSource DrillOut, DrillIn;
-
-    // Is drill under terrain?
-    bool IsDrillUndergorund = false;
-
-    // Lenght of deployed part
-    private float DeployLength = 0.0f;
-
-    // State of deployment/undeployment
-    public enum DeployState
-    {
-        Idle,
-        DeployBase,
-        DeployArm1,
-        DeployArm2,
-        DeployArm3,
-        Deployed,
-    };
-    public DeployState DrillDeploymentState = new DeployState();
-
-    #endregion
-
     /// <summary>
-    /// Do all operations related to deploing drill (or hiding it) - animation
+    ///  Based on Zoxygene extractor
     /// </summary>
-    private void HandleDeployment(float dt, bool down = true)
+    public class MMI_Kethane_Extractor : Part
     {
-        if (DrillDeploymentState != DeployState.Idle)
+        #region Fields
+
+        // Is vessel configuration valid? (has controller and tank)
+        private bool ValidConfiguration = false;
+
+        // Part transforms
+        private Transform BaseTransform, Cyl1Transform, Cyl2Transform, Cyl3Transform;
+
+        // Do we want arm to go down, or up?
+        private bool ArmWantToGoDown = false;
+
+        // Used to handle physics properly
+        private int JustLoaded = 0, JustUnpacked = 0;
+
+        // Digging effects
+        private const int EffectsNumber = 4;
+        private GameObject[] DigEffects = new GameObject[EffectsNumber];
+        private Vector3[] DigEffectRotations = new Vector3[EffectsNumber];
+        private Vector3 HitPoint = new Vector3();
+
+        // Mask used in collision (to hit only planet collider)
+        int CollsionLayerMask = 0;
+
+        // Drill turning when inside and outside ground
+        protected static AudioSource DrillOut, DrillIn;
+
+        // Is drill under terrain?
+        bool IsDrillUndergorund = false;
+
+        // Lenght of deployed part
+        private float DeployLength = 0.0f;
+
+        // State of deployment/undeployment
+        public enum DeployState
         {
-            float Rotation = dt * 3.75f;
-            Cyl1Transform.RotateAroundLocal(new Vector3(0, 1, 0), Rotation);
-            Cyl2Transform.RotateAroundLocal(new Vector3(0, 1, 0), Rotation);
-            Cyl3Transform.RotateAroundLocal(new Vector3(0, 1, 0), Rotation);
-        }
+            Idle,
+            DeployBase,
+            DeployArm1,
+            DeployArm2,
+            DeployArm3,
+            Deployed,
+        };
+        public DeployState DrillDeploymentState = new DeployState();
 
-        switch (DrillDeploymentState)
-        {
-            case DeployState.Idle:
-                {
-
-                    if (down)
-                        DrillDeploymentState = DeployState.DeployBase;
-                } break;
-
-            case DeployState.DeployBase:
-                {
-                    Vector3 Translation = new Vector3(-dt * 0.35f, 0, 0);
-                    BaseTransform.localPosition += (down ? Translation : -Translation);
-                    //BaseTransform.collider.transform.localPosition += Translation;
-                    if (down)
-                    {
-                        if (BaseTransform.localPosition.x <= -0.35)
-                        {
-                            BaseTransform.localPosition = new Vector3(-0.35f, BaseTransform.localPosition.y, BaseTransform.localPosition.z);
-                            //BaseTransform.collider.transform.localPosition.Set(-0.25f, 0, 0);
-                            DrillDeploymentState = DeployState.DeployArm1;
-                        }
-                    }
-                    else
-                    {
-                        if (BaseTransform.localPosition.x >= -0.0521)
-                        {
-                            BaseTransform.localPosition = new Vector3(-0.0521f, BaseTransform.localPosition.y, BaseTransform.localPosition.z);
-                            //BaseTransform.collider.transform.localPosition.Set(-0.25f, 0, 0);
-                            DrillDeploymentState = DeployState.Idle;
-                        }
-                    }
-                } break;
-
-            case DeployState.DeployArm1:
-                {
-                    float Speed = (!IsDrillUndergorund ? 0.5f : 0.2f);
-                    Vector3 Translation = new Vector3(0, -dt * Speed, 0);
-                    Cyl1Transform.localPosition += (down ? Translation : -Translation);
-                    //Cyl1Transform.collider.transform.localPosition += Translation;
-                    if (down)
-                    {
-                        if (Cyl1Transform.localPosition.y <= -0.399f)
-                        {
-                            Cyl1Transform.localPosition = new Vector3(Cyl1Transform.localPosition.x, -0.399f, Cyl1Transform.localPosition.z);
-                            //Cyl1Transform.collider.transform.localPosition.Set(-5, 0, 0);
-                            DrillDeploymentState = DeployState.DeployArm2;
-                        }
-                    }
-                    else
-                    {
-                        if (Cyl1Transform.localPosition.y >= 0.417346f)
-                        {
-                            Cyl1Transform.localPosition = new Vector3(Cyl1Transform.localPosition.x, 0.417346f, Cyl1Transform.localPosition.z);
-                            //Cyl1Transform.collider.transform.localPosition.Set(-5, 0, 0);
-                            DrillDeploymentState = DeployState.DeployBase;
-                        }
-                    }
-                } break;
-
-            case DeployState.DeployArm2:
-                {
-                    float Speed = (!IsDrillUndergorund ? 0.5f : 0.2f);
-                    Vector3 Translation = new Vector3(0, -dt * Speed, 0);
-                    Cyl2Transform.localPosition += (down ? Translation : -Translation);
-                    //Cyl2Transform.collider.transform.localPosition += Translation;
-                    if (down)
-                    {
-                        if (Cyl2Transform.localPosition.y <= -0.899f)
-                        {
-                            Cyl2Transform.localPosition = new Vector3(Cyl2Transform.localPosition.x, -0.899f, Cyl2Transform.localPosition.z);
-                            //Cyl1Transform.collider.transform.localPosition.Set(-5, 0, 0);
-                            DrillDeploymentState = DeployState.DeployArm3;
-                        }
-                    }
-                    else
-                    {
-                        if (Cyl2Transform.localPosition.y >= -0.01016799f)
-                        {
-                            Cyl2Transform.localPosition = new Vector3(Cyl2Transform.localPosition.x, -0.01016799f, Cyl2Transform.localPosition.z);
-                            //Cyl1Transform.collider.transform.localPosition.Set(-5, 0, 0);
-                            DrillDeploymentState = DeployState.DeployArm1;
-                        }
-                    }
-                } break;
-
-            case DeployState.DeployArm3:
-                {
-                    float Speed = (!IsDrillUndergorund ? 0.5f : 0.2f);
-                    Vector3 Translation = new Vector3(0, -dt * Speed, 0);
-                    Cyl3Transform.localPosition += (down ? Translation : -Translation);
-                    //Cyl2Transform.collider.transform.localPosition += Translation;
-                    if (down)
-                    {
-                        if (Cyl3Transform.localPosition.y <= -0.899f)
-                        {
-                            Cyl3Transform.localPosition = new Vector3(Cyl3Transform.localPosition.x, -0.899f, Cyl3Transform.localPosition.z);
-                            //Cyl1Transform.collider.transform.localPosition.Set(-5, 0, 0);
-                            DrillDeploymentState = DeployState.Deployed;
-                        }
-                    }
-                    else
-                    {
-                        if (Cyl3Transform.localPosition.y >= 0.037)
-                        {
-                            Cyl3Transform.localPosition = new Vector3(Cyl3Transform.localPosition.x, 0.037f, Cyl3Transform.localPosition.z);
-                            //Cyl1Transform.collider.transform.localPosition.Set(-5, 0, 0);
-                            DrillDeploymentState = DeployState.DeployArm2;
-                        }
-                    }
-                } break;
-
-            case DeployState.Deployed:
-                {
-                    if (down == false)
-                        DrillDeploymentState = DeployState.DeployArm3;
-                } break;
-        }
-        DeployLength = Math.Abs(Cyl1Transform.localPosition.y - 0.417346f) + Math.Abs(Cyl2Transform.localPosition.y + 0.01016799f) + Math.Abs(Cyl3Transform.localPosition.y - 0.037f);
-
-    }
-
-    protected override void onPartStart()
-    {
-        this.stackIcon.SetIcon(DefaultIcons.STRUT);
-        this.stackIcon.SetIconColor(XKCDColors.PaleAqua);
-        this.stackIconGrouping = StackIconGrouping.SAME_MODULE;
-    }
-
-    private void ValidateConfiguration()
-    {
-        int FoundControllers = 0, FoundTanks = 0;
-        for (int i = 0; i <= this.vessel.parts.Count - 1; i++)
-        {
-            if (Misc.SMatch(this.vessel.parts.ElementAt(i).GetType().Name, "MMI_Kethane_Controller"))
-                FoundControllers++;
-            if (Misc.SMatch(this.vessel.parts.ElementAt(i).GetType().Name, "MMI_Kethane_Tank"))
-                FoundTanks++;
-        }
-
-        if (FoundControllers != 1)
-        {
-            ValidConfiguration = false;
-            this.deactivate();
-        }
-        else if (FoundTanks == 0)
-        {
-            ValidConfiguration = false;
-            this.deactivate();
-        }
-        else
-        {
-            ValidConfiguration = true;
-            this.force_activate();
-        }
-    }
-
-    protected override void onFlightStart()
-    {
-        #region Configuration
-        ValidateConfiguration();
-        foreach (CelestialBody Body in FlightGlobals.Bodies)
-            CollsionLayerMask = 1 << Body.gameObject.layer;
         #endregion
-        #region Sound effects
-        DrillIn = gameObject.AddComponent<AudioSource>();
-        WWW dIn = new WWW("file://" + KSPUtil.ApplicationRootPath.Replace("\\", "/") + "PluginData/mmi_kethane/sounds/drillIn.wav");
-        if ((DrillIn != null) && (dIn != null))
+
+        /// <summary>
+        /// Do all operations related to deploing drill (or hiding it) - animation
+        /// </summary>
+        private void HandleDeployment(float dt, bool down = true)
         {
-            DrillIn.clip = dIn.GetAudioClip(false);
-            DrillIn.volume = 2;
-            DrillIn.Stop();
-        }
-
-        DrillOut = gameObject.AddComponent<AudioSource>();
-        WWW dOut = new WWW("file://" + KSPUtil.ApplicationRootPath.Replace("\\", "/") + "PluginData/mmi_kethane/sounds/drillOut.wav");
-        if ((DrillOut != null) && (dOut != null))
-        {
-            DrillOut.clip = dOut.GetAudioClip(false);
-            DrillOut.volume = 0.25f;
-            DrillOut.Stop();
-        }
-        #endregion
-        #region Child model parts
-
-        BaseTransform = base.transform.FindChild("model").FindChild("Kethane Small Miner").FindChild("Main Box");
-        Cyl3Transform = base.transform.FindChild("model").FindChild("Kethane Small Miner").FindChild("Main Box").FindChild("1 Cyl");
-        Cyl2Transform = base.transform.FindChild("model").FindChild("Kethane Small Miner").FindChild("Main Box").FindChild("1 Cyl").FindChild("2 Cyl");
-        Cyl1Transform = base.transform.FindChild("model").FindChild("Kethane Small Miner").FindChild("Main Box").FindChild("1 Cyl").FindChild("2 Cyl").FindChild("3 Cyl");
-        #endregion
-        #region Setup effects
-        for (int i = 0; i < EffectsNumber; i++)
-        {
-            DigEffects[i] = (GameObject)GameObject.Instantiate(UnityEngine.Resources.Load("Effects/fx_gasJet_white"));
-            DigEffects[i].name = "DigEffect" + i.ToString();
-            DigEffects[i].transform.parent = BaseTransform;
-
-            DigEffects[i].gameObject.active = false;
-        }
-
-
-        DigEffectRotations[0] = new Vector3(30, 0, 0);
-        DigEffectRotations[1] = new Vector3(0, 0, 30);
-        DigEffectRotations[2] = new Vector3(-30, 0, 0);
-        DigEffectRotations[3] = new Vector3(0, 0, -30);
-
-        UpdateEffects();
-        #endregion
-    }
-
-    protected override void onDecouple(float breakForce)
-    {
-        this.deactivate();
-    }
-
-    protected override bool onPartActivate()
-    {
-        return true;
-    }
-
-    private void ActivateEffects()
-    {
-        foreach (GameObject Effect in DigEffects)
-            Effect.gameObject.active = true;
-    }
-
-    private void DeactivateEffects()
-    {
-        foreach (GameObject Effect in DigEffects)
-            Effect.gameObject.active = false;
-    }
-
-    private bool IsPlanet(Collider collider)
-    {
-        string name = collider.name;
-        if (Char.IsLetter(name[0]) && Char.IsLetter(name[1]) && Char.IsDigit(name[2]) && Char.IsDigit(name[3]) && Char.IsDigit(name[4]))
-            return true;
-        return false;
-    }
-
-    private void UpdateArm()
-    {
-        #region Handle sound
-        //if (this.gameObject.active && vessel == FlightGlobals.ActiveVessel)
-        //{
-        //    if (DrillDeploymentState != DeployState.Idle && DrillDeploymentState != DeployState.DeployBase)
-        //    {
-        //        if (!DrillOut.isPlaying)
-        //            DrillOut.Play();
-        //        if (!DrillIn.isPlaying && IsDrillUndergorund)
-        //            DrillIn.Play();
-        //    }
-        //    else
-        //    {
-        //        DrillIn.Stop();
-        //        DrillOut.Stop();
-        //    }
-        //}
-        //else
-        //{
-        //    DrillIn.Stop();
-        //    DrillOut.Stop();
-        //} 
-        #endregion
-        #region Handle deploying
-        float WarpRate = TimeWarp.CurrentRate;
-        if (WarpRate == 0)
-            WarpRate = 1;
-
-        if ((WarpRate <= 2) && (JustUnpacked == 0))
-        {
-            if (ArmWantToGoDown)
-                HandleDeployment(Time.deltaTime);
-            else
-                HandleDeployment(Time.deltaTime, false);
-        }
-        #endregion
-        #region Check ground interaction
-        RaycastHit hit, hitdrill;
-        IsDrillUndergorund = false;
-
-        Physics.Raycast(Cyl3Transform.position, -Cyl3Transform.up, out hitdrill, 10, CollsionLayerMask);
-        if (ValidConfiguration && DeployLength > 0)
-        {
-            if (Physics.Raycast(BaseTransform.position, -BaseTransform.up, out hit, 10, CollsionLayerMask) && (WarpRate <= 2) && (JustUnpacked == 0))//shoot a ray at centre of the vessels main body
+            if (DrillDeploymentState != DeployState.Idle)
             {
-                if (hit.collider != null)
-                {
-                    //print("Hit: " + hit.collider.name + " at distance: " + hit.distance + " with deploy: " + DeployLength);
-                    float InitialDistanceToGround = hit.distance - 3.95f;
+                float Rotation = dt * 3.75f;
+                Cyl1Transform.RotateAroundLocal(new Vector3(0, 1, 0), Rotation);
+                Cyl2Transform.RotateAroundLocal(new Vector3(0, 1, 0), Rotation);
+                Cyl3Transform.RotateAroundLocal(new Vector3(0, 1, 0), Rotation);
+            }
 
-                    // If there's possiblilty to drill
-                    if (InitialDistanceToGround < 0 && IsPlanet(hit.collider))
+            switch (DrillDeploymentState)
+            {
+                case DeployState.Idle:
                     {
-                        float AllowableDeployment = 2.64f - Math.Abs(InitialDistanceToGround) + 0.5f;
-                        // Check if drill is underground
-                        if (DeployLength > AllowableDeployment)
+
+                        if (down)
+                            DrillDeploymentState = DeployState.DeployBase;
+                    } break;
+
+                case DeployState.DeployBase:
+                    {
+                        Vector3 Translation = new Vector3(-dt * 0.35f, 0, 0);
+                        BaseTransform.localPosition += (down ? Translation : -Translation);
+                        //BaseTransform.collider.transform.localPosition += Translation;
+                        if (down)
                         {
-                            HitPoint = hit.point;
-                            IsDrillUndergorund = true;
-                            float Depth = AllowableDeployment - DeployLength;
+                            if (BaseTransform.localPosition.x <= -0.35)
+                            {
+                                BaseTransform.localPosition = new Vector3(-0.35f, BaseTransform.localPosition.y, BaseTransform.localPosition.z);
+                                //BaseTransform.collider.transform.localPosition.Set(-0.25f, 0, 0);
+                                DrillDeploymentState = DeployState.DeployArm1;
+                            }
+                        }
+                        else
+                        {
+                            if (BaseTransform.localPosition.x >= -0.0521)
+                            {
+                                BaseTransform.localPosition = new Vector3(-0.0521f, BaseTransform.localPosition.y, BaseTransform.localPosition.z);
+                                //BaseTransform.collider.transform.localPosition.Set(-0.25f, 0, 0);
+                                DrillDeploymentState = DeployState.Idle;
+                            }
+                        }
+                    } break;
+
+                case DeployState.DeployArm1:
+                    {
+                        float Speed = (!IsDrillUndergorund ? 0.5f : 0.2f);
+                        Vector3 Translation = new Vector3(0, -dt * Speed, 0);
+                        Cyl1Transform.localPosition += (down ? Translation : -Translation);
+                        //Cyl1Transform.collider.transform.localPosition += Translation;
+                        if (down)
+                        {
+                            if (Cyl1Transform.localPosition.y <= -0.399f)
+                            {
+                                Cyl1Transform.localPosition = new Vector3(Cyl1Transform.localPosition.x, -0.399f, Cyl1Transform.localPosition.z);
+                                //Cyl1Transform.collider.transform.localPosition.Set(-5, 0, 0);
+                                DrillDeploymentState = DeployState.DeployArm2;
+                            }
+                        }
+                        else
+                        {
+                            if (Cyl1Transform.localPosition.y >= 0.417346f)
+                            {
+                                Cyl1Transform.localPosition = new Vector3(Cyl1Transform.localPosition.x, 0.417346f, Cyl1Transform.localPosition.z);
+                                //Cyl1Transform.collider.transform.localPosition.Set(-5, 0, 0);
+                                DrillDeploymentState = DeployState.DeployBase;
+                            }
+                        }
+                    } break;
+
+                case DeployState.DeployArm2:
+                    {
+                        float Speed = (!IsDrillUndergorund ? 0.5f : 0.2f);
+                        Vector3 Translation = new Vector3(0, -dt * Speed, 0);
+                        Cyl2Transform.localPosition += (down ? Translation : -Translation);
+                        //Cyl2Transform.collider.transform.localPosition += Translation;
+                        if (down)
+                        {
+                            if (Cyl2Transform.localPosition.y <= -0.899f)
+                            {
+                                Cyl2Transform.localPosition = new Vector3(Cyl2Transform.localPosition.x, -0.899f, Cyl2Transform.localPosition.z);
+                                //Cyl1Transform.collider.transform.localPosition.Set(-5, 0, 0);
+                                DrillDeploymentState = DeployState.DeployArm3;
+                            }
+                        }
+                        else
+                        {
+                            if (Cyl2Transform.localPosition.y >= -0.01016799f)
+                            {
+                                Cyl2Transform.localPosition = new Vector3(Cyl2Transform.localPosition.x, -0.01016799f, Cyl2Transform.localPosition.z);
+                                //Cyl1Transform.collider.transform.localPosition.Set(-5, 0, 0);
+                                DrillDeploymentState = DeployState.DeployArm1;
+                            }
+                        }
+                    } break;
+
+                case DeployState.DeployArm3:
+                    {
+                        float Speed = (!IsDrillUndergorund ? 0.5f : 0.2f);
+                        Vector3 Translation = new Vector3(0, -dt * Speed, 0);
+                        Cyl3Transform.localPosition += (down ? Translation : -Translation);
+                        //Cyl2Transform.collider.transform.localPosition += Translation;
+                        if (down)
+                        {
+                            if (Cyl3Transform.localPosition.y <= -0.899f)
+                            {
+                                Cyl3Transform.localPosition = new Vector3(Cyl3Transform.localPosition.x, -0.899f, Cyl3Transform.localPosition.z);
+                                //Cyl1Transform.collider.transform.localPosition.Set(-5, 0, 0);
+                                DrillDeploymentState = DeployState.Deployed;
+                            }
+                        }
+                        else
+                        {
+                            if (Cyl3Transform.localPosition.y >= 0.037)
+                            {
+                                Cyl3Transform.localPosition = new Vector3(Cyl3Transform.localPosition.x, 0.037f, Cyl3Transform.localPosition.z);
+                                //Cyl1Transform.collider.transform.localPosition.Set(-5, 0, 0);
+                                DrillDeploymentState = DeployState.DeployArm2;
+                            }
+                        }
+                    } break;
+
+                case DeployState.Deployed:
+                    {
+                        if (down == false)
+                            DrillDeploymentState = DeployState.DeployArm3;
+                    } break;
+            }
+            DeployLength = Math.Abs(Cyl1Transform.localPosition.y - 0.417346f) + Math.Abs(Cyl2Transform.localPosition.y + 0.01016799f) + Math.Abs(Cyl3Transform.localPosition.y - 0.037f);
+
+        }
+
+        protected override void onPartStart()
+        {
+            this.stackIcon.SetIcon(DefaultIcons.STRUT);
+            this.stackIcon.SetIconColor(XKCDColors.PaleAqua);
+            this.stackIconGrouping = StackIconGrouping.SAME_MODULE;
+        }
+
+        private void ValidateConfiguration()
+        {
+            int FoundControllers = 0, FoundTanks = 0;
+            for (int i = 0; i <= this.vessel.parts.Count - 1; i++)
+            {
+                if (Misc.SMatch(this.vessel.parts.ElementAt(i).GetType().Name, "MMI_Kethane_Controller"))
+                    FoundControllers++;
+                if (Misc.SMatch(this.vessel.parts.ElementAt(i).GetType().Name, "MMI_Kethane_Tank"))
+                    FoundTanks++;
+            }
+
+            if (FoundControllers != 1)
+            {
+                ValidConfiguration = false;
+                this.deactivate();
+            }
+            else if (FoundTanks == 0)
+            {
+                ValidConfiguration = false;
+                this.deactivate();
+            }
+            else
+            {
+                ValidConfiguration = true;
+                this.force_activate();
+            }
+        }
+
+        protected override void onFlightStart()
+        {
+            #region Configuration
+            ValidateConfiguration();
+            foreach (CelestialBody Body in FlightGlobals.Bodies)
+                CollsionLayerMask = 1 << Body.gameObject.layer;
+            #endregion
+            #region Sound effects
+            DrillIn = gameObject.AddComponent<AudioSource>();
+            WWW dIn = new WWW("file://" + KSPUtil.ApplicationRootPath.Replace("\\", "/") + "PluginData/mmi_kethane/sounds/drillIn.wav");
+            if ((DrillIn != null) && (dIn != null))
+            {
+                DrillIn.clip = dIn.GetAudioClip(false);
+                DrillIn.volume = 2;
+                DrillIn.Stop();
+            }
+
+            DrillOut = gameObject.AddComponent<AudioSource>();
+            WWW dOut = new WWW("file://" + KSPUtil.ApplicationRootPath.Replace("\\", "/") + "PluginData/mmi_kethane/sounds/drillOut.wav");
+            if ((DrillOut != null) && (dOut != null))
+            {
+                DrillOut.clip = dOut.GetAudioClip(false);
+                DrillOut.volume = 0.25f;
+                DrillOut.Stop();
+            }
+            #endregion
+            #region Child model parts
+
+            BaseTransform = base.transform.FindChild("model").FindChild("Kethane Small Miner").FindChild("Main Box");
+            Cyl3Transform = base.transform.FindChild("model").FindChild("Kethane Small Miner").FindChild("Main Box").FindChild("1 Cyl");
+            Cyl2Transform = base.transform.FindChild("model").FindChild("Kethane Small Miner").FindChild("Main Box").FindChild("1 Cyl").FindChild("2 Cyl");
+            Cyl1Transform = base.transform.FindChild("model").FindChild("Kethane Small Miner").FindChild("Main Box").FindChild("1 Cyl").FindChild("2 Cyl").FindChild("3 Cyl");
+            #endregion
+            #region Setup effects
+            for (int i = 0; i < EffectsNumber; i++)
+            {
+                DigEffects[i] = (GameObject)GameObject.Instantiate(UnityEngine.Resources.Load("Effects/fx_gasJet_white"));
+                DigEffects[i].name = "DigEffect" + i.ToString();
+                DigEffects[i].transform.parent = BaseTransform;
+
+                DigEffects[i].gameObject.active = false;
+            }
+
+
+            DigEffectRotations[0] = new Vector3(30, 0, 0);
+            DigEffectRotations[1] = new Vector3(0, 0, 30);
+            DigEffectRotations[2] = new Vector3(-30, 0, 0);
+            DigEffectRotations[3] = new Vector3(0, 0, -30);
+
+            UpdateEffects();
+            #endregion
+        }
+
+        protected override void onDecouple(float breakForce)
+        {
+            this.deactivate();
+        }
+
+        protected override bool onPartActivate()
+        {
+            return true;
+        }
+
+        private void ActivateEffects()
+        {
+            foreach (GameObject Effect in DigEffects)
+                Effect.gameObject.active = true;
+        }
+
+        private void DeactivateEffects()
+        {
+            foreach (GameObject Effect in DigEffects)
+                Effect.gameObject.active = false;
+        }
+
+        private bool IsPlanet(Collider collider)
+        {
+            string name = collider.name;
+            if (Char.IsLetter(name[0]) && Char.IsLetter(name[1]) && Char.IsDigit(name[2]) && Char.IsDigit(name[3]) && Char.IsDigit(name[4]))
+                return true;
+            return false;
+        }
+
+        private void UpdateArm()
+        {
+            #region Handle sound
+            //if (this.gameObject.active && vessel == FlightGlobals.ActiveVessel)
+            //{
+            //    if (DrillDeploymentState != DeployState.Idle && DrillDeploymentState != DeployState.DeployBase)
+            //    {
+            //        if (!DrillOut.isPlaying)
+            //            DrillOut.Play();
+            //        if (!DrillIn.isPlaying && IsDrillUndergorund)
+            //            DrillIn.Play();
+            //    }
+            //    else
+            //    {
+            //        DrillIn.Stop();
+            //        DrillOut.Stop();
+            //    }
+            //}
+            //else
+            //{
+            //    DrillIn.Stop();
+            //    DrillOut.Stop();
+            //} 
+            #endregion
+            #region Handle deploying
+            float WarpRate = TimeWarp.CurrentRate;
+            if (WarpRate == 0)
+                WarpRate = 1;
+
+            if ((WarpRate <= 2) && (JustUnpacked == 0))
+            {
+                if (ArmWantToGoDown)
+                    HandleDeployment(Time.deltaTime);
+                else
+                    HandleDeployment(Time.deltaTime, false);
+            }
+            #endregion
+            #region Check ground interaction
+            RaycastHit hit, hitdrill;
+            IsDrillUndergorund = false;
+
+            Physics.Raycast(Cyl3Transform.position, -Cyl3Transform.up, out hitdrill, 10, CollsionLayerMask);
+            if (ValidConfiguration && DeployLength > 0)
+            {
+                if (Physics.Raycast(BaseTransform.position, -BaseTransform.up, out hit, 10, CollsionLayerMask) && (WarpRate <= 2) && (JustUnpacked == 0))//shoot a ray at centre of the vessels main body
+                {
+                    if (hit.collider != null)
+                    {
+                        //print("Hit: " + hit.collider.name + " at distance: " + hit.distance + " with deploy: " + DeployLength);
+                        float InitialDistanceToGround = hit.distance - 3.95f;
+
+                        // If there's possiblilty to drill
+                        if (InitialDistanceToGround < 0 && IsPlanet(hit.collider))
+                        {
+                            float AllowableDeployment = 2.64f - Math.Abs(InitialDistanceToGround) + 0.5f;
+                            // Check if drill is underground
+                            if (DeployLength > AllowableDeployment)
+                            {
+                                HitPoint = hit.point;
+                                IsDrillUndergorund = true;
+                                float Depth = AllowableDeployment - DeployLength;
+                            }
                         }
                     }
                 }
             }
-        }
-        #endregion
-        #region Update effects
-        if (IsDrillUndergorund && Math.Abs(DeployLength) > 0.01f && DrillDeploymentState == DeployState.Deployed)
-        {
-            if (Vector3.Distance(this.vessel.transform.position, Camera.mainCamera.transform.position) < 500)
+            #endregion
+            #region Update effects
+            if (IsDrillUndergorund && Math.Abs(DeployLength) > 0.01f && DrillDeploymentState == DeployState.Deployed)
             {
-                UpdateEffects();
-                ActivateEffects();
+                if (Vector3.Distance(this.vessel.transform.position, Camera.mainCamera.transform.position) < 500)
+                {
+                    UpdateEffects();
+                    ActivateEffects();
+                }
+                else
+                    DeactivateEffects();
             }
             else
                 DeactivateEffects();
+            #endregion
         }
-        else
-            DeactivateEffects();
-        #endregion
-    }
 
-    private void UpdateEffects()
-    {
-        for (int i = 0; i < EffectsNumber; i++)
+        private void UpdateEffects()
         {
-            DigEffects[i].transform.position = HitPoint - 0.1f * BaseTransform.right;
-            DigEffects[i].transform.localRotation = Quaternion.Euler(DigEffectRotations[i]);
+            for (int i = 0; i < EffectsNumber; i++)
+            {
+                DigEffects[i].transform.position = HitPoint - 0.1f * BaseTransform.right;
+                DigEffects[i].transform.localRotation = Quaternion.Euler(DigEffectRotations[i]);
+            }
         }
-    }
 
-    public void DeployArm()
-    {
-        float WarpRate = TimeWarp.CurrentRate;
-        if (WarpRate == 0)
-            WarpRate = 1;
-
-        if ((WarpRate <= 2) && (this.vessel.isActiveVessel) && ValidConfiguration)
+        public void DeployArm()
         {
-            if (ArmWantToGoDown)
-                ArmWantToGoDown = false;
-            else
-                ArmWantToGoDown = true;
+            float WarpRate = TimeWarp.CurrentRate;
+            if (WarpRate == 0)
+                WarpRate = 1;
+
+            if ((WarpRate <= 2) && (this.vessel.isActiveVessel) && ValidConfiguration)
+            {
+                if (ArmWantToGoDown)
+                    ArmWantToGoDown = false;
+                else
+                    ArmWantToGoDown = true;
+            }
         }
-    }
 
-    public float DrillDepth()
-    {
-        if (IsDrillUndergorund && DrillDeploymentState == DeployState.Deployed && Math.Abs(DeployLength) > 0.01f)
-            return Math.Abs(DeployLength);
-        return -1;
-    }
+        public float DrillDepth()
+        {
+            if (IsDrillUndergorund && DrillDeploymentState == DeployState.Deployed && Math.Abs(DeployLength) > 0.01f)
+                return Math.Abs(DeployLength);
+            return -1;
+        }
 
-    protected override void onPartUpdate()
-    {
-        if (JustLoaded == 0)
-            UpdateArm();
-    }
+        protected override void onPartUpdate()
+        {
+            if (JustLoaded == 0)
+                UpdateArm();
+        }
 
-    protected override void onUnpack()
-    {
-        JustUnpacked = 20;
-    }
+        protected override void onUnpack()
+        {
+            JustUnpacked = 20;
+        }
 
-    protected override void onPartFixedUpdate()
-    {
-        float WarpRate = TimeWarp.CurrentRate;
-        if (WarpRate == 0)
-            WarpRate = 1;
+        protected override void onPartFixedUpdate()
+        {
+            float WarpRate = TimeWarp.CurrentRate;
+            if (WarpRate == 0)
+                WarpRate = 1;
 
-        if (JustLoaded > 0)
-            JustLoaded--;
+            if (JustLoaded > 0)
+                JustLoaded--;
 
-        if (JustUnpacked > 0)
-            JustUnpacked--;
-    }
+            if (JustUnpacked > 0)
+                JustUnpacked--;
+        }
 
-    public override void onFlightStateSave(Dictionary<string, KSPParseable> partDataCollection)
-    {
-        partDataCollection.Add("WantDown", new KSPParseable((object)this.ArmWantToGoDown, KSPParseable.Type.BOOL));
-    }
+        public override void onFlightStateSave(Dictionary<string, KSPParseable> partDataCollection)
+        {
+            partDataCollection.Add("WantDown", new KSPParseable((object)this.ArmWantToGoDown, KSPParseable.Type.BOOL));
+        }
 
-    public override void onFlightStateLoad(Dictionary<string, KSPParseable> parsedData)
-    {
-        this.ArmWantToGoDown = bool.Parse(parsedData["WantDown"].value);
-        JustLoaded = 300;
+        public override void onFlightStateLoad(Dictionary<string, KSPParseable> parsedData)
+        {
+            this.ArmWantToGoDown = bool.Parse(parsedData["WantDown"].value);
+            JustLoaded = 300;
+        }
     }
 }
-
