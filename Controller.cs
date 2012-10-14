@@ -1111,11 +1111,11 @@ public class MMI_Kethane_Controller : Part
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Mouse Latitude: ", KGuiStyleLabels);
-            GUILayout.Label(" " + (inbound ? GetLatOnMap(yVar, planetTex.height).ToString("#0.0") : "n/a"), KGuiStyleNumbers);
+            GUILayout.Label(" " + (inbound ? GetLatOnMap(yVar, planetTex.height).ToString("#0.0") : "-"), KGuiStyleNumbers);
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
             GUILayout.Label("Mouse Longitude: ", KGuiStyleLabels);
-            GUILayout.Label(" " + (inbound ? GetLonOnMap(xVar, planetTex.width).ToString("#0.0") : "n/a"), KGuiStyleNumbers);
+            GUILayout.Label(" " + (inbound ? GetLonOnMap(xVar, planetTex.width).ToString("#0.0") : "-"), KGuiStyleNumbers);
             GUILayout.EndHorizontal();
 
         }
