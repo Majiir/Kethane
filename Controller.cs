@@ -1073,13 +1073,52 @@ public class MMI_Kethane_Controller : Part
         return pixelY;
     }
 
+    private static int GetLonOnMap(double x, int width)
+    {
+        int mapLong = -1;
+        mapLong = -((int)(360 * x) / width + 180);
+        return mapLong;
+    }
+
+    private static int GetLatOnMap(double y, int height)
+    {
+        int mapLong = -1;
+        mapLong = (int)(180 * y) / height - 90;
+        return mapLong;
+    }
+
     private void DetectorWindowGUI(int windowID)
     {
         #region Detector
         GUILayout.BeginVertical();
 
         if (vessel.mainBody != null && PlanetTextures.ContainsKey(vessel.mainBody.name))
-            GUILayout.Box(PlanetTextures[vessel.mainBody.name]);
+        {
+            Texture2D planetTex = PlanetTextures[vessel.mainBody.name];
+            GUILayout.Box(planetTex);
+            Rect Last = UnityEngine.GUILayoutUtility.GetLastRect();
+
+            float xVar = ((Last.xMin + Last.xMax) / 2) - (planetTex.width / 2) + DetectorWindowPosition.x;
+            float yVar = ((Last.yMin + Last.yMax) / 2) - (planetTex.height / 2) + DetectorWindowPosition.y;
+            xVar = xVar - UnityEngine.Input.mousePosition.x;
+            yVar = (Screen.height - yVar) - UnityEngine.Input.mousePosition.y;
+
+            bool inbound = true;
+            if (yVar > planetTex.height || yVar < 0)
+                inbound = false;
+            if (-xVar > planetTex.width || -xVar < 0)
+                inbound = false;
+
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("Mouse Latitude: ", KGuiStyleLabels);
+            GUILayout.Label(" " + (inbound ? GetLatOnMap(yVar, planetTex.height).ToString("#0.0") : "-"), KGuiStyleNumbers);
+            GUILayout.EndHorizontal();
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("Mouse Longitude: ", KGuiStyleLabels);
+            GUILayout.Label(" " + (inbound ? GetLonOnMap(xVar, planetTex.width).ToString("#0.0") : "-"), KGuiStyleNumbers);
+            GUILayout.EndHorizontal();
+
+        }
 
         if (FoundDetectors > 0 && DetectorPart != null)
         {
