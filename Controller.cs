@@ -141,7 +141,7 @@ namespace Kethane
                     }
                     if (unpack)
                     {
-                        SaveAllMaps();
+                        SaveBodyMap(body);
                     }
                     else if (KSP.IO.File.Exists<MMI_Kethane_Controller>(body.name + ".png"))
                     {
