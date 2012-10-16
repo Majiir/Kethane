@@ -145,9 +145,7 @@ namespace Kethane
                     }
                     else if (KSP.IO.File.Exists<MMI_Kethane_Controller>(body.name + ".png"))
                     {
-                        WWW mapload = new WWW("file://" + KSPUtil.ApplicationRootPath.Replace("\\", "/") + "PluginData/mmi_kethane/" + body.name + ".png");
-                        while (!mapload.isDone) { }
-                        mapload.LoadImageIntoTexture(PlanetTextures[body.name]);
+                        PlanetTextures[body.name].LoadImage(KSP.IO.File.ReadAllBytes<MMI_Kethane_Controller>(body.name + ".png"));
                     }
                     else
                     {
