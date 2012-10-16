@@ -1068,7 +1068,7 @@ namespace Kethane
         /// </summary>
         private static int GetYOnMap(double lat, int height)
         {
-            return (int)Math.Round((90d - lat) * ((double)height / 180d));
+            return (int)Math.Round((lat + 90d) * ((double)height / 180d));
         }
 
         private static int GetLonOnMap(double x, int width)
@@ -1078,7 +1078,7 @@ namespace Kethane
 
         private static int GetLatOnMap(double y, int height)
         {
-            return (int)(180 * y) / height - 90;
+            return -((int)(180 * y) / height - 90);
         }
 
         private void DetectorWindowGUI(int windowID)
