@@ -82,11 +82,13 @@ namespace Kethane
         private double dist = 0.0;
 
         private static void Swap<T>(ref T lhs, ref T rhs) { T temp; temp = lhs; lhs = rhs; rhs = temp; }
+
         public bool PlotFunction(Texture2D tex, int x, int y)
         {
             tex.SetPixel(x, y, Color.red);
             return true;
         }
+
         public void Line(Texture2D tex, int x0, int y0, int x1, int y1)
         {
             bool steep = Math.Abs(y1 - y0) > Math.Abs(x1 - x0);
