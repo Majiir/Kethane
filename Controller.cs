@@ -1068,7 +1068,7 @@ namespace Kethane
         /// </summary>
         private static int GetYOnMap(double lat, int height)
         {
-            return (int)Math.Round(((90d - lat) * ((double)height / 180d)));
+            return (int)Math.Round((90d - lat) * ((double)height / 180d));
         }
 
         private static int GetLonOnMap(double x, int width)
