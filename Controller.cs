@@ -648,8 +648,8 @@ namespace Kethane
         /// </summary>
         private float? ConvertKethaneToFuel()
         {
-            float AmountToGive = ConversionSpeed * ConversionRatio * Time.deltaTime * TimeWarp.CurrentRate;
-            float AmountToTake = ConversionSpeed * Time.deltaTime * TimeWarp.CurrentRate;
+            float AmountToGive = ConversionSpeed * ConversionRatio * TimeWarp.deltaTime;
+            float AmountToTake = ConversionSpeed * TimeWarp.deltaTime;
             float FreeSpace = GetAvailableFuelSpace();
             float KethaneAvailable = GetAvailableKethane(this.vessel);
 
@@ -690,8 +690,8 @@ namespace Kethane
         /// </summary>
         private float? ConvertKethaneToRCSFuel()
         {
-            float AmountToGive = ConversionSpeed * (1.25f * ConversionRatio > 1 ? 1 : 1.25f * ConversionRatio) * Time.deltaTime * TimeWarp.CurrentRate;
-            float AmountToTake = ConversionSpeed * Time.deltaTime * TimeWarp.CurrentRate;
+            float AmountToGive = ConversionSpeed * (1.25f * ConversionRatio > 1 ? 1 : 1.25f * ConversionRatio) * TimeWarp.deltaTime;
+            float AmountToTake = ConversionSpeed * TimeWarp.deltaTime;
             float FreeSpace = GetAvailableRCSFuelSpace();
             float KethanAvailable = GetAvailableKethane(this.vessel);
 
@@ -864,7 +864,7 @@ namespace Kethane
                         PumpLine.SetWidth(0, 0);
                         return;
                     }
-                    float Amount = PumpingSpeed * Time.deltaTime * TimeWarp.CurrentRate;
+                    float Amount = PumpingSpeed * TimeWarp.deltaTime;
                     Vector3 LPoint = transform.InverseTransformPoint(VesselToPumpTo.transform.position);
                     PumpLine.SetPosition(1, LPoint);
                     PumpLine.SetWidth(0.5f, 0.5f);
@@ -1015,7 +1015,7 @@ namespace Kethane
 
                         if ((ExtractorPart.DrillDeploymentState == MMI_Kethane_Extractor.DeployState.Deployed) && (((DrillDepth >= DepositUnder.Depth) && (DrillDepth > 0)) || vessel.Landed))
                         {
-                            float Amount = Time.deltaTime * TimeWarp.CurrentRate * 1.25f;
+                            float Amount = TimeWarp.deltaTime * 1.25f;
                             if (DepositUnder.Kethane >= Amount)
                             {
                                 float FreeSpace = GetAvailableKethaneSpace(this.vessel);
