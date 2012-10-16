@@ -153,12 +153,17 @@ namespace Kethane
                             for (int x = 0; x < PlanetTextures[body.name].width; x++)
                                 PlanetTextures[body.name].SetPixel(x, y, Color.black);
                         PlanetTextures[body.name].Apply();
-                        var pbytes = PlanetTextures[body.name].EncodeToPNG();
-                        KSP.IO.File.WriteAllBytes<MMI_Kethane_Controller>(pbytes, body.name + ".png", null);
+                        SaveBodyMap(body);
                     }
                 }
                 ClearFlag();
             }
+        }
+
+        private static void SaveBodyMap(CelestialBody body)
+        {
+            var pbytes = PlanetTextures[body.name].EncodeToPNG();
+            KSP.IO.File.WriteAllBytes<MMI_Kethane_Controller>(pbytes, body.name + ".png", null);
         }
 
         void SaveAllMaps()
@@ -170,8 +175,7 @@ namespace Kethane
                 {
                     if (PlanetTextures.ContainsKey(body.name))
                     {
-                        var pbytes = PlanetTextures[body.name].EncodeToPNG();
-                        KSP.IO.File.WriteAllBytes<MMI_Kethane_Controller>(pbytes, body.name + ".png", null);
+                        SaveBodyMap(body);
                     }
                 }
                 ClearFlag();
@@ -185,8 +189,7 @@ namespace Kethane
                 SetFlag();
                 if (vessel.mainBody != null && PlanetTextures.ContainsKey(vessel.mainBody.name))
                 {
-                    var pbytes = PlanetTextures[vessel.mainBody.name].EncodeToPNG();
-                    KSP.IO.File.WriteAllBytes<MMI_Kethane_Controller>(pbytes, vessel.mainBody + ".png", null);
+                    SaveBodyMap(vessel.mainBody);
                 } ClearFlag();
             }
         }
