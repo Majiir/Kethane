@@ -312,17 +312,6 @@ namespace Kethane
         }
 
         /// <summary>
-        /// Search for kethane deposit file and load it. If not found, generate a new deposits.
-        /// </summary>
-        private void ResumeKethaneDeposits()
-        {
-            if (KSP.IO.File.Exists<MMI_Kethane_Controller>("Deposits.dat"))
-                LoadKethaneDeposits();
-            else
-                GenerateKethaneDeposits();
-        }
-
-        /// <summary>
         /// Check if vessel can pump oil (either back or forth)
         /// </summary>
         private bool CanVesselPumpKethane(Vessel v)
@@ -511,7 +500,7 @@ namespace Kethane
             }
             #endregion
 
-            ResumeKethaneDeposits();
+            LoadKethaneDeposits();
 
             if (FuelTanksCapacities == null)
                 FillFuelTankDictionary();
