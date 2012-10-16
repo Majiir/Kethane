@@ -1060,9 +1060,7 @@ namespace Kethane
         /// </summary>
         private static int GetXOnMap(double lon, int width)
         {
-            int pixelX = -1;
-            pixelX = (int)Math.Round((lon + 180d) * ((double)width / 360d));
-            return pixelX;
+            return (int)Math.Round((lon + 180d) * ((double)width / 360d));
         }
 
         /// <summary>
@@ -1070,23 +1068,17 @@ namespace Kethane
         /// </summary>
         private static int GetYOnMap(double lat, int height)
         {
-            int pixelY = -1;
-            pixelY = (int)Math.Round(((90d - lat) * ((double)height / 180d)));
-            return pixelY;
+            return (int)Math.Round((lat + 90d) * ((double)height / 180d));
         }
 
         private static int GetLonOnMap(double x, int width)
         {
-            int mapLong = -1;
-            mapLong = -((int)(360 * x) / width + 180);
-            return mapLong;
+            return -((int)(360 * x) / width + 180);
         }
 
         private static int GetLatOnMap(double y, int height)
         {
-            int mapLong = -1;
-            mapLong = (int)(180 * y) / height - 90;
-            return mapLong;
+            return -((int)(180 * y) / height - 90);
         }
 
         private void DetectorWindowGUI(int windowID)
