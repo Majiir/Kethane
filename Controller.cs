@@ -271,18 +271,15 @@ namespace Kethane
                     Loader.Close();
                     object ObjectToLoad = KSP.IO.IOUtils.DeserializeFromBinary(DepositsToLoad);
                     PlanetDeposits = (Dictionary<string, KethaneDeposits>)ObjectToLoad;
+                    return;
                 }
                 catch (Exception e)
                 {
                     print("Kethane plugin - deposit load error: " + e);
                     print("Generating new kethane deposits");
-                    GenerateKethaneDeposits();
                 }
-
-
             }
-            else
-                GenerateKethaneDeposits();
+            GenerateKethaneDeposits();
         }
 
         /// <summary>
@@ -318,10 +315,7 @@ namespace Kethane
                     PFoundPumps++;
             }
 
-            if (PFoundPumps > 0 && PFoundTanks > 0)
-                return true;
-            else
-                return false;
+            return (PFoundPumps > 0 && PFoundTanks > 0);
         }
 
         /// <summary>
@@ -967,25 +961,30 @@ namespace Kethane
         {
             foreach (MMI_Kethane_Extractor ExtractorPart in ExtractorParts)
             {
-                if (ExtractorPart != null && this.vessel != null)
+                if (ExtractorPart != null && this.vessel != null && DepositUnder != null && ExtractorPart.DrillDeploymentState == MMI_Kethane_Extractor.DeployState.Deployed)
                 {
-                    if (DepositUnder != null)
+                    if (TimeWarp.WarpMode == TimeWarp.Modes.HIGH && TimeWarp.CurrentRateIndex > 0)
+                    {
+                        CanDrill &= vessel.Landed;
+                    }
+                    else
                     {
                         float DrillDepth = ExtractorPart.DrillDepth();
+                        CanDrill = (DrillDepth >= DepositUnder.Depth) && (DrillDepth > 0);
+                    }
 
-                        if ((ExtractorPart.DrillDeploymentState == MMI_Kethane_Extractor.DeployState.Deployed) && (((DrillDepth >= DepositUnder.Depth) && (DrillDepth > 0)) || vessel.Landed))
+                    if (((DrillDepth >= DepositUnder.Depth) && (DrillDepth > 0)) || vessel.Landed)
+                    {
+                        float Amount = TimeWarp.deltaTime * 1.25f;
+                        if (DepositUnder.Kethane >= Amount)
                         {
-                            float Amount = TimeWarp.deltaTime * 1.25f;
-                            if (DepositUnder.Kethane >= Amount)
+                            float FreeSpace = GetAvailableKethaneSpace(this.vessel);
+                            if (FreeSpace > 0.001)
                             {
-                                float FreeSpace = GetAvailableKethaneSpace(this.vessel);
-                                if (FreeSpace > 0.001)
-                                {
-                                    PumpKethaneTo(this.vessel, Amount);
-                                    DepositUnder.Kethane -= Amount;
-                                    if (DepositUnder.Kethane < 0)
-                                        DepositUnder.Kethane = 0;
-                                }
+                                PumpKethaneTo(this.vessel, Amount);
+                                DepositUnder.Kethane -= Amount;
+                                if (DepositUnder.Kethane < 0)
+                                    DepositUnder.Kethane = 0;
                             }
                         }
                     }
