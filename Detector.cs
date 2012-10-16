@@ -42,7 +42,7 @@ namespace Kethane
             return a;
         }
 
-        Vector2 CartesianToPolar(Vector3 point)
+        private Vector2 CartesianToPolar(Vector3 point)
         {
             Vector2 polar = new Vector2();
             polar.y = Mathf.Atan2(point.x, point.z);

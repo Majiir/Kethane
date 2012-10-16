@@ -50,13 +50,13 @@ namespace Kethane
         private Vector3 HitPoint = new Vector3();
 
         // Mask used in collision (to hit only planet collider)
-        int CollsionLayerMask = 0;
+        private int CollsionLayerMask = 0;
 
         // Drill turning when inside and outside ground
         protected static AudioSource DrillOut, DrillIn;
 
         // Is drill under terrain?
-        bool IsDrillUndergorund = false;
+        private bool IsDrillUndergorund = false;
 
         // Lenght of deployed part
         private float DeployLength = 0.0f;

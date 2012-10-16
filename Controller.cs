@@ -28,14 +28,14 @@ namespace Kethane
     {
         private bool ValidConfiguration = false;
 
-        string ButtonMessage = "Kethane Controller";
+        private string ButtonMessage = "Kethane Controller";
 
-        GUIStyle KGuiStyleButton;
-        GUIStyle KGuiStyleList;
-        GUIStyle KGuiStyleListActive;
-        GUIStyle KGuiStyleLabels;
-        GUIStyle KGuiStyleLog;
-        GUIStyle KGuiStyleNumbers;
+        private GUIStyle KGuiStyleButton;
+        private GUIStyle KGuiStyleList;
+        private GUIStyle KGuiStyleListActive;
+        private GUIStyle KGuiStyleLabels;
+        private GUIStyle KGuiStyleLog;
+        private GUIStyle KGuiStyleNumbers;
 
         private Rect InfoWindowPosition, PumpWindowPosition, ExtractorWindowPosition, ConverterWindowPosition, DetectorWindowPosition, DebugWindowPosition;
         private bool InfoWindowShow = false, PumpWindowShow = false, ExtractorWindowShow = false, ConverterWindowShow = false, DetectorWindowShow = false, DebugWindowShow = false;
@@ -46,13 +46,13 @@ namespace Kethane
         private MMI_Kethane_Detector DetectorPart;
         private List<Part> TankParts = new List<Part>();
 
-        NearestVessels VesselsAround = new NearestVessels();
-        Vessel VesselToPumpTo = null;
+        private NearestVessels VesselsAround = new NearestVessels();
+        private Vessel VesselToPumpTo = null;
 
-        static Dictionary<string, KethaneDeposits> PlanetDeposits;
+        private static Dictionary<string, KethaneDeposits> PlanetDeposits;
 
-        static private Dictionary<string, Texture2D> PlanetTextures = new Dictionary<string, Texture2D>();
-        static private bool IsTexturesBusyFlag = false;
+        private static Dictionary<string, Texture2D> PlanetTextures = new Dictionary<string, Texture2D>();
+        private static bool IsTexturesBusyFlag = false;
         private Texture2D DebugTex = new Texture2D(256, 128, TextureFormat.ARGB32, false);
 
         private int FoundTanks = 0, FoundPumps = 0, FoundExtractors = 0, FoundConverters = 0, FoundDetectors = 0, FoundControllers = 0;
@@ -68,16 +68,16 @@ namespace Kethane
 
         private LineRenderer PumpLine = null;
 
-        double LastLat = 0, LastLon = 0;
+        private double LastLat = 0, LastLon = 0;
 
         protected static AudioSource PingEmpty, PingDeposit, ConverterAtWork;
 
         private double TimerEcho = 0.0f;
 
-        bool IsPumping = false, IsConverting = false, IsRCSConverting = false, IsDetecting = false;
+        private bool IsPumping = false, IsConverting = false, IsRCSConverting = false, IsDetecting = false;
 
-        Dictionary<string, float> FuelTanksCapacities;
-        Dictionary<string, float> RCSFuelTanksCapacities;
+        private Dictionary<string, float> FuelTanksCapacities;
+        private Dictionary<string, float> RCSFuelTanksCapacities;
 
         private double dist = 0.0;
 
@@ -102,17 +102,17 @@ namespace Kethane
             }
         }
 
-        void SetFlag()
+        private void SetFlag()
         {
             IsTexturesBusyFlag = true;
         }
 
-        void ClearFlag()
+        private void ClearFlag()
         {
             IsTexturesBusyFlag = false;
         }
 
-        bool WaitForFreeFlag() // true when got free
+        private bool WaitForFreeFlag() // true when got free
         {
             float time = 0.0f;
             while (IsTexturesBusyFlag)
@@ -124,7 +124,7 @@ namespace Kethane
             return true;
         }
 
-        void SetMaps(bool unpack = false)
+        private void SetMaps(bool unpack = false)
         {
             if (WaitForFreeFlag())
             {
@@ -166,7 +166,7 @@ namespace Kethane
             KSP.IO.File.WriteAllBytes<MMI_Kethane_Controller>(pbytes, body.name + ".png", null);
         }
 
-        void SaveAllMaps()
+        private void SaveAllMaps()
         {
             if (WaitForFreeFlag())
             {
@@ -182,7 +182,7 @@ namespace Kethane
             }
         }
 
-        void DrawDebugMap()
+        private void DrawDebugMap()
         {
             if (vessel.mainBody != null)
             {
@@ -215,7 +215,7 @@ namespace Kethane
             }
         }
 
-        void DrawMap(bool deposit)
+        private void DrawMap(bool deposit)
         {
             if (WaitForFreeFlag())
             {
