@@ -79,8 +79,6 @@ namespace Kethane
         private Dictionary<string, float> FuelTanksCapacities;
         private Dictionary<string, float> RCSFuelTanksCapacities;
 
-        private double dist = 0.0;
-
         private static void Swap<T>(ref T lhs, ref T rhs) { T temp; temp = lhs; lhs = rhs; rhs = temp; }
 
         public bool PlotFunction(Texture2D tex, int x, int y)
@@ -967,7 +965,6 @@ namespace Kethane
                         DrawMap(true);
                         LastLat = vessel.latitude;
                         LastLon = vessel.longitude;
-                        dist = DepositUnder.Kethane;
                         if (vessel == FlightGlobals.ActiveVessel && ScanningSound)
                             PingDeposit.Play();
                     }
@@ -976,7 +973,6 @@ namespace Kethane
                         DrawMap(false);
                         if (vessel == FlightGlobals.ActiveVessel && ScanningSound)
                             PingEmpty.Play();
-                        dist = -1.0f;
                     }
                     TimerEcho = 0;
                 }
