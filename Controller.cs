@@ -182,18 +182,6 @@ namespace Kethane
             }
         }
 
-        void SaveActualMap()
-        {
-            if (WaitForFreeFlag())
-            {
-                SetFlag();
-                if (vessel.mainBody != null && PlanetTextures.ContainsKey(vessel.mainBody.name))
-                {
-                    SaveBodyMap(vessel.mainBody);
-                } ClearFlag();
-            }
-        }
-
         void DrawDebugMap()
         {
             if (vessel.mainBody != null)
