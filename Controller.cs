@@ -147,7 +147,7 @@ namespace Kethane
                     {
                         WWW mapload = new WWW("file://" + KSPUtil.ApplicationRootPath.Replace("\\", "/") + "PluginData/mmi_kethane/" + body.name + ".png");
                         while (!mapload.isDone) { }
-                                mapload.LoadImageIntoTexture(PlanetTextures[body.name]);
+                        mapload.LoadImageIntoTexture(PlanetTextures[body.name]);
                     }
                     else
                     {
