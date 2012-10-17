@@ -27,15 +27,16 @@ namespace Kethane
     public class MMI_Kethane_Controller : Part
     {
         private bool ValidConfiguration = false;
+        private bool CanDrill = false;
 
-        string ButtonMessage = "Kethane Controller";
+        private string ButtonMessage = "Kethane Controller";
 
-        GUIStyle KGuiStyleButton;
-        GUIStyle KGuiStyleList;
-        GUIStyle KGuiStyleListActive;
-        GUIStyle KGuiStyleLabels;
-        GUIStyle KGuiStyleLog;
-        GUIStyle KGuiStyleNumbers;
+        private GUIStyle KGuiStyleButton;
+        private GUIStyle KGuiStyleList;
+        private GUIStyle KGuiStyleListActive;
+        private GUIStyle KGuiStyleLabels;
+        private GUIStyle KGuiStyleLog;
+        private GUIStyle KGuiStyleNumbers;
 
         private Rect InfoWindowPosition, PumpWindowPosition, ExtractorWindowPosition, ConverterWindowPosition, DetectorWindowPosition, DebugWindowPosition;
         private bool InfoWindowShow = false, PumpWindowShow = false, ExtractorWindowShow = false, ConverterWindowShow = false, DetectorWindowShow = false, DebugWindowShow = false;
@@ -46,13 +47,13 @@ namespace Kethane
         private MMI_Kethane_Detector DetectorPart;
         private List<Part> TankParts = new List<Part>();
 
-        NearestVessels VesselsAround = new NearestVessels();
-        Vessel VesselToPumpTo = null;
+        private NearestVessels VesselsAround = new NearestVessels();
+        private Vessel VesselToPumpTo = null;
 
-        static Dictionary<string, KethaneDeposits> PlanetDeposits;
+        private static Dictionary<string, KethaneDeposits> PlanetDeposits;
 
-        static private Dictionary<string, Texture2D> PlanetTextures = new Dictionary<string, Texture2D>();
-        static private bool IsTexturesBusyFlag = false;
+        private static Dictionary<string, Texture2D> PlanetTextures = new Dictionary<string, Texture2D>();
+        private static bool IsTexturesBusyFlag = false;
         private Texture2D DebugTex = new Texture2D(256, 128, TextureFormat.ARGB32, false);
 
         private int FoundTanks = 0, FoundPumps = 0, FoundExtractors = 0, FoundConverters = 0, FoundDetectors = 0, FoundControllers = 0;
@@ -68,25 +69,25 @@ namespace Kethane
 
         private LineRenderer PumpLine = null;
 
-        double LastLat = 0, LastLon = 0;
+        private double LastLat = 0, LastLon = 0;
 
         protected static AudioSource PingEmpty, PingDeposit, ConverterAtWork;
 
         private double TimerEcho = 0.0f;
 
-        bool IsPumping = false, IsConverting = false, IsRCSConverting = false, IsDetecting = false;
+        private bool IsPumping = false, IsConverting = false, IsRCSConverting = false, IsDetecting = false;
 
-        Dictionary<string, float> FuelTanksCapacities;
-        Dictionary<string, float> RCSFuelTanksCapacities;
-
-        private double dist = 0.0;
+        private Dictionary<string, float> FuelTanksCapacities;
+        private Dictionary<string, float> RCSFuelTanksCapacities;
 
         private static void Swap<T>(ref T lhs, ref T rhs) { T temp; temp = lhs; lhs = rhs; rhs = temp; }
+
         public bool PlotFunction(Texture2D tex, int x, int y)
         {
             tex.SetPixel(x, y, Color.red);
             return true;
         }
+
         public void Line(Texture2D tex, int x0, int y0, int x1, int y1)
         {
             bool steep = Math.Abs(y1 - y0) > Math.Abs(x1 - x0);
@@ -102,17 +103,17 @@ namespace Kethane
             }
         }
 
-        void SetFlag()
+        private void SetFlag()
         {
             IsTexturesBusyFlag = true;
         }
 
-        void ClearFlag()
+        private void ClearFlag()
         {
             IsTexturesBusyFlag = false;
         }
 
-        bool WaitForFreeFlag() // true when got free
+        private bool WaitForFreeFlag() // true when got free
         {
             float time = 0.0f;
             while (IsTexturesBusyFlag)
@@ -124,7 +125,7 @@ namespace Kethane
             return true;
         }
 
-        void SetMaps(bool unpack = false)
+        private void SetMaps()
         {
             if (WaitForFreeFlag())
             {
@@ -134,27 +135,10 @@ namespace Kethane
                     if (!PlanetTextures.ContainsKey(body.name))
                     {
                         PlanetTextures.Add(body.name, new Texture2D(256, 128, TextureFormat.ARGB32, false));
-                        for (int y = 0; y < PlanetTextures[body.name].height; y++)
-                            for (int x = 0; x < PlanetTextures[body.name].width; x++)
-                                PlanetTextures[body.name].SetPixel(x, y, Color.black);
-                        PlanetTextures[body.name].Apply();
                     }
-                    if (unpack)
+                    if (KSP.IO.File.Exists<MMI_Kethane_Controller>(body.name + ".png"))
                     {
-                        SaveAllMaps();
-                    }
-                    else if (KSP.IO.File.Exists<MMI_Kethane_Controller>(body.name + ".png"))
-                    {
-                        int maploadDone = 0;
-                        WWW mapload = new WWW("file://" + KSPUtil.ApplicationRootPath.Replace("\\", "/") + "PluginData/mmi_kethane/" + body.name + ".png");
-                        while (maploadDone == 0)
-                        {
-                            if (mapload.isDone == true)
-                            {
-                                mapload.LoadImageIntoTexture(PlanetTextures[body.name]);
-                                maploadDone = 1;
-                            }
-                        }
+                        PlanetTextures[body.name].LoadImage(KSP.IO.File.ReadAllBytes<MMI_Kethane_Controller>(body.name + ".png"));
                     }
                     else
                     {
@@ -162,15 +146,19 @@ namespace Kethane
                             for (int x = 0; x < PlanetTextures[body.name].width; x++)
                                 PlanetTextures[body.name].SetPixel(x, y, Color.black);
                         PlanetTextures[body.name].Apply();
-                        var pbytes = PlanetTextures[body.name].EncodeToPNG();
-                        KSP.IO.File.WriteAllBytes<MMI_Kethane_Controller>(pbytes, body.name + ".png", null);
                     }
                 }
                 ClearFlag();
             }
         }
 
-        void SaveAllMaps()
+        private static void SaveBodyMap(CelestialBody body)
+        {
+            var pbytes = PlanetTextures[body.name].EncodeToPNG();
+            KSP.IO.File.WriteAllBytes<MMI_Kethane_Controller>(pbytes, body.name + ".png", null);
+        }
+
+        private void SaveAllMaps()
         {
             if (WaitForFreeFlag())
             {
@@ -179,28 +167,14 @@ namespace Kethane
                 {
                     if (PlanetTextures.ContainsKey(body.name))
                     {
-                        var pbytes = PlanetTextures[body.name].EncodeToPNG();
-                        KSP.IO.File.WriteAllBytes<MMI_Kethane_Controller>(pbytes, body.name + ".png", null);
+                        SaveBodyMap(body);
                     }
                 }
                 ClearFlag();
             }
         }
 
-        void SaveActualMap()
-        {
-            if (WaitForFreeFlag())
-            {
-                SetFlag();
-                if (vessel.mainBody != null && PlanetTextures.ContainsKey(vessel.mainBody.name))
-                {
-                    var pbytes = PlanetTextures[vessel.mainBody.name].EncodeToPNG();
-                    KSP.IO.File.WriteAllBytes<MMI_Kethane_Controller>(pbytes, vessel.mainBody + ".png", null);
-                } ClearFlag();
-            }
-        }
-
-        void DrawDebugMap()
+        private void DrawDebugMap()
         {
             if (vessel.mainBody != null)
             {
@@ -233,7 +207,7 @@ namespace Kethane
             }
         }
 
-        void DrawMap(bool deposit)
+        private void DrawMap(bool deposit)
         {
             if (WaitForFreeFlag())
             {
@@ -298,18 +272,15 @@ namespace Kethane
                     Loader.Close();
                     object ObjectToLoad = KSP.IO.IOUtils.DeserializeFromBinary(DepositsToLoad);
                     PlanetDeposits = (Dictionary<string, KethaneDeposits>)ObjectToLoad;
+                    return;
                 }
                 catch (Exception e)
                 {
                     print("Kethane plugin - deposit load error: " + e);
                     print("Generating new kethane deposits");
-                    GenerateKethaneDeposits();
                 }
-
-
             }
-            else
-                GenerateKethaneDeposits();
+            GenerateKethaneDeposits();
         }
 
         /// <summary>
@@ -330,17 +301,6 @@ namespace Kethane
         }
 
         /// <summary>
-        /// Search for kethane deposit file and load it. If not found, generate a new deposits.
-        /// </summary>
-        private void ResumeKethaneDeposits()
-        {
-            if (KSP.IO.File.Exists<MMI_Kethane_Controller>("Deposits.dat"))
-                LoadKethaneDeposits();
-            else
-                GenerateKethaneDeposits();
-        }
-
-        /// <summary>
         /// Check if vessel can pump oil (either back or forth)
         /// </summary>
         private bool CanVesselPumpKethane(Vessel v)
@@ -356,10 +316,7 @@ namespace Kethane
                     PFoundPumps++;
             }
 
-            if (PFoundPumps > 0 && PFoundTanks > 0)
-                return true;
-            else
-                return false;
+            return (PFoundPumps > 0 && PFoundTanks > 0);
         }
 
         /// <summary>
@@ -529,7 +486,7 @@ namespace Kethane
             }
             #endregion
 
-            ResumeKethaneDeposits();
+            LoadKethaneDeposits();
 
             if (FuelTanksCapacities == null)
                 FillFuelTankDictionary();
@@ -648,8 +605,8 @@ namespace Kethane
         /// </summary>
         private float? ConvertKethaneToFuel()
         {
-            float AmountToGive = ConversionSpeed * ConversionRatio * Time.deltaTime * TimeWarp.CurrentRate;
-            float AmountToTake = ConversionSpeed * Time.deltaTime * TimeWarp.CurrentRate;
+            float AmountToGive = ConversionSpeed * ConversionRatio * TimeWarp.deltaTime;
+            float AmountToTake = ConversionSpeed * TimeWarp.deltaTime;
             float FreeSpace = GetAvailableFuelSpace();
             float KethaneAvailable = GetAvailableKethane(this.vessel);
 
@@ -690,8 +647,8 @@ namespace Kethane
         /// </summary>
         private float? ConvertKethaneToRCSFuel()
         {
-            float AmountToGive = ConversionSpeed * (1.25f * ConversionRatio > 1 ? 1 : 1.25f * ConversionRatio) * Time.deltaTime * TimeWarp.CurrentRate;
-            float AmountToTake = ConversionSpeed * Time.deltaTime * TimeWarp.CurrentRate;
+            float AmountToGive = ConversionSpeed * (1.25f * ConversionRatio > 1 ? 1 : 1.25f * ConversionRatio) * TimeWarp.deltaTime;
+            float AmountToTake = ConversionSpeed * TimeWarp.deltaTime;
             float FreeSpace = GetAvailableRCSFuelSpace();
             float KethanAvailable = GetAvailableKethane(this.vessel);
 
@@ -738,9 +695,9 @@ namespace Kethane
 
             foreach (Part PartToPumpTo in v.parts)
             {
-                if (PartToPumpTo is MMI_Kethane_Tank && (PartToPumpTo.State == PartStates.ACTIVE || PartToPumpTo.State == PartStates.IDLE))
+                var TankToPumpTo = PartToPumpTo as MMI_Kethane_Tank;
+                if (TankToPumpTo != null && (PartToPumpTo.State == PartStates.ACTIVE || PartToPumpTo.State == PartStates.IDLE))
                 {
-                    MMI_Kethane_Tank TankToPumpTo = (MMI_Kethane_Tank)PartToPumpTo;
                     if (TankToPumpTo.Kethane < TankToPumpTo.Capacity)
                     {
                         float AmountToPump = Math.Min(TankToPumpTo.Capacity - TankToPumpTo.Kethane, Amount);
@@ -765,9 +722,9 @@ namespace Kethane
 
             foreach (Part PartToPumpFrom in v.parts)
             {
-                if (PartToPumpFrom is MMI_Kethane_Tank && (PartToPumpFrom.State == PartStates.ACTIVE || PartToPumpFrom.State == PartStates.IDLE))
+                var TankToPumpFrom = PartToPumpFrom as MMI_Kethane_Tank;
+                if (TankToPumpFrom != null && (PartToPumpFrom.State == PartStates.ACTIVE || PartToPumpFrom.State == PartStates.IDLE))
                 {
-                    MMI_Kethane_Tank TankToPumpFrom = (MMI_Kethane_Tank)PartToPumpFrom;
                     if (TankToPumpFrom.Kethane > 0.0f)
                     {
                         float AmountToPump = Math.Min(TankToPumpFrom.Kethane, Amount);
@@ -787,12 +744,12 @@ namespace Kethane
         private float GetAvailableKethane(Vessel v)
         {
             float Available = 0.0f;
-            foreach (Part PartToPumpTo in v.parts)
+            foreach (var part in v.parts)
             {
-                if (PartToPumpTo is MMI_Kethane_Tank && (PartToPumpTo.State == PartStates.ACTIVE || PartToPumpTo.State == PartStates.IDLE))
+                var tank = part as MMI_Kethane_Tank;
+                if (tank != null && (part.State == PartStates.ACTIVE || part.State == PartStates.IDLE))
                 {
-                    MMI_Kethane_Tank TankToPumpTo = (MMI_Kethane_Tank)PartToPumpTo;
-                    Available += TankToPumpTo.Kethane;
+                    Available += tank.Kethane;
                 }
             }
             return Available;
@@ -804,12 +761,12 @@ namespace Kethane
         private float GetAvailableKethaneSpace(Vessel v)
         {
             float FreeSpace = 0.0f;
-            foreach (Part PartToPumpTo in v.parts)
+            foreach (var part in v.parts)
             {
-                if (PartToPumpTo is MMI_Kethane_Tank && (PartToPumpTo.State == PartStates.ACTIVE || PartToPumpTo.State == PartStates.IDLE))
+                var tank = part as MMI_Kethane_Tank;
+                if (tank != null && (part.State == PartStates.ACTIVE || part.State == PartStates.IDLE))
                 {
-                    MMI_Kethane_Tank TankToPumpTo = (MMI_Kethane_Tank)PartToPumpTo;
-                    FreeSpace += TankToPumpTo.Capacity - TankToPumpTo.Kethane;
+                    FreeSpace += tank.Capacity - tank.Kethane;
                 }
             }
             return FreeSpace;
@@ -864,7 +821,7 @@ namespace Kethane
                         PumpLine.SetWidth(0, 0);
                         return;
                     }
-                    float Amount = PumpingSpeed * Time.deltaTime * TimeWarp.CurrentRate;
+                    float Amount = PumpingSpeed * TimeWarp.deltaTime;
                     Vector3 LPoint = transform.InverseTransformPoint(VesselToPumpTo.transform.position);
                     PumpLine.SetPosition(1, LPoint);
                     PumpLine.SetWidth(0.5f, 0.5f);
@@ -983,7 +940,6 @@ namespace Kethane
                         DrawMap(true);
                         LastLat = vessel.latitude;
                         LastLon = vessel.longitude;
-                        dist = DepositUnder.Kethane;
                         if (vessel == FlightGlobals.ActiveVessel && ScanningSound)
                             PingDeposit.Play();
                     }
@@ -992,7 +948,6 @@ namespace Kethane
                         DrawMap(false);
                         if (vessel == FlightGlobals.ActiveVessel && ScanningSound)
                             PingEmpty.Play();
-                        dist = -1.0f;
                     }
                     TimerEcho = 0;
                 }
@@ -1007,25 +962,30 @@ namespace Kethane
         {
             foreach (MMI_Kethane_Extractor ExtractorPart in ExtractorParts)
             {
-                if (ExtractorPart != null && this.vessel != null)
+                if (ExtractorPart != null && this.vessel != null && DepositUnder != null && ExtractorPart.DrillDeploymentState == MMI_Kethane_Extractor.DeployState.Deployed)
                 {
-                    if (DepositUnder != null)
+                    if (TimeWarp.WarpMode == TimeWarp.Modes.HIGH && TimeWarp.CurrentRateIndex > 0)
+                    {
+                        CanDrill &= vessel.Landed;
+                    }
+                    else
                     {
                         float DrillDepth = ExtractorPart.DrillDepth();
+                        CanDrill = (DrillDepth >= DepositUnder.Depth) && (DrillDepth > 0);
+                    }
 
-                        if ((ExtractorPart.DrillDeploymentState == MMI_Kethane_Extractor.DeployState.Deployed) && (((DrillDepth >= DepositUnder.Depth) && (DrillDepth > 0)) || vessel.Landed))
+                    if (CanDrill)
+                    {
+                        float Amount = TimeWarp.deltaTime * 1.25f;
+                        if (DepositUnder.Kethane >= Amount)
                         {
-                            float Amount = Time.deltaTime * TimeWarp.CurrentRate * 1.25f;
-                            if (DepositUnder.Kethane >= Amount)
+                            float FreeSpace = GetAvailableKethaneSpace(this.vessel);
+                            if (FreeSpace > 0.001)
                             {
-                                float FreeSpace = GetAvailableKethaneSpace(this.vessel);
-                                if (FreeSpace > 0.001)
-                                {
-                                    PumpKethaneTo(this.vessel, Amount);
-                                    DepositUnder.Kethane -= Amount;
-                                    if (DepositUnder.Kethane < 0)
-                                        DepositUnder.Kethane = 0;
-                                }
+                                PumpKethaneTo(this.vessel, Amount);
+                                DepositUnder.Kethane -= Amount;
+                                if (DepositUnder.Kethane < 0)
+                                    DepositUnder.Kethane = 0;
                             }
                         }
                     }
@@ -1060,9 +1020,7 @@ namespace Kethane
         /// </summary>
         private static int GetXOnMap(double lon, int width)
         {
-            int pixelX = -1;
-            pixelX = (int)Math.Round((lon + 180d) * ((double)width / 360d));
-            return pixelX;
+            return (int)Math.Round((lon + 180d) * ((double)width / 360d));
         }
 
         /// <summary>
@@ -1070,23 +1028,17 @@ namespace Kethane
         /// </summary>
         private static int GetYOnMap(double lat, int height)
         {
-            int pixelY = -1;
-            pixelY = (int)Math.Round(((90d - lat) * ((double)height / 180d)));
-            return pixelY;
+            return (int)Math.Round((lat + 90d) * ((double)height / 180d));
         }
 
         private static int GetLonOnMap(double x, int width)
         {
-            int mapLong = -1;
-            mapLong = -((int)(360 * x) / width + 180);
-            return mapLong;
+            return -((int)(360 * x) / width + 180);
         }
 
         private static int GetLatOnMap(double y, int height)
         {
-            int mapLong = -1;
-            mapLong = (int)(180 * y) / height - 90;
-            return mapLong;
+            return -((int)(180 * y) / height - 90);
         }
 
         private void DetectorWindowGUI(int windowID)
@@ -1360,12 +1312,12 @@ namespace Kethane
             GUILayout.Label("", KGuiStyleLabels);
             if (GUILayout.Button("Dump", KGuiStyleList, GUILayout.ExpandWidth(true)))
             {
-                foreach (Part Tank in this.TankParts)
+                foreach (Part part in this.TankParts)
                 {
-                    if (Tank is MMI_Kethane_Tank && (Tank.State == PartStates.ACTIVE || Tank.State == PartStates.IDLE))
+                    var tank = part as MMI_Kethane_Tank;
+                    if (tank != null && (tank.State == PartStates.ACTIVE || tank.State == PartStates.IDLE))
                     {
-                        MMI_Kethane_Tank T = Tank as MMI_Kethane_Tank;
-                        T.Kethane = 0.0f;
+                        tank.Kethane = 0.0f;
                     }
                 }
 
@@ -1494,8 +1446,7 @@ namespace Kethane
             if (RCSFuelTanksCapacities == null)
                 FillRCSFuelTankDictionary();
 
-            LoadKethaneDeposits();
-            SetMaps(true);
+            SaveAllMaps();
         }
 
         /// <summary>

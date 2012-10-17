@@ -144,7 +144,7 @@ namespace Kethane
             }
         }
 
-        bool IsPositionOK(Vector3 Pos, float R1)
+        private bool IsPositionOK(Vector3 Pos, float R1)
         {
             foreach (KethaneDeposit KD in Deposits)
             {
