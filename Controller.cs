@@ -124,7 +124,7 @@ namespace Kethane
             return true;
         }
 
-        private void SetMaps(bool unpack = false)
+        private void SetMaps()
         {
             if (WaitForFreeFlag())
             {
@@ -134,16 +134,8 @@ namespace Kethane
                     if (!PlanetTextures.ContainsKey(body.name))
                     {
                         PlanetTextures.Add(body.name, new Texture2D(256, 128, TextureFormat.ARGB32, false));
-                        for (int y = 0; y < PlanetTextures[body.name].height; y++)
-                            for (int x = 0; x < PlanetTextures[body.name].width; x++)
-                                PlanetTextures[body.name].SetPixel(x, y, Color.black);
-                        PlanetTextures[body.name].Apply();
                     }
-                    if (unpack)
-                    {
-                        SaveBodyMap(body);
-                    }
-                    else if (KSP.IO.File.Exists<MMI_Kethane_Controller>(body.name + ".png"))
+                    if (KSP.IO.File.Exists<MMI_Kethane_Controller>(body.name + ".png"))
                     {
                         PlanetTextures[body.name].LoadImage(KSP.IO.File.ReadAllBytes<MMI_Kethane_Controller>(body.name + ".png"));
                     }
@@ -153,7 +145,6 @@ namespace Kethane
                             for (int x = 0; x < PlanetTextures[body.name].width; x++)
                                 PlanetTextures[body.name].SetPixel(x, y, Color.black);
                         PlanetTextures[body.name].Apply();
-                        SaveBodyMap(body);
                     }
                 }
                 ClearFlag();
@@ -1456,7 +1447,7 @@ namespace Kethane
                 FillRCSFuelTankDictionary();
 
             LoadKethaneDeposits();
-            SetMaps(true);
+            SaveAllMaps();
         }
 
         /// <summary>
