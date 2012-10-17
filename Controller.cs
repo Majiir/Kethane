@@ -27,6 +27,7 @@ namespace Kethane
     public class MMI_Kethane_Controller : Part
     {
         private bool ValidConfiguration = false;
+        private bool CanDrill = false;
 
         private string ButtonMessage = "Kethane Controller";
 
@@ -973,7 +974,7 @@ namespace Kethane
                         CanDrill = (DrillDepth >= DepositUnder.Depth) && (DrillDepth > 0);
                     }
 
-                    if (((DrillDepth >= DepositUnder.Depth) && (DrillDepth > 0)) || vessel.Landed)
+                    if (CanDrill)
                     {
                         float Amount = TimeWarp.deltaTime * 1.25f;
                         if (DepositUnder.Kethane >= Amount)
