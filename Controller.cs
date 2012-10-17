@@ -1446,7 +1446,6 @@ namespace Kethane
             if (RCSFuelTanksCapacities == null)
                 FillRCSFuelTankDictionary();
 
-            LoadKethaneDeposits();
             SaveAllMaps();
         }
 
