@@ -700,9 +700,9 @@ namespace Kethane
 
             foreach (Part PartToPumpTo in v.parts)
             {
-                if (PartToPumpTo is MMI_Kethane_Tank && (PartToPumpTo.State == PartStates.ACTIVE || PartToPumpTo.State == PartStates.IDLE))
+                var TankToPumpTo = PartToPumpTo as MMI_Kethane_Tank;
+                if (TankToPumpTo != null && (PartToPumpTo.State == PartStates.ACTIVE || PartToPumpTo.State == PartStates.IDLE))
                 {
-                    MMI_Kethane_Tank TankToPumpTo = (MMI_Kethane_Tank)PartToPumpTo;
                     if (TankToPumpTo.Kethane < TankToPumpTo.Capacity)
                     {
                         float AmountToPump = Math.Min(TankToPumpTo.Capacity - TankToPumpTo.Kethane, Amount);
@@ -727,9 +727,9 @@ namespace Kethane
 
             foreach (Part PartToPumpFrom in v.parts)
             {
-                if (PartToPumpFrom is MMI_Kethane_Tank && (PartToPumpFrom.State == PartStates.ACTIVE || PartToPumpFrom.State == PartStates.IDLE))
+                var TankToPumpFrom = PartToPumpFrom as MMI_Kethane_Tank;
+                if (TankToPumpFrom != null && (PartToPumpFrom.State == PartStates.ACTIVE || PartToPumpFrom.State == PartStates.IDLE))
                 {
-                    MMI_Kethane_Tank TankToPumpFrom = (MMI_Kethane_Tank)PartToPumpFrom;
                     if (TankToPumpFrom.Kethane > 0.0f)
                     {
                         float AmountToPump = Math.Min(TankToPumpFrom.Kethane, Amount);
@@ -749,12 +749,12 @@ namespace Kethane
         private float GetAvailableKethane(Vessel v)
         {
             float Available = 0.0f;
-            foreach (Part PartToPumpTo in v.parts)
+            foreach (var part in v.parts)
             {
-                if (PartToPumpTo is MMI_Kethane_Tank && (PartToPumpTo.State == PartStates.ACTIVE || PartToPumpTo.State == PartStates.IDLE))
+                var tank = part as MMI_Kethane_Tank;
+                if (tank != null && (part.State == PartStates.ACTIVE || part.State == PartStates.IDLE))
                 {
-                    MMI_Kethane_Tank TankToPumpTo = (MMI_Kethane_Tank)PartToPumpTo;
-                    Available += TankToPumpTo.Kethane;
+                    Available += tank.Kethane;
                 }
             }
             return Available;
@@ -766,12 +766,12 @@ namespace Kethane
         private float GetAvailableKethaneSpace(Vessel v)
         {
             float FreeSpace = 0.0f;
-            foreach (Part PartToPumpTo in v.parts)
+            foreach (var part in v.parts)
             {
-                if (PartToPumpTo is MMI_Kethane_Tank && (PartToPumpTo.State == PartStates.ACTIVE || PartToPumpTo.State == PartStates.IDLE))
+                var tank = part as MMI_Kethane_Tank;
+                if (tank != null && (part.State == PartStates.ACTIVE || part.State == PartStates.IDLE))
                 {
-                    MMI_Kethane_Tank TankToPumpTo = (MMI_Kethane_Tank)PartToPumpTo;
-                    FreeSpace += TankToPumpTo.Capacity - TankToPumpTo.Kethane;
+                    FreeSpace += tank.Capacity - tank.Kethane;
                 }
             }
             return FreeSpace;
@@ -1312,12 +1312,12 @@ namespace Kethane
             GUILayout.Label("", KGuiStyleLabels);
             if (GUILayout.Button("Dump", KGuiStyleList, GUILayout.ExpandWidth(true)))
             {
-                foreach (Part Tank in this.TankParts)
+                foreach (Part part in this.TankParts)
                 {
-                    if (Tank is MMI_Kethane_Tank && (Tank.State == PartStates.ACTIVE || Tank.State == PartStates.IDLE))
+                    var tank = part as MMI_Kethane_Tank;
+                    if (tank != null && (tank.State == PartStates.ACTIVE || tank.State == PartStates.IDLE))
                     {
-                        MMI_Kethane_Tank T = Tank as MMI_Kethane_Tank;
-                        T.Kethane = 0.0f;
+                        tank.Kethane = 0.0f;
                     }
                 }
 
