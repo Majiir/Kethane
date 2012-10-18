@@ -220,11 +220,11 @@ namespace Kethane
         private void ValidateConfiguration()
         {
             int FoundControllers = 0, FoundTanks = 0;
-            for (int i = 0; i <= this.vessel.parts.Count - 1; i++)
+            foreach (var part in this.vessel.parts)
             {
-                if (Misc.SMatch(this.vessel.parts.ElementAt(i).GetType().Name, "MMI_Kethane_Controller"))
+                if (part is MMI_Kethane_Controller)
                     FoundControllers++;
-                if (Misc.SMatch(this.vessel.parts.ElementAt(i).GetType().Name, "MMI_Kethane_Tank"))
+                if (part is MMI_Kethane_Tank)
                     FoundTanks++;
             }
 

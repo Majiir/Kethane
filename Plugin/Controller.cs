@@ -308,11 +308,11 @@ namespace Kethane
             int PFoundTanks = 0;
             int PFoundPumps = 0;
 
-            for (int i = 0; i <= v.parts.Count - 1; i++)
+            foreach (var part in v.parts)
             {
-                if (Misc.SMatch(v.parts.ElementAt(i).GetType().Name, "MMI_Kethane_Tank"))
+                if (part is MMI_Kethane_Tank)
                     PFoundTanks++;
-                else if (Misc.SMatch(v.parts.ElementAt(i).GetType().Name, "MMI_Kethane_Pump"))
+                else if (part is MMI_Kethane_Pump)
                     PFoundPumps++;
             }
 
@@ -368,38 +368,38 @@ namespace Kethane
             FoundDetectors = 0;
             TankParts.Clear();
             ExtractorParts.Clear();
-            for (int i = 0; i <= this.vessel.parts.Count - 1; i++)
+            foreach (var part in this.vessel.parts)
             {
-                if (Misc.SMatch(this.vessel.parts.ElementAt(i).GetType().Name, "MMI_Kethane_Tank"))
+                if (part is MMI_Kethane_Tank)
                 {
                     FoundTanks++;
-                    this.TankParts.Add(this.vessel.parts.ElementAt(i));
+                    this.TankParts.Add(part);
                 }
-                else if (Misc.SMatch(this.vessel.parts.ElementAt(i).GetType().Name, "MMI_Kethane_Controller"))
+                else if (part is MMI_Kethane_Controller)
                 {
                     FoundControllers++;
                 }
-                else if (Misc.SMatch(this.vessel.parts.ElementAt(i).GetType().Name, "MMI_Kethane_Extractor"))
+                else if (part is MMI_Kethane_Extractor)
                 {
                     FoundExtractors++;
-                    if (!this.ExtractorParts.Contains((MMI_Kethane_Extractor)this.vessel.parts.ElementAt(i)))
-                        this.ExtractorParts.Add((MMI_Kethane_Extractor)this.vessel.parts.ElementAt(i));
+                    if (!this.ExtractorParts.Contains((MMI_Kethane_Extractor)part))
+                        this.ExtractorParts.Add((MMI_Kethane_Extractor)part);
                 }
-                else if (Misc.SMatch(this.vessel.parts.ElementAt(i).GetType().Name, "MMI_Kethane_Pump"))
+                else if (part is MMI_Kethane_Pump)
                 {
-                    MMI_Kethane_Pump Pump = (MMI_Kethane_Pump)this.vessel.parts.ElementAt(i);
+                    MMI_Kethane_Pump Pump = (MMI_Kethane_Pump)part;
                     PumpingSpeed = Math.Max(Pump.PumpingSpeed, PumpingSpeed);
                     FoundPumps++;
                 }
-                else if (Misc.SMatch(this.vessel.parts.ElementAt(i).GetType().Name, "MMI_Kethane_Detector"))
+                else if (part is MMI_Kethane_Detector)
                 {
-                    MMI_Kethane_Detector Detector = (MMI_Kethane_Detector)this.vessel.parts.ElementAt(i);
+                    MMI_Kethane_Detector Detector = (MMI_Kethane_Detector)part;
                     DetectorPart = Detector;
                     FoundDetectors++;
                 }
-                else if (Misc.SMatch(this.vessel.parts.ElementAt(i).GetType().Name, "MMI_Kethane_Converter"))
+                else if (part is MMI_Kethane_Converter)
                 {
-                    MMI_Kethane_Converter Converter = (MMI_Kethane_Converter)this.vessel.parts.ElementAt(i);
+                    MMI_Kethane_Converter Converter = (MMI_Kethane_Converter)part;
                     ConversionRatio = Converter.ConversionRatio;
                     ConversionSpeed = Converter.ConversionSpeed;
                     FoundConverters++;
