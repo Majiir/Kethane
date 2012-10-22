@@ -36,3 +36,30 @@ Coding and Pull Request Guidelines
 - No 80 column limit or 'weird' midstatement newlines.
 
 Keep in mind that some pull requests will be rejected at first, but with changes, may be accepted again. Don't be offended if your pull is rejected; it's just an effort to maintain a consistent code base and feature growth.
+
+Model and Part Asset Submission Guidelines
+------------------------------------------
+
+Part assets should be submitted by private message to [Majiir](http://forum.kerbalspaceprogram.com/member.php/7556-Majiir) for review.
+
+The following contents should be packaged in a .zip or .rar archive:
+
+- Model to be submitted as a .obj or .FBX, must include low-poly convex node_collider mesh
+    - Meshes of appropriate resolution/polycount (<1000 tris small part, <2000 tris large part recommended)
+    - Objects named properly (there's no strict convention, but make sure they're clearly named; e.g. fuelTank_geo, geo_engine, enginePoly, etc.)
+    - All transformations must be cleared/frozen
+    - No n-gons (five or greater sided polygons)
+    - UVs mapped to 0-1 space, not overlapping (you can overlap UV shells, just not UVs of the same shell)
+- Texture map and Normal map (optional) to be submitted as a .png or .jpeg
+    - Appropriate resolution for part size, not to exceed 1024
+    - AO baked textures recommended
+- Notes in .txt file (optional)
+
+Part submissions may be returned for any of the following reasons, in approximately this order:
+
+- Part doesn't fall within the scope of the plugin
+- Assets submission doesn't meet above guidelines
+- Part concept doesn't fit the art style of the plugin
+- Assets need further work to improve quality
+
+Our goal is to help you submit your parts, but at the same time, contributions can't add significantly to our workload. These guidelines are here to ensure a high standard of quality and to make the process as painless as possible for everyone involved.
