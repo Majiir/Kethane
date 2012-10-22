@@ -3,7 +3,7 @@
 
 Resource mining and processing plugin for [Kerbal Space Program](http://www.kerbalspaceprogram.com/).
 
-Forum thread: http://forum.kerbalspaceprogram.com/showthread.php/23979-Kethane-Pack
+Forum thread: [Kethane Pack](http://forum.kerbalspaceprogram.com/showthread.php/23979-Kethane-Pack)  
 Maintainer: [Majiir](http://forum.kerbalspaceprogram.com/member.php/7556-Majiir)
 
 Building
