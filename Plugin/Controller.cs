@@ -199,7 +199,7 @@ namespace Kethane
 
                 if (this.vessel != null)
                 {
-                    int x = GetXOnMap(vessel.mainBody.GetLongitude(vessel.transform.position), DebugTex.width);
+                    int x = GetXOnMap(clampDegrees(vessel.mainBody.GetLongitude(vessel.transform.position)), DebugTex.width);
                     int y = GetYOnMap(vessel.mainBody.GetLatitude(vessel.transform.position), DebugTex.height);
                     DebugTex.SetPixel(x, y, Color.white);
                 }
@@ -218,7 +218,7 @@ namespace Kethane
 
                     if (this.vessel != null)
                     {
-                        int x = GetXOnMap(vessel.mainBody.GetLongitude(vessel.transform.position), planetTex.width);
+                        int x = GetXOnMap(clampDegrees(vessel.mainBody.GetLongitude(vessel.transform.position)), planetTex.width);
                         int y = GetYOnMap(vessel.mainBody.GetLatitude(vessel.transform.position), planetTex.height);
                         if (deposit)
                             planetTex.SetPixel(x, y, XKCDColors.Green);
@@ -229,6 +229,19 @@ namespace Kethane
                     planetTex.Apply();
                 } ClearFlag();
             }
+        }
+
+        /// <summary>
+        /// Keeps angles in the range -180 to 180
+        /// See: MuMechLib/ARUtils.cs clampDegrees(double angle)
+        /// http://svn.mumech.com/KSP/trunk/MuMechLib/ARUtils.cs
+        /// </summary>
+        public static double clampDegrees(double angle)
+        {
+            angle = angle + ((int)(2 + Math.Abs(angle) / 360)) * 360.0;
+            angle = angle % 360.0;
+            if (angle > 180.0) return angle - 360.0;
+            else return angle;
         }
 
         /// <summary>
@@ -908,7 +921,7 @@ namespace Kethane
         {
             KethaneDeposits Deposits = PlanetDeposits[this.vessel.mainBody.name];
 
-            double lon = vessel.mainBody.GetLongitude(vessel.transform.position);
+            double lon = clampDegrees(vessel.mainBody.GetLongitude(vessel.transform.position));
             double lat = vessel.mainBody.GetLatitude(vessel.transform.position);
 
             double x = Math.Round((lon + 180d) * (Deposits.Width / 360d));
