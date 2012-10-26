@@ -880,10 +880,6 @@ namespace Kethane
         /// </summary>
         private void HandleConversion()
         {
-            //if (vessel == FlightGlobals.ActiveVessel && IsConverting && !ConverterAtWork.isPlaying)
-            //    ConverterAtWork.Play();
-            //else if (IsConverting == false)
-            //    ConverterAtWork.Stop();
             if (IsConverting)
             {
                 if (ConvertKethaneToFuel() != null)
@@ -899,10 +895,6 @@ namespace Kethane
         /// </summary>
         private void HandleRCSConversion()
         {
-            if (vessel == FlightGlobals.ActiveVessel && IsRCSConverting && !ConverterAtWork.isPlaying)
-                ConverterAtWork.Play();
-            else if (IsRCSConverting == false)
-                ConverterAtWork.Stop();
             if (IsRCSConverting)
             {
                 if (ConvertKethaneToRCSFuel() != null)
@@ -1040,6 +1032,10 @@ namespace Kethane
                 HandlePumping();
                 HandleConversion();
                 HandleRCSConversion();
+                if (vessel == FlightGlobals.ActiveVessel && (IsConverting || IsRCSConverting) && !ConverterAtWork.isPlaying)
+                    ConverterAtWork.Play();
+                else if (!IsConverting && !IsRCSConverting)
+                    ConverterAtWork.Stop();
                 HandleDrilling();
             }
         }
