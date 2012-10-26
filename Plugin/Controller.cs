@@ -719,12 +719,12 @@ namespace Kethane
                         int alreadyPumped = 0;
                         foreach (var tank in tanks)
                         {
-                        float AmountToPump = Math.Min(tank.Capacity - tank.Kethane, Amount / (tanks.Count - alreadyPumped));
-                        tank.Kethane += AmountToPump;
-                        Amount -= AmountToPump;
-                        alreadyPumped++;
-                        if (Amount <= 0.000000001)
-                            return true;
+                            float AmountToPump = Math.Min(tank.Capacity - tank.Kethane, Amount / (tanks.Count - alreadyPumped));
+                            tank.Kethane += AmountToPump;
+                            Amount -= AmountToPump;
+                            alreadyPumped++;
+                            if (Amount <= 0.000000001)
+                                return true;
                         }
                     }
                 }
@@ -754,12 +754,12 @@ namespace Kethane
                         int alreadyPumped = 0;
                         foreach (var tank in tanks)
                         {
-                        float AmountToPump = Math.Min(TankToPumpFrom.Kethane, Amount / (tanks.Count - alreadyPumped));
-                        tank.Kethane -= AmountToPump;
-                        Amount -= AmountToPump;
-                        alreadyPumped++;
-                        if (Amount <= 0.000000001)
-                            return true;
+                            float AmountToPump = Math.Min(TankToPumpFrom.Kethane, Amount / (tanks.Count - alreadyPumped));
+                            tank.Kethane -= AmountToPump;
+                            Amount -= AmountToPump;
+                            alreadyPumped++;
+                            if (Amount <= 0.000000001)
+                                return true;
                         }
                     }
                 }
