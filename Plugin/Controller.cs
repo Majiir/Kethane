@@ -711,13 +711,21 @@ namespace Kethane
                 var TankToPumpTo = PartToPumpTo as MMI_Kethane_Tank;
                 if (TankToPumpTo != null && (PartToPumpTo.State == PartStates.ACTIVE || PartToPumpTo.State == PartStates.IDLE))
                 {
-                    if (TankToPumpTo.Kethane < TankToPumpTo.Capacity)
+                    var tanks = new List<MMI_Kethane_Tank>();
+                    tanks.Add(TankToPumpTo);
+                    tanks.AddRange(TankToPumpTo.symmetryCounterparts.OfType<MMI_Kethane_Tank>());
+                    if (tanks.Sum(t => t.Kethane) < tanks.Sum(t => t.Capacity))
                     {
-                        float AmountToPump = Math.Min(TankToPumpTo.Capacity - TankToPumpTo.Kethane, Amount);
-                        TankToPumpTo.Kethane += AmountToPump;
+                        int alreadyPumped = 0;
+                        foreach (var tank in tanks)
+                        {
+                        float AmountToPump = Math.Min(tank.Capacity - tank.Kethane, Amount / (tanks.Count - alreadyPumped));
+                        tank.Kethane += AmountToPump;
                         Amount -= AmountToPump;
+                        alreadyPumped++;
                         if (Amount <= 0.000000001)
                             return true;
+                        }
                     }
                 }
             }
@@ -738,13 +746,21 @@ namespace Kethane
                 var TankToPumpFrom = PartToPumpFrom as MMI_Kethane_Tank;
                 if (TankToPumpFrom != null && (PartToPumpFrom.State == PartStates.ACTIVE || PartToPumpFrom.State == PartStates.IDLE))
                 {
-                    if (TankToPumpFrom.Kethane > 0.0f)
+                    var tanks = new List<MMI_Kethane_Tank>();
+                    tanks.Add(TankToPumpFrom);
+                    tanks.AddRange(TankToPumpFrom.symmetryCounterparts.OfType<MMI_Kethane_Tank>());
+                    if (tanks.Sum(t => t.Kethane) > 0.0f)
                     {
-                        float AmountToPump = Math.Min(TankToPumpFrom.Kethane, Amount);
-                        TankToPumpFrom.Kethane -= AmountToPump;
+                        int alreadyPumped = 0;
+                        foreach (var tank in tanks)
+                        {
+                        float AmountToPump = Math.Min(TankToPumpFrom.Kethane, Amount / (tanks.Count - alreadyPumped));
+                        tank.Kethane -= AmountToPump;
                         Amount -= AmountToPump;
+                        alreadyPumped++;
                         if (Amount <= 0.000000001)
                             return true;
+                        }
                     }
                 }
             }
