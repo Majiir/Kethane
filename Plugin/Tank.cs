@@ -18,19 +18,18 @@
 */
 
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Kethane
 {
     public class MMI_Kethane_Tank : Part
     {
-        [KSPField(guiActive = true, guiName = "Kethane", guiFormat = "#0.##")]
-        public float Kethane = 0;
+        [KSPField(guiActive = true, guiName = "Kethane", guiFormat = "#0.##", isPersistant = false)]
+        private float kethaneDisplay;
 
-        [KSPField(guiActive = true, guiName = "Capacity", guiFormat = "#0.##")]
-        public float Capacity = 100;
+        [KSPField(guiActive = true, guiName = "Capacity", guiFormat = "#0.##", isPersistant = false)]
+        private float capacityDisplay;
 
-        public float DryMass = 0.25f;
-        private float KethaneDensity = 0.001f;
         protected VInfoBox info;
 
         protected override void onPartStart()
@@ -50,18 +49,9 @@ namespace Kethane
 
         protected override void onPartUpdate()
         {
-            this.mass = DryMass + Kethane * KethaneDensity;
-            info.SetValue(Capacity == 0 ? 0 : Kethane / Capacity, 0, 1);
-        }
-
-        public override void onFlightStateSave(Dictionary<string, KSPParseable> partDataCollection)
-        {
-            partDataCollection.Add("Kethane", new KSPParseable((object)this.Kethane, KSPParseable.Type.FLOAT));
-        }
-
-        public override void onFlightStateLoad(Dictionary<string, KSPParseable> parsedData)
-        {
-            this.Kethane = float.Parse(parsedData["Kethane"].value);
+            kethaneDisplay = this.Resources.list.Where(r => r.resourceName == "Kethane").Sum(r => r.amount) * 1000;
+            capacityDisplay = this.Resources.list.Where(r => r.resourceName == "Kethane").Sum(r => r.maxAmount) * 1000;
+            info.SetValue(capacityDisplay == 0 ? 0 : kethaneDisplay / capacityDisplay, 0, 1);
         }
     }
 }

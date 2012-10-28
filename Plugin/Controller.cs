@@ -714,14 +714,13 @@ namespace Kethane
                     var tanks = new List<MMI_Kethane_Tank>();
                     tanks.Add(TankToPumpTo);
                     tanks.AddRange(TankToPumpTo.symmetryCounterparts.OfType<MMI_Kethane_Tank>());
-                    if (tanks.Sum(t => t.Kethane) < tanks.Sum(t => t.Capacity))
+                    if (tanks.Sum(t => t.Resources.list.Where(r => r.resourceName == "Kethane").Sum(r => r.amount)) < tanks.Sum(t => t.Resources.list.Where(r => r.resourceName == "Kethane").Sum(r => r.maxAmount)))
                     {
                         int alreadyPumped = 0;
                         foreach (var tank in tanks)
                         {
-                            float AmountToPump = Math.Min(tank.Capacity - tank.Kethane, Amount / (tanks.Count - alreadyPumped));
-                            tank.Kethane += AmountToPump;
-                            Amount -= AmountToPump;
+                            float AmountToPump = Math.Min(tank.Resources.list.Where(r => r.resourceName == "Kethane").Sum(r => r.maxAmount) - tank.Resources.list.Where(r => r.resourceName == "Kethane").Sum(r => r.amount), Amount / (tanks.Count - alreadyPumped));
+                            Amount += tank.RequestResource("Kethane", -AmountToPump);
                             alreadyPumped++;
                             if (Amount <= 0.000000001)
                                 return true;
@@ -749,14 +748,13 @@ namespace Kethane
                     var tanks = new List<MMI_Kethane_Tank>();
                     tanks.Add(TankToPumpFrom);
                     tanks.AddRange(TankToPumpFrom.symmetryCounterparts.OfType<MMI_Kethane_Tank>());
-                    if (tanks.Sum(t => t.Kethane) > 0.0f)
+                    if (tanks.Sum(t => t.Resources.list.Where(r => r.resourceName == "Kethane").Sum(r => r.amount)) > 0.0f)
                     {
                         int alreadyPumped = 0;
                         foreach (var tank in tanks)
                         {
-                            float AmountToPump = Math.Min(TankToPumpFrom.Kethane, Amount / (tanks.Count - alreadyPumped));
-                            tank.Kethane -= AmountToPump;
-                            Amount -= AmountToPump;
+                            float AmountToPump = Math.Min(TankToPumpFrom.Resources.list.Where(r => r.resourceName == "Kethane").Sum(r => r.amount), Amount / (tanks.Count - alreadyPumped));
+                            Amount -= tank.RequestResource("Kethane", AmountToPump);
                             alreadyPumped++;
                             if (Amount <= 0.000000001)
                                 return true;
@@ -778,7 +776,7 @@ namespace Kethane
                 var tank = part as MMI_Kethane_Tank;
                 if (tank != null && (part.State == PartStates.ACTIVE || part.State == PartStates.IDLE))
                 {
-                    Available += tank.Kethane;
+                    Available += tank.Resources.list.Where(r => r.resourceName == "Kethane").Sum(r => r.amount);
                 }
             }
             return Available;
@@ -795,7 +793,7 @@ namespace Kethane
                 var tank = part as MMI_Kethane_Tank;
                 if (tank != null && (part.State == PartStates.ACTIVE || part.State == PartStates.IDLE))
                 {
-                    FreeSpace += tank.Capacity - tank.Kethane;
+                    FreeSpace += tank.Resources.list.Where(r => r.resourceName == "Kethane").Sum(r => r.maxAmount - r.amount);
                 }
             }
             return FreeSpace;
@@ -1342,7 +1340,10 @@ namespace Kethane
                     var tank = part as MMI_Kethane_Tank;
                     if (tank != null && (tank.State == PartStates.ACTIVE || tank.State == PartStates.IDLE))
                     {
-                        tank.Kethane = 0.0f;
+                        foreach (var resource in tank.Resources.list.Where(r => r.resourceName == "Kethane"))
+                        {
+                            resource.amount = 0;
+                        }
                     }
                 }
 
