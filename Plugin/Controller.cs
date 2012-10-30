@@ -199,7 +199,7 @@ namespace Kethane
 
                 if (this.vessel != null)
                 {
-                    int x = GetXOnMap(vessel.mainBody.GetLongitude(vessel.transform.position), DebugTex.width);
+                    int x = GetXOnMap(clampDegrees(vessel.mainBody.GetLongitude(vessel.transform.position)), DebugTex.width);
                     int y = GetYOnMap(vessel.mainBody.GetLatitude(vessel.transform.position), DebugTex.height);
                     DebugTex.SetPixel(x, y, Color.white);
                 }
@@ -218,7 +218,7 @@ namespace Kethane
 
                     if (this.vessel != null)
                     {
-                        int x = GetXOnMap(vessel.mainBody.GetLongitude(vessel.transform.position), planetTex.width);
+                        int x = GetXOnMap(clampDegrees(vessel.mainBody.GetLongitude(vessel.transform.position)), planetTex.width);
                         int y = GetYOnMap(vessel.mainBody.GetLatitude(vessel.transform.position), planetTex.height);
                         if (deposit)
                             planetTex.SetPixel(x, y, XKCDColors.Green);
@@ -229,6 +229,19 @@ namespace Kethane
                     planetTex.Apply();
                 } ClearFlag();
             }
+        }
+
+        /// <summary>
+        /// Keeps angles in the range -180 to 180
+        /// See: MuMechLib/ARUtils.cs clampDegrees(double angle)
+        /// http://svn.mumech.com/KSP/trunk/MuMechLib/ARUtils.cs
+        /// </summary>
+        public static double clampDegrees(double angle)
+        {
+            angle = angle + ((int)(2 + Math.Abs(angle) / 360)) * 360.0;
+            angle = angle % 360.0;
+            if (angle > 180.0) return angle - 360.0;
+            else return angle;
         }
 
         /// <summary>
@@ -308,11 +321,11 @@ namespace Kethane
             int PFoundTanks = 0;
             int PFoundPumps = 0;
 
-            for (int i = 0; i <= v.parts.Count - 1; i++)
+            foreach (var part in v.parts)
             {
-                if (Misc.SMatch(v.parts.ElementAt(i).GetType().Name, "MMI_Kethane_Tank"))
+                if (part is MMI_Kethane_Tank)
                     PFoundTanks++;
-                else if (Misc.SMatch(v.parts.ElementAt(i).GetType().Name, "MMI_Kethane_Pump"))
+                else if (part is MMI_Kethane_Pump)
                     PFoundPumps++;
             }
 
@@ -368,38 +381,38 @@ namespace Kethane
             FoundDetectors = 0;
             TankParts.Clear();
             ExtractorParts.Clear();
-            for (int i = 0; i <= this.vessel.parts.Count - 1; i++)
+            foreach (var part in this.vessel.parts)
             {
-                if (Misc.SMatch(this.vessel.parts.ElementAt(i).GetType().Name, "MMI_Kethane_Tank"))
+                if (part is MMI_Kethane_Tank)
                 {
                     FoundTanks++;
-                    this.TankParts.Add(this.vessel.parts.ElementAt(i));
+                    this.TankParts.Add(part);
                 }
-                else if (Misc.SMatch(this.vessel.parts.ElementAt(i).GetType().Name, "MMI_Kethane_Controller"))
+                else if (part is MMI_Kethane_Controller)
                 {
                     FoundControllers++;
                 }
-                else if (Misc.SMatch(this.vessel.parts.ElementAt(i).GetType().Name, "MMI_Kethane_Extractor"))
+                else if (part is MMI_Kethane_Extractor)
                 {
                     FoundExtractors++;
-                    if (!this.ExtractorParts.Contains((MMI_Kethane_Extractor)this.vessel.parts.ElementAt(i)))
-                        this.ExtractorParts.Add((MMI_Kethane_Extractor)this.vessel.parts.ElementAt(i));
+                    if (!this.ExtractorParts.Contains((MMI_Kethane_Extractor)part))
+                        this.ExtractorParts.Add((MMI_Kethane_Extractor)part);
                 }
-                else if (Misc.SMatch(this.vessel.parts.ElementAt(i).GetType().Name, "MMI_Kethane_Pump"))
+                else if (part is MMI_Kethane_Pump)
                 {
-                    MMI_Kethane_Pump Pump = (MMI_Kethane_Pump)this.vessel.parts.ElementAt(i);
+                    MMI_Kethane_Pump Pump = (MMI_Kethane_Pump)part;
                     PumpingSpeed = Math.Max(Pump.PumpingSpeed, PumpingSpeed);
                     FoundPumps++;
                 }
-                else if (Misc.SMatch(this.vessel.parts.ElementAt(i).GetType().Name, "MMI_Kethane_Detector"))
+                else if (part is MMI_Kethane_Detector)
                 {
-                    MMI_Kethane_Detector Detector = (MMI_Kethane_Detector)this.vessel.parts.ElementAt(i);
+                    MMI_Kethane_Detector Detector = (MMI_Kethane_Detector)part;
                     DetectorPart = Detector;
                     FoundDetectors++;
                 }
-                else if (Misc.SMatch(this.vessel.parts.ElementAt(i).GetType().Name, "MMI_Kethane_Converter"))
+                else if (part is MMI_Kethane_Converter)
                 {
-                    MMI_Kethane_Converter Converter = (MMI_Kethane_Converter)this.vessel.parts.ElementAt(i);
+                    MMI_Kethane_Converter Converter = (MMI_Kethane_Converter)part;
                     ConversionRatio = Converter.ConversionRatio;
                     ConversionSpeed = Converter.ConversionSpeed;
                     FoundConverters++;
@@ -698,13 +711,21 @@ namespace Kethane
                 var TankToPumpTo = PartToPumpTo as MMI_Kethane_Tank;
                 if (TankToPumpTo != null && (PartToPumpTo.State == PartStates.ACTIVE || PartToPumpTo.State == PartStates.IDLE))
                 {
-                    if (TankToPumpTo.Kethane < TankToPumpTo.Capacity)
+                    var tanks = new List<MMI_Kethane_Tank>();
+                    tanks.Add(TankToPumpTo);
+                    tanks.AddRange(TankToPumpTo.symmetryCounterparts.OfType<MMI_Kethane_Tank>());
+                    if (tanks.Sum(t => t.Kethane) < tanks.Sum(t => t.Capacity))
                     {
-                        float AmountToPump = Math.Min(TankToPumpTo.Capacity - TankToPumpTo.Kethane, Amount);
-                        TankToPumpTo.Kethane += AmountToPump;
-                        Amount -= AmountToPump;
-                        if (Amount <= 0.000000001)
-                            return true;
+                        int alreadyPumped = 0;
+                        foreach (var tank in tanks)
+                        {
+                            float AmountToPump = Math.Min(tank.Capacity - tank.Kethane, Amount / (tanks.Count - alreadyPumped));
+                            tank.Kethane += AmountToPump;
+                            Amount -= AmountToPump;
+                            alreadyPumped++;
+                            if (Amount <= 0.000000001)
+                                return true;
+                        }
                     }
                 }
             }
@@ -725,13 +746,21 @@ namespace Kethane
                 var TankToPumpFrom = PartToPumpFrom as MMI_Kethane_Tank;
                 if (TankToPumpFrom != null && (PartToPumpFrom.State == PartStates.ACTIVE || PartToPumpFrom.State == PartStates.IDLE))
                 {
-                    if (TankToPumpFrom.Kethane > 0.0f)
+                    var tanks = new List<MMI_Kethane_Tank>();
+                    tanks.Add(TankToPumpFrom);
+                    tanks.AddRange(TankToPumpFrom.symmetryCounterparts.OfType<MMI_Kethane_Tank>());
+                    if (tanks.Sum(t => t.Kethane) > 0.0f)
                     {
-                        float AmountToPump = Math.Min(TankToPumpFrom.Kethane, Amount);
-                        TankToPumpFrom.Kethane -= AmountToPump;
-                        Amount -= AmountToPump;
-                        if (Amount <= 0.000000001)
-                            return true;
+                        int alreadyPumped = 0;
+                        foreach (var tank in tanks)
+                        {
+                            float AmountToPump = Math.Min(TankToPumpFrom.Kethane, Amount / (tanks.Count - alreadyPumped));
+                            tank.Kethane -= AmountToPump;
+                            Amount -= AmountToPump;
+                            alreadyPumped++;
+                            if (Amount <= 0.000000001)
+                                return true;
+                        }
                     }
                 }
             }
@@ -851,10 +880,6 @@ namespace Kethane
         /// </summary>
         private void HandleConversion()
         {
-            //if (vessel == FlightGlobals.ActiveVessel && IsConverting && !ConverterAtWork.isPlaying)
-            //    ConverterAtWork.Play();
-            //else if (IsConverting == false)
-            //    ConverterAtWork.Stop();
             if (IsConverting)
             {
                 if (ConvertKethaneToFuel() != null)
@@ -870,10 +895,6 @@ namespace Kethane
         /// </summary>
         private void HandleRCSConversion()
         {
-            if (vessel == FlightGlobals.ActiveVessel && IsRCSConverting && !ConverterAtWork.isPlaying)
-                ConverterAtWork.Play();
-            else if (IsRCSConverting == false)
-                ConverterAtWork.Stop();
             if (IsRCSConverting)
             {
                 if (ConvertKethaneToRCSFuel() != null)
@@ -908,7 +929,7 @@ namespace Kethane
         {
             KethaneDeposits Deposits = PlanetDeposits[this.vessel.mainBody.name];
 
-            double lon = vessel.mainBody.GetLongitude(vessel.transform.position);
+            double lon = clampDegrees(vessel.mainBody.GetLongitude(vessel.transform.position));
             double lat = vessel.mainBody.GetLatitude(vessel.transform.position);
 
             double x = Math.Round((lon + 180d) * (Deposits.Width / 360d));
@@ -1011,6 +1032,10 @@ namespace Kethane
                 HandlePumping();
                 HandleConversion();
                 HandleRCSConversion();
+                if (vessel == FlightGlobals.ActiveVessel && (IsConverting || IsRCSConverting) && !ConverterAtWork.isPlaying)
+                    ConverterAtWork.Play();
+                else if (!IsConverting && !IsRCSConverting)
+                    ConverterAtWork.Stop();
                 HandleDrilling();
             }
         }
