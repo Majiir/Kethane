@@ -619,24 +619,6 @@ namespace Kethane
             GUILayout.Label(DepositUnder == null ? "-" : (DepositUnder.Depth.ToString() + "  " + DepositUnder.Kethane.ToString()), KGuiStyleNumbers);
             GUILayout.EndHorizontal();
 
-            #region Dump
-            GUILayout.Label("", KGuiStyleLabels);
-            if (GUILayout.Button("Dump", KGuiStyleList, GUILayout.ExpandWidth(true)))
-            {
-                foreach (Part part in this.TankParts)
-                {
-                    var tank = part as MMI_Kethane_Tank;
-                    if (tank != null && (tank.State == PartStates.ACTIVE || tank.State == PartStates.IDLE))
-                    {
-                        foreach (var resource in tank.Resources.list.Where(r => r.resourceName == "Kethane"))
-                        {
-                            resource.amount = 0;
-                        }
-                    }
-                }
-
-            }
-            #endregion
             GUILayout.EndVertical();
             GUI.DragWindow(new Rect(0, 0, 300, 60));
         }
