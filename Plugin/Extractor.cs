@@ -417,6 +417,7 @@ namespace Kethane
             }
         }
 
+        [KSPEvent(guiActive = true, guiName = "Toggle Extractor")]
         public void DeployArm()
         {
             if (this.vessel.isActiveVessel && ValidConfiguration)

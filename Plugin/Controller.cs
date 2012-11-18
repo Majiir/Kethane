@@ -38,8 +38,8 @@ namespace Kethane
         private GUIStyle KGuiStyleLog;
         private GUIStyle KGuiStyleNumbers;
 
-        private Rect InfoWindowPosition, ExtractorWindowPosition, DetectorWindowPosition, DebugWindowPosition;
-        private bool InfoWindowShow = false, ExtractorWindowShow = false, DetectorWindowShow = false, DebugWindowShow = false;
+        private Rect InfoWindowPosition, DetectorWindowPosition, DebugWindowPosition;
+        private bool InfoWindowShow = false, DetectorWindowShow = false, DebugWindowShow = false;
 
         private bool ScanningSound = true;
 
@@ -350,7 +350,6 @@ namespace Kethane
             this.stackIconGrouping = StackIconGrouping.SAME_MODULE;
 
             InfoWindowPosition = new Rect(Screen.width * 0.65f, 30, 10, 10);
-            ExtractorWindowPosition = new Rect(Screen.width * 0.45f, 300, 10, 10);
             DetectorWindowPosition = new Rect(Screen.width * 0.75f, 450, 10, 10);
             DetectorWindowPosition = new Rect(Screen.width * 0.20f, 250, 10, 10);
         }
@@ -389,41 +388,7 @@ namespace Kethane
 
             SetMaps();
         }
-
-        /// <summary>
-        /// Return available space of Kethane in vessel (sum of Kethane in all tanks)
-        /// </summary>
-        private float GetAvailableKethane(Vessel v)
-        {
-            float Available = 0.0f;
-            foreach (var part in v.parts)
-            {
-                var tank = part as MMI_Kethane_Tank;
-                if (tank != null && (part.State == PartStates.ACTIVE || part.State == PartStates.IDLE))
-                {
-                    Available += tank.Resources.list.Where(r => r.resourceName == "Kethane").Sum(r => r.amount);
-                }
-            }
-            return Available;
-        }
-
-        /// <summary>
-        /// Return available space for Kethane in vessel (sum of empty space in all tanks)
-        /// </summary>
-        private float GetAvailableKethaneSpace(Vessel v)
-        {
-            float FreeSpace = 0.0f;
-            foreach (var part in v.parts)
-            {
-                var tank = part as MMI_Kethane_Tank;
-                if (tank != null && (part.State == PartStates.ACTIVE || part.State == PartStates.IDLE))
-                {
-                    FreeSpace += tank.Resources.list.Where(r => r.resourceName == "Kethane").Sum(r => r.maxAmount - r.amount);
-                }
-            }
-            return FreeSpace;
-        }
-
+        
         /// <summary>
         /// Get true altitude above terrain (from MuMech lib)
         /// Also from: http://kerbalspaceprogram.com/forum/index.php?topic=10324.msg161923#msg161923
@@ -622,50 +587,6 @@ namespace Kethane
             #endregion
         }
 
-        private void ExtractorWindowGUI(int windowID)
-        {
-            GUILayout.BeginVertical();
-
-            #region Extractor
-            if (FoundExtractors > 0 && ExtractorParts.Count > 0)
-            {
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Kethane on board: ", KGuiStyleLabels);
-                float Quantity = GetAvailableKethane(this.vessel);
-                float Capacity = Quantity + GetAvailableKethaneSpace(this.vessel);
-                GUILayout.Label(Quantity.ToString("#0.0") + " / " + Capacity.ToString("#0.0") + "l", KGuiStyleNumbers);
-                GUILayout.EndHorizontal();
-                if (GUILayout.Button("Deploy extractors", KGuiStyleButton, GUILayout.ExpandWidth(true)))
-                {
-                    foreach (MMI_Kethane_Extractor Extractor in ExtractorParts)
-                        Extractor.DeployArm();
-                }
-                foreach (MMI_Kethane_Extractor ExtractorPart in ExtractorParts)
-                {
-                    GUILayout.Label("", KGuiStyleLabels);
-                    GUILayout.BeginHorizontal();
-                    GUILayout.Label("Extractor state: ", KGuiStyleLabels);
-                    GUILayout.Label(ExtractorPart.DrillDeploymentState == MMI_Kethane_Extractor.DeployState.Deployed ? "Deployed" : "Idle", KGuiStyleNumbers);
-                    GUILayout.EndHorizontal();
-                    GUILayout.BeginHorizontal();
-                    GUILayout.Label("Drill length: ", KGuiStyleLabels);
-                    GUILayout.Label(ExtractorPart.DrillDepth() > 0 ? ExtractorPart.DrillDepth().ToString("#0.0") : "-", KGuiStyleNumbers);
-                    GUILayout.EndHorizontal();
-                }
-            }
-            else
-            {
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Kethane extractor: ", KGuiStyleLabels);
-                GUILayout.Label("Not found", KGuiStyleNumbers);
-                GUILayout.EndHorizontal();
-            }
-            #endregion
-
-            GUILayout.EndVertical();
-            GUI.DragWindow(new Rect(0, 0, 300, 60));
-        }
-
         private void DebugWindowGUI(int windowID)
         {
             GUILayout.BeginVertical();
@@ -774,7 +695,6 @@ namespace Kethane
             GUILayout.Label("", KGuiStyleLabels);
 
             DetectorWindowShow = GUILayout.Toggle(DetectorWindowShow, "Detecting");
-            ExtractorWindowShow = GUILayout.Toggle(ExtractorWindowShow, "Extracting");
             //DebugWindowShow = GUILayout.Toggle(DebugWindowShow, "DEBUG");
 
             #endregion
@@ -798,9 +718,6 @@ namespace Kethane
             {
                 if (InfoWindowShow == true && ValidConfiguration)
                     InfoWindowPosition = GUILayout.Window(12355, InfoWindowPosition, InfoWindowGUI, "Kethane Controller", GUILayout.MinWidth(200), GUILayout.MaxWidth(200), GUILayout.MinHeight(20));
-
-                if (ExtractorWindowShow == true && ValidConfiguration)
-                    ExtractorWindowPosition = GUILayout.Window(12357, ExtractorWindowPosition, ExtractorWindowGUI, "Extracting", GUILayout.MinWidth(256), GUILayout.MaxWidth(300), GUILayout.MinHeight(20));
 
                 if (DetectorWindowShow == true && ValidConfiguration)
                     DetectorWindowPosition = GUILayout.Window(12358, DetectorWindowPosition, DetectorWindowGUI, "Detecting", GUILayout.MinWidth(300), GUILayout.MaxWidth(300), GUILayout.MinHeight(20));
