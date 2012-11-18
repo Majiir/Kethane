@@ -17,6 +17,8 @@
  * Anatid Robotics / MuMech - MechJeb        http://kerbalspaceprogram.com/forum/showthread.php/12384-PLUGIN-PART-0-16-Anatid-Robotics-MuMech-MechJeb-Autopilot-v1-9
 */
 
+using System;
+
 namespace Kethane
 {
     internal class Misc
@@ -33,6 +35,45 @@ namespace Kethane
                     return false;
 
             return true;
+        }
+
+        /// <summary>
+        /// Keeps angles in the range -180 to 180
+        /// See: MuMechLib/ARUtils.cs clampDegrees(double angle)
+        /// http://svn.mumech.com/KSP/trunk/MuMechLib/ARUtils.cs
+        /// </summary>
+        public static double clampDegrees(double angle)
+        {
+            angle = angle + ((int)(2 + Math.Abs(angle) / 360)) * 360.0;
+            angle = angle % 360.0;
+            if (angle > 180.0) return angle - 360.0;
+            else return angle;
+        }
+
+        /// <summary>
+        /// Get x pixel position on map
+        /// </summary>
+        public static int GetXOnMap(double lon, int width)
+        {
+            return (int)Math.Round((lon + 180d) * ((double)width / 360d));
+        }
+
+        /// <summary>
+        /// Get y pixel position on map
+        /// </summary>
+        public static int GetYOnMap(double lat, int height)
+        {
+            return (int)Math.Round((lat + 90d) * ((double)height / 180d));
+        }
+
+        public static int GetLonOnMap(double x, int width)
+        {
+            return -((int)(360 * x) / width + 180);
+        }
+
+        public static int GetLatOnMap(double y, int height)
+        {
+            return -((int)(180 * y) / height - 90);
         }
     }
 }

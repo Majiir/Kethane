@@ -199,8 +199,8 @@ namespace Kethane
 
                 if (this.vessel != null)
                 {
-                    int x = GetXOnMap(clampDegrees(vessel.mainBody.GetLongitude(vessel.transform.position)), DebugTex.width);
-                    int y = GetYOnMap(vessel.mainBody.GetLatitude(vessel.transform.position), DebugTex.height);
+                    int x = Misc.GetXOnMap(Misc.clampDegrees(vessel.mainBody.GetLongitude(vessel.transform.position)), DebugTex.width);
+                    int y = Misc.GetYOnMap(vessel.mainBody.GetLatitude(vessel.transform.position), DebugTex.height);
                     DebugTex.SetPixel(x, y, Color.white);
                 }
                 DebugTex.Apply();
@@ -218,8 +218,8 @@ namespace Kethane
 
                     if (this.vessel != null)
                     {
-                        int x = GetXOnMap(clampDegrees(vessel.mainBody.GetLongitude(vessel.transform.position)), planetTex.width);
-                        int y = GetYOnMap(vessel.mainBody.GetLatitude(vessel.transform.position), planetTex.height);
+                        int x = Misc.GetXOnMap(Misc.clampDegrees(vessel.mainBody.GetLongitude(vessel.transform.position)), planetTex.width);
+                        int y = Misc.GetYOnMap(vessel.mainBody.GetLatitude(vessel.transform.position), planetTex.height);
                         if (deposit)
                             planetTex.SetPixel(x, y, XKCDColors.Green);
                         else
@@ -229,19 +229,6 @@ namespace Kethane
                     planetTex.Apply();
                 } ClearFlag();
             }
-        }
-
-        /// <summary>
-        /// Keeps angles in the range -180 to 180
-        /// See: MuMechLib/ARUtils.cs clampDegrees(double angle)
-        /// http://svn.mumech.com/KSP/trunk/MuMechLib/ARUtils.cs
-        /// </summary>
-        public static double clampDegrees(double angle)
-        {
-            angle = angle + ((int)(2 + Math.Abs(angle) / 360)) * 360.0;
-            angle = angle % 360.0;
-            if (angle > 180.0) return angle - 360.0;
-            else return angle;
         }
 
         /// <summary>
@@ -927,7 +914,7 @@ namespace Kethane
         {
             KethaneDeposits Deposits = PlanetDeposits[this.vessel.mainBody.name];
 
-            double lon = clampDegrees(vessel.mainBody.GetLongitude(vessel.transform.position));
+            double lon = Misc.clampDegrees(vessel.mainBody.GetLongitude(vessel.transform.position));
             double lat = vessel.mainBody.GetLatitude(vessel.transform.position);
 
             double x = Math.Round((lon + 180d) * (Deposits.Width / 360d));
@@ -1038,32 +1025,6 @@ namespace Kethane
             }
         }
 
-        /// <summary>
-        /// Get x pixel position on map
-        /// </summary>
-        private static int GetXOnMap(double lon, int width)
-        {
-            return (int)Math.Round((lon + 180d) * ((double)width / 360d));
-        }
-
-        /// <summary>
-        /// Get y pixel position on map
-        /// </summary>
-        private static int GetYOnMap(double lat, int height)
-        {
-            return (int)Math.Round((lat + 90d) * ((double)height / 180d));
-        }
-
-        private static int GetLonOnMap(double x, int width)
-        {
-            return -((int)(360 * x) / width + 180);
-        }
-
-        private static int GetLatOnMap(double y, int height)
-        {
-            return -((int)(180 * y) / height - 90);
-        }
-
         private void DetectorWindowGUI(int windowID)
         {
             #region Detector
@@ -1088,11 +1049,11 @@ namespace Kethane
 
                 GUILayout.BeginHorizontal();
                 GUILayout.Label("Mouse Latitude: ", KGuiStyleLabels);
-                GUILayout.Label(" " + (inbound ? GetLatOnMap(yVar, planetTex.height).ToString("#0.0") : "-"), KGuiStyleNumbers);
+                GUILayout.Label(" " + (inbound ? Misc.GetLatOnMap(yVar, planetTex.height).ToString("#0.0") : "-"), KGuiStyleNumbers);
                 GUILayout.EndHorizontal();
                 GUILayout.BeginHorizontal();
                 GUILayout.Label("Mouse Longitude: ", KGuiStyleLabels);
-                GUILayout.Label(" " + (inbound ? GetLonOnMap(xVar, planetTex.width).ToString("#0.0") : "-"), KGuiStyleNumbers);
+                GUILayout.Label(" " + (inbound ? Misc.GetLonOnMap(xVar, planetTex.width).ToString("#0.0") : "-"), KGuiStyleNumbers);
                 GUILayout.EndHorizontal();
 
             }
