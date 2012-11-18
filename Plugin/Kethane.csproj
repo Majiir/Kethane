@@ -47,12 +47,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Controller.cs" />
-    <Compile Include="Converter.cs" />
     <Compile Include="Deposit.cs" />
     <Compile Include="Detector.cs" />
     <Compile Include="Extractor.cs" />
     <Compile Include="Misc.cs" />
-    <Compile Include="NearestVessels.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Tank.cs" />
   </ItemGroup>

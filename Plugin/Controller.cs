@@ -38,8 +38,8 @@ namespace Kethane
         private GUIStyle KGuiStyleLog;
         private GUIStyle KGuiStyleNumbers;
 
-        private Rect InfoWindowPosition, ExtractorWindowPosition, ConverterWindowPosition, DetectorWindowPosition, DebugWindowPosition;
-        private bool InfoWindowShow = false, ExtractorWindowShow = false, ConverterWindowShow = false, DetectorWindowShow = false, DebugWindowShow = false;
+        private Rect InfoWindowPosition, ExtractorWindowPosition, DetectorWindowPosition, DebugWindowPosition;
+        private bool InfoWindowShow = false, ExtractorWindowShow = false, DetectorWindowShow = false, DebugWindowShow = false;
 
         private bool ScanningSound = true;
 
@@ -47,19 +47,13 @@ namespace Kethane
         private MMI_Kethane_Detector DetectorPart;
         private List<Part> TankParts = new List<Part>();
 
-        private NearestVessels VesselsAround = new NearestVessels();
-
         private static Dictionary<string, KethaneDeposits> PlanetDeposits;
 
         private static Dictionary<string, Texture2D> PlanetTextures = new Dictionary<string, Texture2D>();
         private static bool IsTexturesBusyFlag = false;
         private Texture2D DebugTex = new Texture2D(256, 128, TextureFormat.ARGB32, false);
 
-        private int FoundTanks = 0, FoundExtractors = 0, FoundConverters = 0, FoundDetectors = 0, FoundControllers = 0;
-
-        /* Taken from mounted converter and Detector */
-        private float ConversionRatio = 0.5f;
-        private float ConversionSpeed = 3.0f;
+        private int FoundTanks = 0, FoundExtractors = 0, FoundDetectors = 0, FoundControllers = 0;
 
         private KethaneDeposit DepositUnder = null;
 
@@ -67,14 +61,11 @@ namespace Kethane
 
         private double LastLat = 0, LastLon = 0;
 
-        protected static AudioSource PingEmpty, PingDeposit, ConverterAtWork;
+        protected static AudioSource PingEmpty, PingDeposit;
 
         private double TimerEcho = 0.0f;
 
-        private bool IsConverting = false, IsRCSConverting = false, IsDetecting = false;
-
-        private Dictionary<string, float> FuelTanksCapacities;
-        private Dictionary<string, float> RCSFuelTanksCapacities;
+        private bool IsDetecting = false;
 
         private static void Swap<T>(ref T lhs, ref T rhs) { T temp; temp = lhs; lhs = rhs; rhs = temp; }
 
@@ -297,49 +288,12 @@ namespace Kethane
         }
 
         /// <summary>
-        /// Fill dictionary about information of which fuel tank type hold how many fuel (name->fuel)
-        /// </summary>
-        private void FillFuelTankDictionary()
-        {
-            FuelTanksCapacities = new Dictionary<string, float>();
-            if (this.vessel == null) return;
-            foreach (Part FuelTankPart in this.vessel.parts)
-            {
-                if (FuelTankPart is FuelTank && (FuelTankPart.State == PartStates.ACTIVE || FuelTankPart.State == PartStates.IDLE))
-                {
-                    FuelTank FuelTankPartFound = (FuelTank)FuelTankPart;
-                    if (!FuelTanksCapacities.ContainsKey(FuelTankPartFound.name))
-                        FuelTanksCapacities.Add(FuelTankPartFound.name, FuelTankPartFound.fuel);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Fill dictionary about information of which fuel tank type hold how many fuel (name->fuel)
-        /// </summary>
-        private void FillRCSFuelTankDictionary()
-        {
-            RCSFuelTanksCapacities = new Dictionary<string, float>();
-            if (this.vessel == null) return;
-            foreach (Part RCSFuelTankPart in this.vessel.parts)
-            {
-                if (RCSFuelTankPart is RCSFuelTank && (RCSFuelTankPart.State == PartStates.ACTIVE || RCSFuelTankPart.State == PartStates.IDLE))
-                {
-                    RCSFuelTank FuelTankPartFound = (RCSFuelTank)RCSFuelTankPart;
-                    if (!RCSFuelTanksCapacities.ContainsKey(FuelTankPartFound.name))
-                        RCSFuelTanksCapacities.Add(FuelTankPartFound.name, FuelTankPartFound.fuel);
-                }
-            }
-        }
-
-        /// <summary>
         /// Check if oil equipment configuration is valid (there is proper number of every part)
         /// </summary>
         private void VerifyConfiguration()
         {
             FoundTanks = 0;
             FoundExtractors = 0;
-            FoundConverters = 0;
             FoundControllers = 0;
             FoundDetectors = 0;
             TankParts.Clear();
@@ -367,23 +321,11 @@ namespace Kethane
                     DetectorPart = Detector;
                     FoundDetectors++;
                 }
-                else if (part is MMI_Kethane_Converter)
-                {
-                    MMI_Kethane_Converter Converter = (MMI_Kethane_Converter)part;
-                    ConversionRatio = Converter.ConversionRatio;
-                    ConversionSpeed = Converter.ConversionSpeed;
-                    FoundConverters++;
-                }
             }
 
             if (FoundDetectors > 1)
             {
                 print("More then one kethane detector found - cannot use controller");
-                ValidConfiguration = false;
-            }
-            else if (FoundConverters > 1)
-            {
-                MessageBox.print("More then one kethane converter found - cannot use controller");
                 ValidConfiguration = false;
             }
             else if (FoundControllers > 1)
@@ -403,18 +345,12 @@ namespace Kethane
         /// </summary>
         protected override void onPartStart()
         {
-            if (FuelTanksCapacities == null)
-                FillFuelTankDictionary();
-            if (RCSFuelTanksCapacities == null)
-                FillRCSFuelTankDictionary();
-
             this.stackIcon.SetIcon(DefaultIcons.SAS);
             this.stackIcon.SetIconColor(XKCDColors.LightGrassGreen);
             this.stackIconGrouping = StackIconGrouping.SAME_MODULE;
 
             InfoWindowPosition = new Rect(Screen.width * 0.65f, 30, 10, 10);
             ExtractorWindowPosition = new Rect(Screen.width * 0.45f, 300, 10, 10);
-            ConverterWindowPosition = new Rect(Screen.width * 0.05f, 50, 10, 10);
             DetectorWindowPosition = new Rect(Screen.width * 0.75f, 450, 10, 10);
             DetectorWindowPosition = new Rect(Screen.width * 0.20f, 250, 10, 10);
         }
@@ -442,25 +378,9 @@ namespace Kethane
                 PingDeposit.volume = 1;
                 PingDeposit.Stop();
             }
-
-
-            ConverterAtWork = gameObject.AddComponent<AudioSource>();
-            WWW wwwC = new WWW("file://" + KSPUtil.ApplicationRootPath.Replace("\\", "/") + "PluginData/mmi_kethane/sounds/converter.wav");
-            if ((PingDeposit != null) && (wwwC != null))
-            {
-                ConverterAtWork.clip = wwwC.GetAudioClip(false);
-                ConverterAtWork.volume = 1;
-                ConverterAtWork.loop = true;
-                ConverterAtWork.Stop();
-            }
             #endregion
 
             LoadKethaneDeposits();
-
-            if (FuelTanksCapacities == null)
-                FillFuelTankDictionary();
-            if (RCSFuelTanksCapacities == null)
-                FillRCSFuelTankDictionary();
 
             RenderingManager.AddToPostDrawQueue(3, DrawGUI);
 
@@ -468,243 +388,6 @@ namespace Kethane
             this.force_activate();
 
             SetMaps();
-        }
-
-        /// <summary>
-        /// Pump selected amount of fuel to target vessel, distributing it in tanks, one by one
-        /// Return true if all fuel has been distributed, false otherwise
-        /// </summary>
-        private bool AddRCSFuel(float Amount)
-        {
-            foreach (Part PartToPumpTo in this.vessel.parts)
-            {
-                if (PartToPumpTo is RCSFuelTank && (PartToPumpTo.State != PartStates.DEAD))
-                {
-                    RCSFuelTank TankToPumpTo = (RCSFuelTank)PartToPumpTo;
-                    if (TankToPumpTo.fuel < RCSFuelTanksCapacities[TankToPumpTo.name])
-                    {
-                        float AmountToPump = Math.Min(RCSFuelTanksCapacities[TankToPumpTo.name] - TankToPumpTo.fuel, Amount);
-                        TankToPumpTo.fuel += AmountToPump;
-                        Amount -= AmountToPump;
-                        if (Amount <= 0.000000001)
-                            return true;
-                    }
-                }
-            }
-            return false;
-        }
-
-        /// <summary>
-        /// Pump selected amount of fuel to target vessel, distributing it in tanks, one by one
-        /// Return true if all fuel has been distributed, false otherwise
-        /// </summary>
-        private bool AddFuel(float Amount)
-        {
-            foreach (Part PartToPumpTo in this.vessel.parts)
-            {
-                if (PartToPumpTo is FuelTank && (PartToPumpTo.State != PartStates.DEAD))
-                {
-                    FuelTank TankToPumpTo = (FuelTank)PartToPumpTo;
-                    if (TankToPumpTo.fuel < FuelTanksCapacities[TankToPumpTo.name])
-                    {
-                        float AmountToPump = Math.Min(FuelTanksCapacities[TankToPumpTo.name] - TankToPumpTo.fuel, Amount);
-                        TankToPumpTo.fuel += AmountToPump;
-                        Amount -= AmountToPump;
-                        if (Amount <= 0.000000001)
-                            return true;
-                    }
-                }
-            }
-            return false;
-        }
-
-        /// <summary>
-        /// Return available space for fuel in vessel (sum of empty space in all tanks)
-        /// </summary>
-        private float GetAvailableFuelSpace()
-        {
-            float FreeSpace = 0.0f;
-            foreach (Part PartToPumpTo in this.vessel.parts)
-            {
-                if (PartToPumpTo is FuelTank)
-                {
-                    FuelTank TankToPumpTo = (FuelTank)PartToPumpTo;
-                    FreeSpace += FuelTanksCapacities[TankToPumpTo.name] - TankToPumpTo.fuel;
-                }
-            }
-            return FreeSpace;
-        }
-
-        /// <summary>
-        /// Return available space for RCS fuel in vessel (sum of empty space in all tanks)
-        /// </summary>
-        private float GetAvailableRCSFuelSpace()
-        {
-            float FreeSpace = 0.0f;
-            foreach (Part PartToPumpTo in this.vessel.parts)
-            {
-                if (PartToPumpTo is RCSFuelTank)
-                {
-                    RCSFuelTank TankToPumpTo = (RCSFuelTank)PartToPumpTo;
-                    FreeSpace += RCSFuelTanksCapacities[TankToPumpTo.name] - TankToPumpTo.fuel;
-                }
-            }
-            return FreeSpace;
-        }
-
-        /// <summary>
-        /// Pump fuel from one vessel to the other
-        /// Return null on succes or in case of fail: amount of fuel unpumped
-        /// If there are less space then requested fuel to pump, function pumps as much as is possible
-        /// and return leftovers
-        /// </summary>
-        private float? ConvertKethaneToFuel()
-        {
-            float AmountToGive = ConversionSpeed * ConversionRatio * TimeWarp.deltaTime;
-            float AmountToTake = ConversionSpeed * TimeWarp.deltaTime;
-            float FreeSpace = GetAvailableFuelSpace();
-            float KethaneAvailable = GetAvailableKethane(this.vessel);
-
-            if (FreeSpace > 0 && FreeSpace >= AmountToGive && KethaneAvailable > AmountToTake)
-            {
-                if (!AddFuel(AmountToGive))
-                    print("Something went wrong converting Kethane to fuel");
-                PumpKethaneFrom(this.vessel, AmountToTake);
-                return null;
-            }
-            else if (FreeSpace > 0 && FreeSpace < AmountToGive && KethaneAvailable > AmountToTake)
-            {
-                float NewAmountToGive = FreeSpace;
-                float NewAmountToTake = NewAmountToGive / ConversionRatio;
-
-                if (!AddFuel(NewAmountToGive))
-                    print("Adding fuel leftovers!");
-                PumpKethaneFrom(this.vessel, NewAmountToTake);
-
-                return AmountToGive - FreeSpace;
-            }
-            else if (FreeSpace > 0 && FreeSpace > AmountToGive && KethaneAvailable < AmountToTake)
-            {
-                float NewAmountToTake = KethaneAvailable;
-                float NewAmountToGive = KethaneAvailable * ConversionRatio;
-
-                AddFuel(NewAmountToGive);
-                PumpKethaneFrom(this.vessel, NewAmountToTake);
-
-                return 0;
-            }
-            else
-                return AmountToGive;
-        }
-
-        /// <summary>
-
-        /// </summary>
-        private float? ConvertKethaneToRCSFuel()
-        {
-            float AmountToGive = ConversionSpeed * (1.25f * ConversionRatio > 1 ? 1 : 1.25f * ConversionRatio) * TimeWarp.deltaTime;
-            float AmountToTake = ConversionSpeed * TimeWarp.deltaTime;
-            float FreeSpace = GetAvailableRCSFuelSpace();
-            float KethanAvailable = GetAvailableKethane(this.vessel);
-
-            if (FreeSpace > 0 && FreeSpace >= AmountToGive && KethanAvailable > AmountToTake)
-            {
-                if (!AddRCSFuel(AmountToGive))
-                    print("Something went wrong converting Kethane to fuel");
-                PumpKethaneFrom(this.vessel, AmountToTake);
-                return null;
-            }
-            else if (FreeSpace > 0 && FreeSpace < AmountToGive && KethanAvailable > AmountToTake)
-            {
-                float NewAmountToGive = FreeSpace;
-                float NewAmountToTake = NewAmountToGive / ConversionRatio;
-
-                if (!AddRCSFuel(NewAmountToGive))
-                    print("Adding fuel leftovers!");
-                PumpKethaneFrom(this.vessel, NewAmountToTake);
-
-                return AmountToGive - FreeSpace;
-            }
-            else if (FreeSpace > 0 && FreeSpace > AmountToGive && KethanAvailable < AmountToTake)
-            {
-                float NewAmountToTake = KethanAvailable;
-                float NewAmountToGive = KethanAvailable * ConversionRatio;
-
-                AddRCSFuel(NewAmountToGive);
-                PumpKethaneFrom(this.vessel, NewAmountToTake);
-
-                return 0;
-            }
-            else
-                return AmountToGive;
-        }
-
-        /// <summary>
-        /// Pump selected amount of Kethane to target vessel, distributing it in tanks, one by one
-        /// Return true if all fuel has been distributed, false otherwise
-        /// </summary>
-        private bool PumpKethaneTo(Vessel v, float Amount)
-        {
-            if (v == null)
-                return false;
-
-            foreach (Part PartToPumpTo in v.parts)
-            {
-                var TankToPumpTo = PartToPumpTo as MMI_Kethane_Tank;
-                if (TankToPumpTo != null && (PartToPumpTo.State == PartStates.ACTIVE || PartToPumpTo.State == PartStates.IDLE))
-                {
-                    var tanks = new List<MMI_Kethane_Tank>();
-                    tanks.Add(TankToPumpTo);
-                    tanks.AddRange(TankToPumpTo.symmetryCounterparts.OfType<MMI_Kethane_Tank>());
-                    if (tanks.Sum(t => t.Resources.list.Where(r => r.resourceName == "Kethane").Sum(r => r.amount)) < tanks.Sum(t => t.Resources.list.Where(r => r.resourceName == "Kethane").Sum(r => r.maxAmount)))
-                    {
-                        int alreadyPumped = 0;
-                        foreach (var tank in tanks)
-                        {
-                            float AmountToPump = Math.Min(tank.Resources.list.Where(r => r.resourceName == "Kethane").Sum(r => r.maxAmount) - tank.Resources.list.Where(r => r.resourceName == "Kethane").Sum(r => r.amount), Amount / (tanks.Count - alreadyPumped));
-                            Amount += tank.RequestResource("Kethane", -AmountToPump);
-                            alreadyPumped++;
-                            if (Amount <= 0.000000001)
-                                return true;
-                        }
-                    }
-                }
-            }
-            return false;
-        }
-
-        /// <summary>
-        /// Pump selected amount of Kethane from source vessel, getting it from tanks, one by one
-        /// Return true if all rquested fuel has been taken, false otherwise
-        /// </summary>
-        private bool PumpKethaneFrom(Vessel v, float Amount)
-        {
-            if (v == null)
-                return false;
-
-            foreach (Part PartToPumpFrom in v.parts)
-            {
-                var TankToPumpFrom = PartToPumpFrom as MMI_Kethane_Tank;
-                if (TankToPumpFrom != null && (PartToPumpFrom.State == PartStates.ACTIVE || PartToPumpFrom.State == PartStates.IDLE))
-                {
-                    var tanks = new List<MMI_Kethane_Tank>();
-                    tanks.Add(TankToPumpFrom);
-                    tanks.AddRange(TankToPumpFrom.symmetryCounterparts.OfType<MMI_Kethane_Tank>());
-                    if (tanks.Sum(t => t.Resources.list.Where(r => r.resourceName == "Kethane").Sum(r => r.amount)) > 0.0f)
-                    {
-                        int alreadyPumped = 0;
-                        foreach (var tank in tanks)
-                        {
-                            float AmountToPump = Math.Min(TankToPumpFrom.Resources.list.Where(r => r.resourceName == "Kethane").Sum(r => r.amount), Amount / (tanks.Count - alreadyPumped));
-                            Amount -= tank.RequestResource("Kethane", AmountToPump);
-                            alreadyPumped++;
-                            if (Amount <= 0.000000001)
-                                return true;
-                        }
-                    }
-                }
-            }
-            return false;
         }
 
         /// <summary>
@@ -739,36 +422,6 @@ namespace Kethane
                 }
             }
             return FreeSpace;
-        }
-
-        /// <summary>
-        /// Do all operations related to converting Kethane to fuel
-        /// </summary>
-        private void HandleConversion()
-        {
-            if (IsConverting)
-            {
-                if (ConvertKethaneToFuel() != null)
-                {
-                    IsConverting = false;
-                    ConverterAtWork.Stop();
-                }
-            }
-        }
-
-        /// <summary>
-        /// Do all operations related to converting Kethane to fuel
-        /// </summary>
-        private void HandleRCSConversion()
-        {
-            if (IsRCSConverting)
-            {
-                if (ConvertKethaneToRCSFuel() != null)
-                {
-                    IsRCSConverting = false;
-                    ConverterAtWork.Stop();
-                }
-            }
         }
 
         /// <summary>
@@ -885,13 +538,6 @@ namespace Kethane
                 VerifyConfiguration();
                 GetDepositUnderVessel();
                 HandleDetection();
-
-                HandleConversion();
-                HandleRCSConversion();
-                if (vessel == FlightGlobals.ActiveVessel && (IsConverting || IsRCSConverting) && !ConverterAtWork.isPlaying)
-                    ConverterAtWork.Play();
-                else if (!IsConverting && !IsRCSConverting)
-                    ConverterAtWork.Stop();
                 HandleDrilling();
             }
         }
@@ -976,50 +622,6 @@ namespace Kethane
             #endregion
         }
 
-        private void ConverterWindowGUI(int windowID)
-        {
-            GUILayout.BeginVertical();
-
-            #region Converter
-            if (FoundConverters > 0)
-            {
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Kethane on board: ", KGuiStyleLabels);
-                float Quantity = GetAvailableKethane(this.vessel);
-                float Capacity = Quantity + GetAvailableKethaneSpace(this.vessel);
-                GUILayout.Label(Quantity.ToString("#0.0") + " / " + Capacity.ToString("#0.0") + "l", KGuiStyleNumbers);
-                GUILayout.EndHorizontal();
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Free space for fuel: ", KGuiStyleLabels);
-                float FCapacity = GetAvailableFuelSpace();
-                GUILayout.Label(FCapacity.ToString("#0.0") + "l", KGuiStyleNumbers);
-                GUILayout.EndHorizontal();
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Free space for RCS fuel: ", KGuiStyleLabels);
-                float RCapacity = GetAvailableRCSFuelSpace();
-                GUILayout.Label(RCapacity.ToString("#0.0") + "l", KGuiStyleNumbers);
-                GUILayout.EndHorizontal();
-
-                GUILayout.BeginHorizontal();
-                IsConverting = GUILayout.Toggle(IsConverting, (IsConverting ? "Converting..." : "Fuel conversion"), KGuiStyleButton, GUILayout.ExpandWidth(true));
-                IsRCSConverting = GUILayout.Toggle(IsRCSConverting, (IsRCSConverting ? "Converting..." : "RCS conversion"), KGuiStyleButton, GUILayout.ExpandWidth(true));
-                if (IsConverting && IsRCSConverting)
-                    IsRCSConverting = false;
-                GUILayout.EndHorizontal();
-            }
-            else
-            {
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Kethane converter: ", KGuiStyleLabels);
-                GUILayout.Label("Not found", KGuiStyleNumbers);
-                GUILayout.EndHorizontal();
-            }
-            #endregion
-
-            GUILayout.EndVertical();
-            GUI.DragWindow(new Rect(0, 0, 300, 60));
-        }
-
         private void ExtractorWindowGUI(int windowID)
         {
             GUILayout.BeginVertical();
@@ -1075,16 +677,12 @@ namespace Kethane
             GUILayout.Label(FoundExtractors > 0 ? "Present" : "Not found", KGuiStyleNumbers);
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Kethane converter: ", KGuiStyleLabels);
-            GUILayout.Label(FoundConverters > 0 ? "Present" : "Not found", KGuiStyleNumbers);
-            GUILayout.EndHorizontal();
-            GUILayout.BeginHorizontal();
             GUILayout.Label("Valid/active: ", KGuiStyleLabels);
             GUILayout.Label(ValidConfiguration.ToString() + "/" + this.gameObject.active, KGuiStyleNumbers);
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
-            GUILayout.Label("TECD: ", KGuiStyleLabels);
-            GUILayout.Label(FoundTanks + " " + FoundExtractors + " " + FoundConverters + " " + FoundDetectors, KGuiStyleNumbers);
+            GUILayout.Label("TED: ", KGuiStyleLabels);
+            GUILayout.Label(FoundTanks + " " + FoundExtractors + " " + FoundDetectors, KGuiStyleNumbers);
             GUILayout.EndHorizontal();
 
             if (GUILayout.Button("Verify", KGuiStyleButton, GUILayout.ExpandWidth(true)))
@@ -1177,7 +775,6 @@ namespace Kethane
 
             DetectorWindowShow = GUILayout.Toggle(DetectorWindowShow, "Detecting");
             ExtractorWindowShow = GUILayout.Toggle(ExtractorWindowShow, "Extracting");
-            ConverterWindowShow = GUILayout.Toggle(ConverterWindowShow, "Converting");
             //DebugWindowShow = GUILayout.Toggle(DebugWindowShow, "DEBUG");
 
             #endregion
@@ -1208,9 +805,6 @@ namespace Kethane
                 if (DetectorWindowShow == true && ValidConfiguration)
                     DetectorWindowPosition = GUILayout.Window(12358, DetectorWindowPosition, DetectorWindowGUI, "Detecting", GUILayout.MinWidth(300), GUILayout.MaxWidth(300), GUILayout.MinHeight(20));
 
-                if (ConverterWindowShow == true && ValidConfiguration)
-                    ConverterWindowPosition = GUILayout.Window(12359, ConverterWindowPosition, ConverterWindowGUI, "Converting", GUILayout.MinWidth(256), GUILayout.MaxWidth(300), GUILayout.MinHeight(20));
-
                 if (DebugWindowShow == true)
                     DebugWindowPosition = GUILayout.Window(12360, DebugWindowPosition, DebugWindowGUI, "Debug", GUILayout.MinWidth(256), GUILayout.MaxWidth(300), GUILayout.MinHeight(20));
             }
@@ -1232,11 +826,6 @@ namespace Kethane
 
         protected override void onUnpack()
         {
-            if (FuelTanksCapacities == null)
-                FillFuelTankDictionary();
-            if (RCSFuelTanksCapacities == null)
-                FillRCSFuelTankDictionary();
-
             SaveAllMaps();
         }
 
@@ -1246,37 +835,8 @@ namespace Kethane
         public override void onFlightStateSave(Dictionary<string, KSPParseable> partDataCollection)
         {
             SaveKethaneDeposits();
-
-            if (FuelTanksCapacities != null)
-            {
-                int NumberOfTanks = FuelTanksCapacities.Count;
-                partDataCollection.Add("NumberOfTanks", new KSPParseable(NumberOfTanks, KSPParseable.Type.INT));
-                for (int i = 0; i < NumberOfTanks; i++)
-                {
-                    string Id = FuelTanksCapacities.ElementAt(i).Key;
-                    float Value = FuelTanksCapacities.ElementAt(i).Value;
-                    string SaveName = "FuelTank" + i.ToString();
-                    partDataCollection.Add(SaveName + "string", new KSPParseable(Id, KSPParseable.Type.STRING));
-                    partDataCollection.Add(SaveName + "float", new KSPParseable(Value, KSPParseable.Type.FLOAT));
-                }
-            }
-
-            if (RCSFuelTanksCapacities != null)
-            {
-                int NumberOfRCSTanks = RCSFuelTanksCapacities.Count;
-                partDataCollection.Add("NumberOfRCSTanks", new KSPParseable(NumberOfRCSTanks, KSPParseable.Type.INT));
-                for (int i = 0; i < NumberOfRCSTanks; i++)
-                {
-                    string Id = RCSFuelTanksCapacities.ElementAt(i).Key;
-                    float Value = RCSFuelTanksCapacities.ElementAt(i).Value;
-                    string SaveName = "RCSFuelTank" + i.ToString();
-                    partDataCollection.Add(SaveName + "string", new KSPParseable(Id, KSPParseable.Type.STRING));
-                    partDataCollection.Add(SaveName + "float", new KSPParseable(Value, KSPParseable.Type.FLOAT));
-                }
-            }
             SaveAllMaps();
             partDataCollection.Add("Detecting", new KSPParseable(IsDetecting, KSPParseable.Type.BOOL));
-            partDataCollection.Add("Converting", new KSPParseable(IsConverting, KSPParseable.Type.BOOL));
         }
 
         /// <summary>
@@ -1285,31 +845,8 @@ namespace Kethane
         public override void onFlightStateLoad(Dictionary<string, KSPParseable> parsedData)
         {
             LoadKethaneDeposits();
-
-            FuelTanksCapacities = new Dictionary<string, float>();
-            int NumberOfTanks = int.Parse(parsedData["NumberOfTanks"].value);
-
-            for (int i = 0; i < NumberOfTanks; i++)
-            {
-                string SaveName = "FuelTank" + i.ToString();
-                string Id = parsedData[SaveName + "string"].value;
-                float Value = float.Parse(parsedData[SaveName + "float"].value);
-                FuelTanksCapacities.Add(Id, Value);
-            }
-
-            RCSFuelTanksCapacities = new Dictionary<string, float>();
-            int NumberOfRCSTanks = int.Parse(parsedData["NumberOfRCSTanks"].value);
-
-            for (int i = 0; i < NumberOfRCSTanks; i++)
-            {
-                string SaveName = "RCSFuelTank" + i.ToString();
-                string Id = parsedData[SaveName + "string"].value;
-                float Value = float.Parse(parsedData[SaveName + "float"].value);
-                RCSFuelTanksCapacities.Add(Id, Value);
-            }
             SetMaps();
             IsDetecting = bool.Parse(parsedData["Detecting"].value);
-            IsConverting = bool.Parse(parsedData["Converting"].value);
         }
     }
 }
