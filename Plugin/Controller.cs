@@ -38,8 +38,8 @@ namespace Kethane
         private GUIStyle KGuiStyleLog;
         private GUIStyle KGuiStyleNumbers;
 
-        private Rect InfoWindowPosition, PumpWindowPosition, ExtractorWindowPosition, ConverterWindowPosition, DetectorWindowPosition, DebugWindowPosition;
-        private bool InfoWindowShow = false, PumpWindowShow = false, ExtractorWindowShow = false, ConverterWindowShow = false, DetectorWindowShow = false, DebugWindowShow = false;
+        private Rect InfoWindowPosition, ExtractorWindowPosition, ConverterWindowPosition, DetectorWindowPosition, DebugWindowPosition;
+        private bool InfoWindowShow = false, ExtractorWindowShow = false, ConverterWindowShow = false, DetectorWindowShow = false, DebugWindowShow = false;
 
         private bool ScanningSound = true;
 
@@ -48,7 +48,6 @@ namespace Kethane
         private List<Part> TankParts = new List<Part>();
 
         private NearestVessels VesselsAround = new NearestVessels();
-        private Vessel VesselToPumpTo = null;
 
         private static Dictionary<string, KethaneDeposits> PlanetDeposits;
 
@@ -56,10 +55,9 @@ namespace Kethane
         private static bool IsTexturesBusyFlag = false;
         private Texture2D DebugTex = new Texture2D(256, 128, TextureFormat.ARGB32, false);
 
-        private int FoundTanks = 0, FoundPumps = 0, FoundExtractors = 0, FoundConverters = 0, FoundDetectors = 0, FoundControllers = 0;
+        private int FoundTanks = 0, FoundExtractors = 0, FoundConverters = 0, FoundDetectors = 0, FoundControllers = 0;
 
-        /* Taken from mounted pump, converter and Detector */
-        private float PumpingSpeed = 0.0f;
+        /* Taken from mounted converter and Detector */
         private float ConversionRatio = 0.5f;
         private float ConversionSpeed = 3.0f;
 
@@ -67,15 +65,13 @@ namespace Kethane
 
         private double TimerThreshold = 0.0;
 
-        private LineRenderer PumpLine = null;
-
         private double LastLat = 0, LastLon = 0;
 
         protected static AudioSource PingEmpty, PingDeposit, ConverterAtWork;
 
         private double TimerEcho = 0.0f;
 
-        private bool IsPumping = false, IsConverting = false, IsRCSConverting = false, IsDetecting = false;
+        private bool IsConverting = false, IsRCSConverting = false, IsDetecting = false;
 
         private Dictionary<string, float> FuelTanksCapacities;
         private Dictionary<string, float> RCSFuelTanksCapacities;
@@ -301,25 +297,6 @@ namespace Kethane
         }
 
         /// <summary>
-        /// Check if vessel can pump oil (either back or forth)
-        /// </summary>
-        private bool CanVesselPumpKethane(Vessel v)
-        {
-            int PFoundTanks = 0;
-            int PFoundPumps = 0;
-
-            foreach (var part in v.parts)
-            {
-                if (part is MMI_Kethane_Tank)
-                    PFoundTanks++;
-                else if (part is MMI_Kethane_Pump)
-                    PFoundPumps++;
-            }
-
-            return (PFoundPumps > 0 && PFoundTanks > 0);
-        }
-
-        /// <summary>
         /// Fill dictionary about information of which fuel tank type hold how many fuel (name->fuel)
         /// </summary>
         private void FillFuelTankDictionary()
@@ -361,7 +338,6 @@ namespace Kethane
         private void VerifyConfiguration()
         {
             FoundTanks = 0;
-            FoundPumps = 0;
             FoundExtractors = 0;
             FoundConverters = 0;
             FoundControllers = 0;
@@ -384,12 +360,6 @@ namespace Kethane
                     FoundExtractors++;
                     if (!this.ExtractorParts.Contains((MMI_Kethane_Extractor)part))
                         this.ExtractorParts.Add((MMI_Kethane_Extractor)part);
-                }
-                else if (part is MMI_Kethane_Pump)
-                {
-                    MMI_Kethane_Pump Pump = (MMI_Kethane_Pump)part;
-                    PumpingSpeed = Math.Max(Pump.PumpingSpeed, PumpingSpeed);
-                    FoundPumps++;
                 }
                 else if (part is MMI_Kethane_Detector)
                 {
@@ -443,7 +413,6 @@ namespace Kethane
             this.stackIconGrouping = StackIconGrouping.SAME_MODULE;
 
             InfoWindowPosition = new Rect(Screen.width * 0.65f, 30, 10, 10);
-            PumpWindowPosition = new Rect(Screen.width * 0.25f, 200, 10, 10);
             ExtractorWindowPosition = new Rect(Screen.width * 0.45f, 300, 10, 10);
             ConverterWindowPosition = new Rect(Screen.width * 0.05f, 50, 10, 10);
             DetectorWindowPosition = new Rect(Screen.width * 0.75f, 450, 10, 10);
@@ -497,20 +466,6 @@ namespace Kethane
 
             VerifyConfiguration();
             this.force_activate();
-
-            GameObject obj = new GameObject("PumpLine" + vessel.name);
-            PumpLine = obj.AddComponent<LineRenderer>();
-            PumpLine.transform.parent = transform;
-            PumpLine.useWorldSpace = false;
-            PumpLine.transform.localPosition = Vector3.zero;
-            PumpLine.transform.localEulerAngles = Vector3.zero;
-
-            PumpLine.material = new Material(Shader.Find("Particles/Additive"));
-            PumpLine.SetColors(Color.gray, Color.green);
-            PumpLine.SetVertexCount(2);
-            PumpLine.SetPosition(0, Vector3.zero);
-            PumpLine.SetPosition(1, Vector3.zero);
-            PumpLine.SetWidth(0, 0);
 
             SetMaps();
         }
@@ -787,80 +742,6 @@ namespace Kethane
         }
 
         /// <summary>
-        /// Pump Kethane from one vessel to the other
-        /// Return null on succes or in case of fail: amount of Kethane unpumped
-        /// If there are less space then requested Kethane to pump, function pumps as much as is possible
-        /// and return leftovers
-        /// </summary>
-        private float? PumpKethaneFromTo(Vessel SourceVessel, Vessel TargetVessel, float Amount)
-        {
-            float Available = GetAvailableKethane(SourceVessel);
-            float FreeSpace = GetAvailableKethaneSpace(TargetVessel);
-
-            if (Available >= Amount && FreeSpace >= Amount)
-            {
-                if (!PumpKethaneFrom(SourceVessel, Amount))
-                    print("Something went wrong when pumping from vessel!");
-                if (!PumpKethaneTo(TargetVessel, Amount))
-                    print("Something went wrong when pumping to vessel!");
-                return null;
-            }
-            else if (Available >= Amount && FreeSpace < Amount)
-            {
-                if (!PumpKethaneFrom(SourceVessel, FreeSpace))
-                    print("Something went wrong when pumping from vessel!");
-                if (!PumpKethaneTo(TargetVessel, FreeSpace))
-                    print("Something went wrong when pumping to vessel!");
-                return Amount - FreeSpace;
-            }
-            else
-                return Amount;
-        }
-
-        /// <summary>
-        /// Do all operations related to pumping fuel from one vehicle to another
-        /// </summary>
-        private void HandlePumping()
-        {
-            if (IsPumping)
-            {
-                Vessel v = VesselsAround.vessels.Find(ves => ves == VesselToPumpTo);
-                if (v != null && CanVesselPumpKethane(v))
-                {
-                    float d = (this.vessel.transform.position - v.transform.position).sqrMagnitude;
-                    if (d > 50 * 50)
-                    {
-                        IsPumping = false;
-                        PumpLine.SetPosition(1, Vector3.zero);
-                        PumpLine.SetWidth(0, 0);
-                        return;
-                    }
-                    float Amount = PumpingSpeed * TimeWarp.deltaTime;
-                    Vector3 LPoint = transform.InverseTransformPoint(VesselToPumpTo.transform.position);
-                    PumpLine.SetPosition(1, LPoint);
-                    PumpLine.SetWidth(0.5f, 0.5f);
-                    if (PumpKethaneFromTo(this.vessel, v, Amount) != null)
-                    {
-                        IsPumping = false;
-                        PumpLine.SetPosition(1, Vector3.zero);
-                        PumpLine.SetWidth(0, 0);
-                    }
-                }
-                else
-                {
-                    IsPumping = false;
-                    PumpLine.SetPosition(1, Vector3.zero);
-                    PumpLine.SetWidth(0, 0);
-                }
-            }
-            else
-            {
-                PumpLine.SetPosition(1, Vector3.zero);
-                PumpLine.SetWidth(0, 0);
-            }
-        }
-
-        /// <summary>
         /// Do all operations related to converting Kethane to fuel
         /// </summary>
         private void HandleConversion()
@@ -1005,7 +886,6 @@ namespace Kethane
                 GetDepositUnderVessel();
                 HandleDetection();
 
-                HandlePumping();
                 HandleConversion();
                 HandleRCSConversion();
                 if (vessel == FlightGlobals.ActiveVessel && (IsConverting || IsRCSConverting) && !ConverterAtWork.isPlaying)
@@ -1087,69 +967,6 @@ namespace Kethane
             {
                 GUILayout.BeginHorizontal();
                 GUILayout.Label("Kethane detector: ", KGuiStyleLabels);
-                GUILayout.Label("Not found", KGuiStyleNumbers);
-                GUILayout.EndHorizontal();
-            }
-
-            GUILayout.EndVertical();
-            GUI.DragWindow(new Rect(0, 0, 300, 60));
-            #endregion
-        }
-
-        private void PumpWindowGUI(int windowID)
-        {
-            #region Pump
-            GUILayout.BeginVertical();
-            if (FoundPumps > 0)
-            {
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Kethane on board: ", KGuiStyleLabels);
-                float Quantity = GetAvailableKethane(this.vessel);
-                float Capacity = Quantity + GetAvailableKethaneSpace(this.vessel);
-                GUILayout.Label(Quantity.ToString("#0.0") + " / " + Capacity.ToString("#0.0") + "l", KGuiStyleNumbers);
-                GUILayout.EndHorizontal();
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Kethane on board (target): ", KGuiStyleLabels);
-                float TQuantity = 0.0f;
-                float TCapacity = 0.0f;
-                if (VesselToPumpTo != null)
-                {
-                    TQuantity = GetAvailableKethane(VesselToPumpTo);
-                    TCapacity = TQuantity + GetAvailableKethaneSpace(VesselToPumpTo);
-                }
-                GUILayout.Label(TQuantity.ToString("#0.0") + " / " + TCapacity.ToString("#0.0") + "l", KGuiStyleNumbers);
-                GUILayout.EndHorizontal();
-                VesselsAround.List(vessel, 50.0f);
-
-                GUILayout.BeginScrollView(new Vector2(5, 5), false, false, GUILayout.ExpandWidth(true), GUILayout.Height(200));
-                foreach (Vessel v in VesselsAround.vessels)
-                {
-                    if (CanVesselPumpKethane(v))
-                    {
-                        GUIStyle ListStyle = KGuiStyleList;
-                        if (v == VesselToPumpTo)
-                            ListStyle = KGuiStyleListActive;
-
-                        if (GUILayout.Button(v.name, ListStyle, GUILayout.ExpandWidth(true)))
-                        {
-                            VesselToPumpTo = v;
-                            IsPumping = true;
-                        }
-                    }
-                }
-                GUILayout.EndScrollView();
-                if (GUILayout.Button(IsPumping == true ? "Pumping (press to stop)" : "Not pumping", KGuiStyleButton, GUILayout.ExpandWidth(true)) && IsPumping)
-                {
-                    IsPumping = false;
-                    VesselToPumpTo = null;
-                }
-                GUILayout.Label("Target: " + (VesselToPumpTo == null ? "NONE" : VesselToPumpTo.name), KGuiStyleLabels);
-                GUILayout.Label("", KGuiStyleLabels);
-            }
-            else
-            {
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Kethane pump: ", KGuiStyleLabels);
                 GUILayout.Label("Not found", KGuiStyleNumbers);
                 GUILayout.EndHorizontal();
             }
@@ -1266,8 +1083,8 @@ namespace Kethane
             GUILayout.Label(ValidConfiguration.ToString() + "/" + this.gameObject.active, KGuiStyleNumbers);
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
-            GUILayout.Label("TPECD: ", KGuiStyleLabels);
-            GUILayout.Label(FoundTanks + " " + FoundPumps + " " + FoundExtractors + " " + FoundConverters + " " + FoundDetectors, KGuiStyleNumbers);
+            GUILayout.Label("TECD: ", KGuiStyleLabels);
+            GUILayout.Label(FoundTanks + " " + FoundExtractors + " " + FoundConverters + " " + FoundDetectors, KGuiStyleNumbers);
             GUILayout.EndHorizontal();
 
             if (GUILayout.Button("Verify", KGuiStyleButton, GUILayout.ExpandWidth(true)))
@@ -1359,7 +1176,6 @@ namespace Kethane
             GUILayout.Label("", KGuiStyleLabels);
 
             DetectorWindowShow = GUILayout.Toggle(DetectorWindowShow, "Detecting");
-            PumpWindowShow = GUILayout.Toggle(PumpWindowShow, "Pumping");
             ExtractorWindowShow = GUILayout.Toggle(ExtractorWindowShow, "Extracting");
             ConverterWindowShow = GUILayout.Toggle(ConverterWindowShow, "Converting");
             //DebugWindowShow = GUILayout.Toggle(DebugWindowShow, "DEBUG");
@@ -1385,9 +1201,6 @@ namespace Kethane
             {
                 if (InfoWindowShow == true && ValidConfiguration)
                     InfoWindowPosition = GUILayout.Window(12355, InfoWindowPosition, InfoWindowGUI, "Kethane Controller", GUILayout.MinWidth(200), GUILayout.MaxWidth(200), GUILayout.MinHeight(20));
-
-                if (PumpWindowShow == true && ValidConfiguration)
-                    PumpWindowPosition = GUILayout.Window(12356, PumpWindowPosition, PumpWindowGUI, "Pumping", GUILayout.MinWidth(256), GUILayout.MaxWidth(300), GUILayout.MinHeight(20));
 
                 if (ExtractorWindowShow == true && ValidConfiguration)
                     ExtractorWindowPosition = GUILayout.Window(12357, ExtractorWindowPosition, ExtractorWindowGUI, "Extracting", GUILayout.MinWidth(256), GUILayout.MaxWidth(300), GUILayout.MinHeight(20));
@@ -1464,9 +1277,6 @@ namespace Kethane
             SaveAllMaps();
             partDataCollection.Add("Detecting", new KSPParseable(IsDetecting, KSPParseable.Type.BOOL));
             partDataCollection.Add("Converting", new KSPParseable(IsConverting, KSPParseable.Type.BOOL));
-            partDataCollection.Add("Pumping", new KSPParseable(IsPumping, KSPParseable.Type.BOOL));
-            if (IsPumping)
-                partDataCollection.Add("VesselToPump", new KSPParseable((VesselToPumpTo == null ? "-" : VesselToPumpTo.name), KSPParseable.Type.STRING));
         }
 
         /// <summary>
@@ -1500,24 +1310,6 @@ namespace Kethane
             SetMaps();
             IsDetecting = bool.Parse(parsedData["Detecting"].value);
             IsConverting = bool.Parse(parsedData["Converting"].value);
-            IsPumping = bool.Parse(parsedData["Pumping"].value);
-            if (IsPumping)
-            {
-                IsPumping = false;
-                string vesName = parsedData["VesselToPump"].value;
-                foreach (Vessel v in FlightGlobals.Vessels)
-                {
-                    if (v.name == vesName)
-                    {
-                        float d = (this.vessel.transform.position - v.transform.position).sqrMagnitude;
-                        if (d <= 50 * 50)
-                        {
-                            IsPumping = true;
-                        }
-                    }
-                }
-            }
-
         }
     }
 }

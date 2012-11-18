@@ -54,7 +54,6 @@
     <Compile Include="Misc.cs" />
     <Compile Include="NearestVessels.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Pump.cs" />
     <Compile Include="Tank.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
