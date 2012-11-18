@@ -419,11 +419,7 @@ namespace Kethane
 
         public void DeployArm()
         {
-            float WarpRate = TimeWarp.CurrentRate;
-            if (WarpRate == 0)
-                WarpRate = 1;
-
-            if ((WarpRate <= 2) && (this.vessel.isActiveVessel) && ValidConfiguration)
+            if (this.vessel.isActiveVessel && ValidConfiguration)
             {
                 if (ArmWantToGoDown)
                     ArmWantToGoDown = false;
