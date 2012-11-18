@@ -45,7 +45,6 @@ namespace Kethane
 
         private List<MMI_Kethane_Extractor> ExtractorParts = new List<MMI_Kethane_Extractor>();
         private MMI_Kethane_Detector DetectorPart;
-        private List<Part> TankParts = new List<Part>();
 
         private static Dictionary<string, KethaneDeposits> PlanetDeposits;
 
@@ -53,7 +52,7 @@ namespace Kethane
         private static bool IsTexturesBusyFlag = false;
         private Texture2D DebugTex = new Texture2D(256, 128, TextureFormat.ARGB32, false);
 
-        private int FoundTanks = 0, FoundExtractors = 0, FoundDetectors = 0, FoundControllers = 0;
+        private int FoundExtractors = 0, FoundDetectors = 0, FoundControllers = 0;
 
         private KethaneDeposit DepositUnder = null;
 
@@ -292,20 +291,13 @@ namespace Kethane
         /// </summary>
         private void VerifyConfiguration()
         {
-            FoundTanks = 0;
             FoundExtractors = 0;
             FoundControllers = 0;
             FoundDetectors = 0;
-            TankParts.Clear();
             ExtractorParts.Clear();
             foreach (var part in this.vessel.parts)
             {
-                if (part is MMI_Kethane_Tank)
-                {
-                    FoundTanks++;
-                    this.TankParts.Add(part);
-                }
-                else if (part is MMI_Kethane_Controller)
+                if (part is MMI_Kethane_Controller)
                 {
                     FoundControllers++;
                 }
@@ -602,8 +594,8 @@ namespace Kethane
             GUILayout.Label(ValidConfiguration.ToString() + "/" + this.gameObject.active, KGuiStyleNumbers);
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
-            GUILayout.Label("TED: ", KGuiStyleLabels);
-            GUILayout.Label(FoundTanks + " " + FoundExtractors + " " + FoundDetectors, KGuiStyleNumbers);
+            GUILayout.Label("ED: ", KGuiStyleLabels);
+            GUILayout.Label(FoundExtractors + " " + FoundDetectors, KGuiStyleNumbers);
             GUILayout.EndHorizontal();
 
             if (GUILayout.Button("Verify", KGuiStyleButton, GUILayout.ExpandWidth(true)))

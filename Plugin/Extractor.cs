@@ -219,21 +219,14 @@ namespace Kethane
 
         private void ValidateConfiguration()
         {
-            int FoundControllers = 0, FoundTanks = 0;
+            int FoundControllers = 0;
             foreach (var part in this.vessel.parts)
             {
                 if (part is MMI_Kethane_Controller)
                     FoundControllers++;
-                if (part is MMI_Kethane_Tank)
-                    FoundTanks++;
             }
 
             if (FoundControllers != 1)
-            {
-                ValidConfiguration = false;
-                this.deactivate();
-            }
-            else if (FoundTanks == 0)
             {
                 ValidConfiguration = false;
                 this.deactivate();
