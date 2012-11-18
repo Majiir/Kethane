@@ -983,17 +983,8 @@ namespace Kethane
                     if (CanDrill)
                     {
                         float Amount = TimeWarp.deltaTime * 1.25f;
-                        if (DepositUnder.Kethane >= Amount)
-                        {
-                            float FreeSpace = GetAvailableKethaneSpace(this.vessel);
-                            if (FreeSpace > 0.001)
-                            {
-                                PumpKethaneTo(this.vessel, Amount);
-                                DepositUnder.Kethane -= Amount;
-                                if (DepositUnder.Kethane < 0)
-                                    DepositUnder.Kethane = 0;
-                            }
-                        }
+                        Amount = Math.Min(Amount, DepositUnder.Kethane);
+                        DepositUnder.Kethane += this.RequestResource("Kethane", -Amount);
                     }
                 }
             }
