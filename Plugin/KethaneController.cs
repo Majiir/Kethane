@@ -75,5 +75,25 @@ namespace Kethane
                 }
             }
         }
+
+        public void DrawMap(bool deposit)
+        {
+            if (Vessel.mainBody != null && PlanetTextures.ContainsKey(Vessel.mainBody.name))
+            {
+                Texture2D planetTex = PlanetTextures[Vessel.mainBody.name];
+
+                if (this.Vessel != null)
+                {
+                    int x = Misc.GetXOnMap(Misc.clampDegrees(Vessel.mainBody.GetLongitude(Vessel.transform.position)), planetTex.width);
+                    int y = Misc.GetYOnMap(Vessel.mainBody.GetLatitude(Vessel.transform.position), planetTex.height);
+                    if (deposit)
+                        planetTex.SetPixel(x, y, XKCDColors.Green);
+                    else
+                        planetTex.SetPixel(x, y, XKCDColors.Grey);
+                }
+
+                planetTex.Apply();
+            }
+        }
     }
 }

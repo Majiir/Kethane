@@ -120,26 +120,6 @@ namespace Kethane
             }
         }
 
-        private void DrawMap(bool deposit)
-        {
-            if (vessel.mainBody != null && KethaneController.PlanetTextures.ContainsKey(vessel.mainBody.name))
-            {
-                Texture2D planetTex = KethaneController.PlanetTextures[vessel.mainBody.name];
-
-                if (this.vessel != null)
-                {
-                    int x = Misc.GetXOnMap(Misc.clampDegrees(vessel.mainBody.GetLongitude(vessel.transform.position)), planetTex.width);
-                    int y = Misc.GetYOnMap(vessel.mainBody.GetLatitude(vessel.transform.position), planetTex.height);
-                    if (deposit)
-                        planetTex.SetPixel(x, y, XKCDColors.Green);
-                    else
-                        planetTex.SetPixel(x, y, XKCDColors.Grey);
-                }
-
-                planetTex.Apply();
-            }
-        }
-
         /// <summary>
         /// Save kethane deposits to a file (via serialization)
         /// </summary>
@@ -357,7 +337,7 @@ namespace Kethane
                 {
                     if (DepositUnder != null && Altitude <= DetectorPart.DetectingHeight && DepositUnder.Kethane >= 1.0f)
                     {
-                        DrawMap(true);
+                        KethaneController.GetInstance(this.vessel).DrawMap(true);
                         LastLat = vessel.latitude;
                         LastLon = vessel.longitude;
                         if (vessel == FlightGlobals.ActiveVessel && ScanningSound)
@@ -365,7 +345,7 @@ namespace Kethane
                     }
                     else
                     {
-                        DrawMap(false);
+                        KethaneController.GetInstance(this.vessel).DrawMap(false);
                         if (vessel == FlightGlobals.ActiveVessel && ScanningSound)
                             PingEmpty.Play();
                     }
