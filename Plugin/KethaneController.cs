@@ -34,5 +34,10 @@ namespace Kethane
         #endregion
 
         private KethaneController() { }
+
+        public Vessel Vessel
+        {
+            get { return controllers.Single(p => p.Value == this).Key.Target; }
+        }
     }
 }
