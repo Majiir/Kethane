@@ -49,7 +49,6 @@ namespace Kethane
         private static Dictionary<string, KethaneDeposits> PlanetDeposits;
 
         private static Dictionary<string, Texture2D> PlanetTextures = new Dictionary<string, Texture2D>();
-        private static bool IsTexturesBusyFlag = false;
         private Texture2D DebugTex = new Texture2D(256, 128, TextureFormat.ARGB32, false);
 
         private int FoundExtractors = 0, FoundDetectors = 0, FoundControllers = 0;
@@ -89,33 +88,8 @@ namespace Kethane
             }
         }
 
-        private void SetFlag()
-        {
-            IsTexturesBusyFlag = true;
-        }
-
-        private void ClearFlag()
-        {
-            IsTexturesBusyFlag = false;
-        }
-
-        private bool WaitForFreeFlag() // true when got free
-        {
-            float time = 0.0f;
-            while (IsTexturesBusyFlag)
-            {
-                time += Time.deltaTime;
-                if (time > 15.0f)
-                    return false;
-            }
-            return true;
-        }
-
         private void SetMaps()
         {
-            if (WaitForFreeFlag())
-            {
-                SetFlag();
                 foreach (CelestialBody body in FlightGlobals.Bodies)
                 {
                     if (!PlanetTextures.ContainsKey(body.name))
@@ -134,8 +108,6 @@ namespace Kethane
                         PlanetTextures[body.name].Apply();
                     }
                 }
-                ClearFlag();
-            }
         }
 
         private static void SaveBodyMap(CelestialBody body)
@@ -146,9 +118,6 @@ namespace Kethane
 
         private void SaveAllMaps()
         {
-            if (WaitForFreeFlag())
-            {
-                SetFlag();
                 foreach (CelestialBody body in FlightGlobals.Bodies)
                 {
                     if (PlanetTextures.ContainsKey(body.name))
@@ -156,8 +125,6 @@ namespace Kethane
                         SaveBodyMap(body);
                     }
                 }
-                ClearFlag();
-            }
         }
 
         private void DrawDebugMap()
@@ -195,9 +162,6 @@ namespace Kethane
 
         private void DrawMap(bool deposit)
         {
-            if (WaitForFreeFlag())
-            {
-                SetFlag();
                 if (vessel.mainBody != null && PlanetTextures.ContainsKey(vessel.mainBody.name))
                 {
                     Texture2D planetTex = PlanetTextures[vessel.mainBody.name];
@@ -213,7 +177,6 @@ namespace Kethane
                     }
 
                     planetTex.Apply();
-                } ClearFlag();
             }
         }
 
