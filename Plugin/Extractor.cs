@@ -442,10 +442,6 @@ namespace Kethane
 
         protected override void onPartFixedUpdate()
         {
-            float WarpRate = TimeWarp.CurrentRate;
-            if (WarpRate == 0)
-                WarpRate = 1;
-
             if (JustLoaded > 0)
                 JustLoaded--;
 
