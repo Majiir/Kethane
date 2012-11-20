@@ -39,5 +39,41 @@ namespace Kethane
         {
             get { return controllers.Single(p => p.Value == this).Key.Target; }
         }
+
+        public static Dictionary<string, Texture2D> PlanetTextures = new Dictionary<string, Texture2D>();
+
+        public void SetMaps()
+        {
+            foreach (CelestialBody body in FlightGlobals.Bodies)
+            {
+                if (!PlanetTextures.ContainsKey(body.name))
+                {
+                    PlanetTextures.Add(body.name, new Texture2D(256, 128, TextureFormat.ARGB32, false));
+                }
+                if (KSP.IO.File.Exists<MMI_Kethane_Controller>(body.name + ".png"))
+                {
+                    PlanetTextures[body.name].LoadImage(KSP.IO.File.ReadAllBytes<MMI_Kethane_Controller>(body.name + ".png"));
+                }
+                else
+                {
+                    for (int y = 0; y < PlanetTextures[body.name].height; y++)
+                        for (int x = 0; x < PlanetTextures[body.name].width; x++)
+                            PlanetTextures[body.name].SetPixel(x, y, Color.black);
+                    PlanetTextures[body.name].Apply();
+                }
+            }
+        }
+
+        public void SaveAllMaps()
+        {
+            foreach (CelestialBody body in FlightGlobals.Bodies)
+            {
+                if (PlanetTextures.ContainsKey(body.name))
+                {
+                    var pbytes = PlanetTextures[body.name].EncodeToPNG();
+                    KSP.IO.File.WriteAllBytes<MMI_Kethane_Controller>(pbytes, body.name + ".png", null);
+                }
+            }
+        }
     }
 }

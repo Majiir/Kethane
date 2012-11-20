@@ -48,7 +48,6 @@ namespace Kethane
 
         private static Dictionary<string, KethaneDeposits> PlanetDeposits;
 
-        private static Dictionary<string, Texture2D> PlanetTextures = new Dictionary<string, Texture2D>();
         private Texture2D DebugTex = new Texture2D(256, 128, TextureFormat.ARGB32, false);
 
         private int FoundExtractors = 0, FoundDetectors = 0, FoundControllers = 0;
@@ -88,40 +87,6 @@ namespace Kethane
             }
         }
 
-        private void SetMaps()
-        {
-            foreach (CelestialBody body in FlightGlobals.Bodies)
-            {
-                if (!PlanetTextures.ContainsKey(body.name))
-                {
-                    PlanetTextures.Add(body.name, new Texture2D(256, 128, TextureFormat.ARGB32, false));
-                }
-                if (KSP.IO.File.Exists<MMI_Kethane_Controller>(body.name + ".png"))
-                {
-                    PlanetTextures[body.name].LoadImage(KSP.IO.File.ReadAllBytes<MMI_Kethane_Controller>(body.name + ".png"));
-                }
-                else
-                {
-                    for (int y = 0; y < PlanetTextures[body.name].height; y++)
-                        for (int x = 0; x < PlanetTextures[body.name].width; x++)
-                            PlanetTextures[body.name].SetPixel(x, y, Color.black);
-                    PlanetTextures[body.name].Apply();
-                }
-            }
-        }
-
-        private void SaveAllMaps()
-        {
-            foreach (CelestialBody body in FlightGlobals.Bodies)
-            {
-                if (PlanetTextures.ContainsKey(body.name))
-                {
-                    var pbytes = PlanetTextures[body.name].EncodeToPNG();
-                    KSP.IO.File.WriteAllBytes<MMI_Kethane_Controller>(pbytes, body.name + ".png", null);
-                }
-            }
-        }
-
         private void DrawDebugMap()
         {
             if (vessel.mainBody != null)
@@ -157,9 +122,9 @@ namespace Kethane
 
         private void DrawMap(bool deposit)
         {
-            if (vessel.mainBody != null && PlanetTextures.ContainsKey(vessel.mainBody.name))
+            if (vessel.mainBody != null && KethaneController.PlanetTextures.ContainsKey(vessel.mainBody.name))
             {
-                Texture2D planetTex = PlanetTextures[vessel.mainBody.name];
+                Texture2D planetTex = KethaneController.PlanetTextures[vessel.mainBody.name];
 
                 if (this.vessel != null)
                 {
@@ -241,7 +206,7 @@ namespace Kethane
                 if (KSP.IO.File.Exists<MMI_Kethane_Controller>(body.name + ".png"))
                     KSP.IO.File.Delete<MMI_Kethane_Controller>(body.name + ".png");
             }
-            SetMaps();
+            KethaneController.GetInstance(this.vessel).SetMaps();
         }
 
         /// <summary>
@@ -336,7 +301,7 @@ namespace Kethane
             VerifyConfiguration();
             this.force_activate();
 
-            SetMaps();
+            KethaneController.GetInstance(this.vessel).SetMaps();
         }
         
         /// <summary>
@@ -458,9 +423,9 @@ namespace Kethane
             #region Detector
             GUILayout.BeginVertical();
 
-            if (vessel.mainBody != null && PlanetTextures.ContainsKey(vessel.mainBody.name))
+            if (vessel.mainBody != null && KethaneController.PlanetTextures.ContainsKey(vessel.mainBody.name))
             {
-                Texture2D planetTex = PlanetTextures[vessel.mainBody.name];
+                Texture2D planetTex = KethaneController.PlanetTextures[vessel.mainBody.name];
                 GUILayout.Box(planetTex);
                 Rect Last = UnityEngine.GUILayoutUtility.GetLastRect();
 
@@ -666,12 +631,12 @@ namespace Kethane
         protected override void onPack()
         {
             SaveKethaneDeposits();
-            SaveAllMaps();
+            KethaneController.GetInstance(this.vessel).SaveAllMaps();
         }
 
         protected override void onUnpack()
         {
-            SaveAllMaps();
+            KethaneController.GetInstance(this.vessel).SaveAllMaps();
         }
 
         /// <summary>
@@ -680,7 +645,7 @@ namespace Kethane
         public override void onFlightStateSave(Dictionary<string, KSPParseable> partDataCollection)
         {
             SaveKethaneDeposits();
-            SaveAllMaps();
+            KethaneController.GetInstance(this.vessel).SaveAllMaps();
             partDataCollection.Add("Detecting", new KSPParseable(IsDetecting, KSPParseable.Type.BOOL));
         }
 
@@ -690,7 +655,7 @@ namespace Kethane
         public override void onFlightStateLoad(Dictionary<string, KSPParseable> parsedData)
         {
             LoadKethaneDeposits();
-            SetMaps();
+            KethaneController.GetInstance(this.vessel).SetMaps();
             IsDetecting = bool.Parse(parsedData["Detecting"].value);
         }
     }
