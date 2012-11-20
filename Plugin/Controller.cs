@@ -486,10 +486,6 @@ namespace Kethane
         /// </summary>
         protected override void onPartUpdate()
         {
-            float WarpRate = TimeWarp.CurrentRate;
-            if (WarpRate == 0)
-                WarpRate = 1;
-
             if (this.gameObject.active && ValidConfiguration)
             {
                 VerifyConfiguration();
