@@ -40,6 +40,8 @@ namespace Kethane
             get { return controllers.Single(p => p.Value == this).Key.Target; }
         }
 
+        public static Dictionary<string, KethaneDeposits> PlanetDeposits;
+
         public static Dictionary<string, Texture2D> PlanetTextures = new Dictionary<string, Texture2D>();
 
         public void SetMaps()
@@ -94,6 +96,75 @@ namespace Kethane
 
                 planetTex.Apply();
             }
+        }
+
+        /// <summary>
+        /// Save kethane deposits to a file (via serialization)
+        /// </summary>
+        public void SaveKethaneDeposits()
+        {
+            try
+            {
+                if (PlanetDeposits == null)
+                    GenerateKethaneDeposits();
+
+                byte[] DepositsToSave = KSP.IO.IOUtils.SerializeToBinary(PlanetDeposits);
+                int HowManyToSave = DepositsToSave.Length;
+                KSP.IO.BinaryWriter Writer = KSP.IO.BinaryWriter.CreateForType<MMI_Kethane_Controller>("Deposits.dat");
+                Writer.Write(HowManyToSave);
+                Writer.Write(DepositsToSave);
+                Writer.Close();
+            }
+            catch (Exception e)
+            {
+                MonoBehaviour.print("Kethane plugin - deposit save error: " + e);
+            }
+        }
+
+        /// <summary>
+        /// Load kethane deposits from a file (via serialization)
+        /// In case of error try to generate new kethane deposits
+        /// </summary>
+        public void LoadKethaneDeposits()
+        {
+            if (KSP.IO.File.Exists<MMI_Kethane_Controller>("Deposits.dat"))
+            {
+                PlanetDeposits = new Dictionary<string, KethaneDeposits>();
+                try
+                {
+                    KSP.IO.BinaryReader Loader = KSP.IO.BinaryReader.CreateForType<MMI_Kethane_Controller>("Deposits.dat");
+                    int HowManyToLoad = Loader.ReadInt32();
+                    byte[] DepositsToLoad = new byte[HowManyToLoad];
+                    Loader.Read(DepositsToLoad, 0, HowManyToLoad);
+                    Loader.Close();
+                    object ObjectToLoad = KSP.IO.IOUtils.DeserializeFromBinary(DepositsToLoad);
+                    PlanetDeposits = (Dictionary<string, KethaneDeposits>)ObjectToLoad;
+                    return;
+                }
+                catch (Exception e)
+                {
+                    MonoBehaviour.print("Kethane plugin - deposit load error: " + e);
+                    MonoBehaviour.print("Generating new kethane deposits");
+                }
+            }
+            GenerateKethaneDeposits();
+        }
+
+        /// <summary>
+        /// Generate kethane deposits on all celestial bodies and save them to file (ready to use)
+        /// </summary>
+        public void GenerateKethaneDeposits()
+        {
+            PlanetDeposits = new Dictionary<string, KethaneDeposits>();
+            foreach (CelestialBody CBody in FlightGlobals.Bodies)
+                PlanetDeposits.Add(CBody.name, new KethaneDeposits(CBody));
+            SaveKethaneDeposits();
+            foreach (CelestialBody body in FlightGlobals.Bodies)
+            {
+                if (KSP.IO.File.Exists<MMI_Kethane_Controller>(body.name + ".png"))
+                    KSP.IO.File.Delete<MMI_Kethane_Controller>(body.name + ".png");
+            }
+            SetMaps();
         }
     }
 }

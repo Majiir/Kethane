@@ -46,8 +46,6 @@ namespace Kethane
         private List<MMI_Kethane_Extractor> ExtractorParts = new List<MMI_Kethane_Extractor>();
         private MMI_Kethane_Detector DetectorPart;
 
-        private static Dictionary<string, KethaneDeposits> PlanetDeposits;
-
         private Texture2D DebugTex = new Texture2D(256, 128, TextureFormat.ARGB32, false);
 
         private int FoundExtractors = 0, FoundDetectors = 0, FoundControllers = 0;
@@ -95,7 +93,7 @@ namespace Kethane
                     for (int x = 0; x < DebugTex.width; x++)
                         DebugTex.SetPixel(x, y, Color.black);
 
-                KethaneDeposits Deposits = PlanetDeposits[this.vessel.mainBody.name];
+                KethaneDeposits Deposits = KethaneController.PlanetDeposits[this.vessel.mainBody.name];
 
                 float Width = Deposits.Width;
                 float Height = Deposits.Height;
@@ -118,75 +116,6 @@ namespace Kethane
                 }
                 DebugTex.Apply();
             }
-        }
-
-        /// <summary>
-        /// Save kethane deposits to a file (via serialization)
-        /// </summary>
-        private void SaveKethaneDeposits()
-        {
-            try
-            {
-                if (PlanetDeposits == null)
-                    GenerateKethaneDeposits();
-
-                byte[] DepositsToSave = KSP.IO.IOUtils.SerializeToBinary(PlanetDeposits);
-                int HowManyToSave = DepositsToSave.Length;
-                KSP.IO.BinaryWriter Writer = KSP.IO.BinaryWriter.CreateForType<MMI_Kethane_Controller>("Deposits.dat");
-                Writer.Write(HowManyToSave);
-                Writer.Write(DepositsToSave);
-                Writer.Close();
-            }
-            catch (Exception e)
-            {
-                print("Kethane plugin - deposit save error: " + e);
-            }
-        }
-
-        /// <summary>
-        /// Load kethane deposits from a file (via serialization)
-        /// In case of error try to generate new kethane deposits
-        /// </summary>
-        private void LoadKethaneDeposits()
-        {
-            if (KSP.IO.File.Exists<MMI_Kethane_Controller>("Deposits.dat"))
-            {
-                PlanetDeposits = new Dictionary<string, KethaneDeposits>();
-                try
-                {
-                    KSP.IO.BinaryReader Loader = KSP.IO.BinaryReader.CreateForType<MMI_Kethane_Controller>("Deposits.dat");
-                    int HowManyToLoad = Loader.ReadInt32();
-                    byte[] DepositsToLoad = new byte[HowManyToLoad];
-                    Loader.Read(DepositsToLoad, 0, HowManyToLoad);
-                    Loader.Close();
-                    object ObjectToLoad = KSP.IO.IOUtils.DeserializeFromBinary(DepositsToLoad);
-                    PlanetDeposits = (Dictionary<string, KethaneDeposits>)ObjectToLoad;
-                    return;
-                }
-                catch (Exception e)
-                {
-                    print("Kethane plugin - deposit load error: " + e);
-                    print("Generating new kethane deposits");
-                }
-            }
-            GenerateKethaneDeposits();
-        }
-
-        /// <summary>
-        /// Generate kethane deposits on all celestial bodies and save them to file (ready to use)
-        /// </summary>
-        private void GenerateKethaneDeposits()
-        {
-            PlanetDeposits = new Dictionary<string, KethaneDeposits>();
-            foreach (CelestialBody CBody in FlightGlobals.Bodies)
-                PlanetDeposits.Add(CBody.name, new KethaneDeposits(CBody));
-            SaveKethaneDeposits();
-            foreach (CelestialBody body in FlightGlobals.Bodies)
-            {
-                if (KSP.IO.File.Exists<MMI_Kethane_Controller>(body.name + ".png"))
-                    KSP.IO.File.Delete<MMI_Kethane_Controller>(body.name + ".png");
-            }
-            KethaneController.GetInstance(this.vessel).SetMaps();
         }
 
         /// <summary>
@@ -274,7 +203,7 @@ namespace Kethane
             }
             #endregion
 
-            LoadKethaneDeposits();
+            KethaneController.GetInstance(this.vessel).LoadKethaneDeposits();
 
             RenderingManager.AddToPostDrawQueue(3, DrawGUI);
 
@@ -306,7 +235,7 @@ namespace Kethane
 
         private KethaneDeposit GetDepositUnderVessel()
         {
-            KethaneDeposits Deposits = PlanetDeposits[this.vessel.mainBody.name];
+            KethaneDeposits Deposits = KethaneController.PlanetDeposits[this.vessel.mainBody.name];
 
             double lon = Misc.clampDegrees(vessel.mainBody.GetLongitude(vessel.transform.position));
             double lat = vessel.mainBody.GetLatitude(vessel.transform.position);
@@ -503,7 +432,7 @@ namespace Kethane
             GUILayout.Label("", KGuiStyleLabels);
 
             if (GUILayout.Button("GEN", KGuiStyleButton, GUILayout.ExpandWidth(true)))
-                GenerateKethaneDeposits();
+                KethaneController.GetInstance(this.vessel).GenerateKethaneDeposits();
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Deposit: ", KGuiStyleLabels);
@@ -610,7 +539,7 @@ namespace Kethane
 
         protected override void onPack()
         {
-            SaveKethaneDeposits();
+            KethaneController.GetInstance(this.vessel).SaveKethaneDeposits();
             KethaneController.GetInstance(this.vessel).SaveAllMaps();
         }
 
@@ -624,7 +553,7 @@ namespace Kethane
         /// </summary>
         public override void onFlightStateSave(Dictionary<string, KSPParseable> partDataCollection)
         {
-            SaveKethaneDeposits();
+            KethaneController.GetInstance(this.vessel).SaveKethaneDeposits();
             KethaneController.GetInstance(this.vessel).SaveAllMaps();
             partDataCollection.Add("Detecting", new KSPParseable(IsDetecting, KSPParseable.Type.BOOL));
         }
@@ -634,7 +563,7 @@ namespace Kethane
         /// </summary>
         public override void onFlightStateLoad(Dictionary<string, KSPParseable> parsedData)
         {
-            LoadKethaneDeposits();
+            KethaneController.GetInstance(this.vessel).LoadKethaneDeposits();
             KethaneController.GetInstance(this.vessel).SetMaps();
             IsDetecting = bool.Parse(parsedData["Detecting"].value);
         }
