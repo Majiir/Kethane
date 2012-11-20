@@ -110,19 +110,14 @@ namespace Kethane
             }
         }
 
-        private static void SaveBodyMap(CelestialBody body)
-        {
-            var pbytes = PlanetTextures[body.name].EncodeToPNG();
-            KSP.IO.File.WriteAllBytes<MMI_Kethane_Controller>(pbytes, body.name + ".png", null);
-        }
-
         private void SaveAllMaps()
         {
             foreach (CelestialBody body in FlightGlobals.Bodies)
             {
                 if (PlanetTextures.ContainsKey(body.name))
                 {
-                    SaveBodyMap(body);
+                    var pbytes = PlanetTextures[body.name].EncodeToPNG();
+                    KSP.IO.File.WriteAllBytes<MMI_Kethane_Controller>(pbytes, body.name + ".png", null);
                 }
             }
         }
