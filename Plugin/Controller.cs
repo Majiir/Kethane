@@ -90,24 +90,24 @@ namespace Kethane
 
         private void SetMaps()
         {
-                foreach (CelestialBody body in FlightGlobals.Bodies)
+            foreach (CelestialBody body in FlightGlobals.Bodies)
+            {
+                if (!PlanetTextures.ContainsKey(body.name))
                 {
-                    if (!PlanetTextures.ContainsKey(body.name))
-                    {
-                        PlanetTextures.Add(body.name, new Texture2D(256, 128, TextureFormat.ARGB32, false));
-                    }
-                    if (KSP.IO.File.Exists<MMI_Kethane_Controller>(body.name + ".png"))
-                    {
-                        PlanetTextures[body.name].LoadImage(KSP.IO.File.ReadAllBytes<MMI_Kethane_Controller>(body.name + ".png"));
-                    }
-                    else
-                    {
-                        for (int y = 0; y < PlanetTextures[body.name].height; y++)
-                            for (int x = 0; x < PlanetTextures[body.name].width; x++)
-                                PlanetTextures[body.name].SetPixel(x, y, Color.black);
-                        PlanetTextures[body.name].Apply();
-                    }
+                    PlanetTextures.Add(body.name, new Texture2D(256, 128, TextureFormat.ARGB32, false));
                 }
+                if (KSP.IO.File.Exists<MMI_Kethane_Controller>(body.name + ".png"))
+                {
+                    PlanetTextures[body.name].LoadImage(KSP.IO.File.ReadAllBytes<MMI_Kethane_Controller>(body.name + ".png"));
+                }
+                else
+                {
+                    for (int y = 0; y < PlanetTextures[body.name].height; y++)
+                        for (int x = 0; x < PlanetTextures[body.name].width; x++)
+                            PlanetTextures[body.name].SetPixel(x, y, Color.black);
+                    PlanetTextures[body.name].Apply();
+                }
+            }
         }
 
         private static void SaveBodyMap(CelestialBody body)
@@ -118,13 +118,13 @@ namespace Kethane
 
         private void SaveAllMaps()
         {
-                foreach (CelestialBody body in FlightGlobals.Bodies)
+            foreach (CelestialBody body in FlightGlobals.Bodies)
+            {
+                if (PlanetTextures.ContainsKey(body.name))
                 {
-                    if (PlanetTextures.ContainsKey(body.name))
-                    {
-                        SaveBodyMap(body);
-                    }
+                    SaveBodyMap(body);
                 }
+            }
         }
 
         private void DrawDebugMap()
@@ -162,21 +162,21 @@ namespace Kethane
 
         private void DrawMap(bool deposit)
         {
-                if (vessel.mainBody != null && PlanetTextures.ContainsKey(vessel.mainBody.name))
+            if (vessel.mainBody != null && PlanetTextures.ContainsKey(vessel.mainBody.name))
+            {
+                Texture2D planetTex = PlanetTextures[vessel.mainBody.name];
+
+                if (this.vessel != null)
                 {
-                    Texture2D planetTex = PlanetTextures[vessel.mainBody.name];
+                    int x = Misc.GetXOnMap(Misc.clampDegrees(vessel.mainBody.GetLongitude(vessel.transform.position)), planetTex.width);
+                    int y = Misc.GetYOnMap(vessel.mainBody.GetLatitude(vessel.transform.position), planetTex.height);
+                    if (deposit)
+                        planetTex.SetPixel(x, y, XKCDColors.Green);
+                    else
+                        planetTex.SetPixel(x, y, XKCDColors.Grey);
+                }
 
-                    if (this.vessel != null)
-                    {
-                        int x = Misc.GetXOnMap(Misc.clampDegrees(vessel.mainBody.GetLongitude(vessel.transform.position)), planetTex.width);
-                        int y = Misc.GetYOnMap(vessel.mainBody.GetLatitude(vessel.transform.position), planetTex.height);
-                        if (deposit)
-                            planetTex.SetPixel(x, y, XKCDColors.Green);
-                        else
-                            planetTex.SetPixel(x, y, XKCDColors.Grey);
-                    }
-
-                    planetTex.Apply();
+                planetTex.Apply();
             }
         }
 
