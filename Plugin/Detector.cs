@@ -69,8 +69,8 @@ namespace Kethane
             double alpha = NormalizeAngle(pos.x);
             double beta = NormalizeAngle(pos.y);
 
-            Transform RotH = base.transform.FindChild("model").FindChild("Kethane Sensor").FindChild("Horizontal Rotation");
-            Transform RotV = base.transform.FindChild("model").FindChild("Kethane Sensor").FindChild("Horizontal Rotation").FindChild("Vertical Rotation");
+            Transform RotH = BaseT.FindChild("Horizontal Rotation");
+            Transform RotV = RotH.FindChild("Vertical Rotation");
 
             double LocH = RotH.localRotation.eulerAngles.y;
             double LocV = NormalizeAngle(RotV.localRotation.eulerAngles.x - 90);

@@ -245,9 +245,9 @@ namespace Kethane
             #region Child model parts
 
             BaseTransform = base.transform.FindChild("model").FindChild("Kethane Small Miner").FindChild("Main Box");
-            Cyl3Transform = base.transform.FindChild("model").FindChild("Kethane Small Miner").FindChild("Main Box").FindChild("1 Cyl");
-            Cyl2Transform = base.transform.FindChild("model").FindChild("Kethane Small Miner").FindChild("Main Box").FindChild("1 Cyl").FindChild("2 Cyl");
-            Cyl1Transform = base.transform.FindChild("model").FindChild("Kethane Small Miner").FindChild("Main Box").FindChild("1 Cyl").FindChild("2 Cyl").FindChild("3 Cyl");
+            Cyl3Transform = BaseTransform.FindChild("1 Cyl");
+            Cyl2Transform = Cyl3Transform.FindChild("2 Cyl");
+            Cyl1Transform = Cyl2Transform.FindChild("3 Cyl");
             #endregion
             #region Setup effects
             for (int i = 0; i < EffectsNumber; i++)
