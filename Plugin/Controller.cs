@@ -235,19 +235,8 @@ namespace Kethane
 
         private KethaneDeposit GetDepositUnderVessel()
         {
-            KethaneDeposits Deposits = KethaneController.PlanetDeposits[this.vessel.mainBody.name];
-
-            double lon = Misc.clampDegrees(vessel.mainBody.GetLongitude(vessel.transform.position));
-            double lat = vessel.mainBody.GetLatitude(vessel.transform.position);
-
-            double x = Math.Round((lon + 180d) * (Deposits.Width / 360d));
-            double y = Math.Round(((90d - lat) * (Deposits.Height / 180d)));
-
-            Vector3 PointUnder = new Vector3((float)x, 0, (float)y);
-
-            KethaneDeposit DepositFound = Deposits.GetDepositOver(PointUnder);
-            DepositUnder = DepositFound;
-            return DepositFound;
+            DepositUnder = KethaneController.GetInstance(this.vessel).GetDepositUnder();
+            return DepositUnder;
         }
 
         /// <summary>

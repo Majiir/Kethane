@@ -166,5 +166,20 @@ namespace Kethane
             }
             SetMaps();
         }
+
+        public KethaneDeposit GetDepositUnder()
+        {
+            KethaneDeposits Deposits = KethaneController.PlanetDeposits[Vessel.mainBody.name];
+
+            double lon = Misc.clampDegrees(Vessel.mainBody.GetLongitude(Vessel.transform.position));
+            double lat = Vessel.mainBody.GetLatitude(Vessel.transform.position);
+
+            double x = Math.Round((lon + 180d) * (Deposits.Width / 360d));
+            double y = Math.Round(((90d - lat) * (Deposits.Height / 180d)));
+
+            Vector3 PointUnder = new Vector3((float)x, 0, (float)y);
+
+            return Deposits.GetDepositOver(PointUnder);
+        }
     }
 }
