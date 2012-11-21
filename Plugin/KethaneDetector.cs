@@ -9,9 +9,9 @@ namespace Kethane
     public class KethaneDetector : PartModule
     {
         [KSPField(isPersistant = false)]
-        public float DetectingPeriod = 1.0f; // sec 
+        public float DetectingPeriod;
 
         [KSPField(isPersistant = false)]
-        public float DetectingHeight = 150000.0f; // meters
+        public float DetectingHeight;
     }
 }
