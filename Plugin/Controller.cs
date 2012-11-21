@@ -164,10 +164,6 @@ namespace Kethane
         /// </summary>
         protected override void onPartStart()
         {
-            this.stackIcon.SetIcon(DefaultIcons.SAS);
-            this.stackIcon.SetIconColor(XKCDColors.LightGrassGreen);
-            this.stackIconGrouping = StackIconGrouping.SAME_MODULE;
-
             InfoWindowPosition = new Rect(Screen.width * 0.65f, 30, 10, 10);
             DetectorWindowPosition = new Rect(Screen.width * 0.75f, 450, 10, 10);
             DetectorWindowPosition = new Rect(Screen.width * 0.20f, 250, 10, 10);

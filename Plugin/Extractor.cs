@@ -209,13 +209,6 @@ namespace Kethane
 
         }
 
-        protected override void onPartStart()
-        {
-            this.stackIcon.SetIcon(DefaultIcons.STRUT);
-            this.stackIcon.SetIconColor(XKCDColors.PaleAqua);
-            this.stackIconGrouping = StackIconGrouping.SAME_MODULE;
-        }
-
         protected override void onFlightStart()
         {
             #region Configuration

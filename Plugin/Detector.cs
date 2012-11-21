@@ -27,13 +27,6 @@ namespace Kethane
         public float DetectingPeriod = 1.0f; // sec 
         public float DetectingHeight = 150000.0f; // meters
 
-        protected override void onPartStart()
-        {
-            this.stackIcon.SetIcon(DefaultIcons.STRUT);
-            this.stackIcon.SetIconColor(XKCDColors.LightGrassGreen);
-            this.stackIconGrouping = StackIconGrouping.SAME_MODULE;
-        }
-
         protected double NormalizeAngle(double a)
         {
             a = a % 360;
