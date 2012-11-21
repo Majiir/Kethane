@@ -42,7 +42,6 @@ namespace Kethane
 
         private bool ScanningSound = true;
 
-        private List<MMI_Kethane_Extractor> ExtractorParts = new List<MMI_Kethane_Extractor>();
         private MMI_Kethane_Detector DetectorPart;
 
         private Texture2D DebugTex = new Texture2D(256, 128, TextureFormat.ARGB32, false);
@@ -125,7 +124,6 @@ namespace Kethane
             FoundExtractors = 0;
             FoundControllers = 0;
             FoundDetectors = 0;
-            ExtractorParts.Clear();
             foreach (var part in this.vessel.parts)
             {
                 if (part is MMI_Kethane_Controller)
@@ -135,8 +133,6 @@ namespace Kethane
                 else if (part is MMI_Kethane_Extractor)
                 {
                     FoundExtractors++;
-                    if (!this.ExtractorParts.Contains((MMI_Kethane_Extractor)part))
-                        this.ExtractorParts.Add((MMI_Kethane_Extractor)part);
                 }
                 else if (part is MMI_Kethane_Detector)
                 {
