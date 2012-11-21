@@ -27,7 +27,6 @@ namespace Kethane
     public class MMI_Kethane_Controller : Part
     {
         private bool ValidConfiguration = false;
-        private bool CanDrill = false;
 
         private string ButtonMessage = "Kethane Controller";
 
@@ -274,35 +273,6 @@ namespace Kethane
         }
 
         /// <summary>
-        /// Do all operations related to drilling kethane
-        /// </summary>
-        private void HandleDrilling()
-        {
-            foreach (MMI_Kethane_Extractor ExtractorPart in ExtractorParts)
-            {
-                if (ExtractorPart != null && this.vessel != null && DepositUnder != null && ExtractorPart.DrillDeploymentState == MMI_Kethane_Extractor.DeployState.Deployed)
-                {
-                    if (TimeWarp.WarpMode == TimeWarp.Modes.HIGH && TimeWarp.CurrentRateIndex > 0)
-                    {
-                        CanDrill &= vessel.Landed;
-                    }
-                    else
-                    {
-                        float DrillDepth = ExtractorPart.DrillDepth();
-                        CanDrill = (DrillDepth >= DepositUnder.Depth) && (DrillDepth > 0);
-                    }
-
-                    if (CanDrill)
-                    {
-                        float Amount = TimeWarp.deltaTime * 1.25f;
-                        Amount = Math.Min(Amount, DepositUnder.Kethane);
-                        DepositUnder.Kethane += this.RequestResource("Kethane", -Amount);
-                    }
-                }
-            }
-        }
-
-        /// <summary>
         /// Update every frame
         /// </summary>
         protected override void onPartUpdate()
@@ -312,7 +282,6 @@ namespace Kethane
                 VerifyConfiguration();
                 GetDepositUnderVessel();
                 HandleDetection();
-                HandleDrilling();
             }
         }
 

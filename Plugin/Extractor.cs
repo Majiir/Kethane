@@ -31,6 +31,8 @@ namespace Kethane
     {
         #region Fields
 
+        private bool CanDrill = false;
+
         // Is vessel configuration valid? (has controller and tank)
         private bool ValidConfiguration = false;
 
@@ -447,6 +449,28 @@ namespace Kethane
 
             if (JustUnpacked > 0)
                 JustUnpacked--;
+
+            var DepositUnder = KethaneController.GetInstance(this.vessel).GetDepositUnder();
+
+            if (this.vessel != null && DepositUnder != null && this.DrillDeploymentState == MMI_Kethane_Extractor.DeployState.Deployed)
+            {
+                if (TimeWarp.WarpMode == TimeWarp.Modes.HIGH && TimeWarp.CurrentRateIndex > 0)
+                {
+                    CanDrill &= vessel.Landed;
+                }
+                else
+                {
+                    float DrillDepth = this.DrillDepth();
+                    CanDrill = (DrillDepth >= DepositUnder.Depth) && (DrillDepth > 0);
+                }
+
+                if (CanDrill)
+                {
+                    float Amount = TimeWarp.fixedDeltaTime * 1.25f;
+                    Amount = Math.Min(Amount, DepositUnder.Kethane);
+                    DepositUnder.Kethane += this.RequestResource("Kethane", -Amount);
+                }
+            }
         }
 
         public override void onFlightStateSave(Dictionary<string, KSPParseable> partDataCollection)
