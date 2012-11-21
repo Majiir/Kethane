@@ -44,7 +44,7 @@ namespace Kethane
 
         private Texture2D DebugTex = new Texture2D(256, 128, TextureFormat.ARGB32, false);
 
-        private int FoundExtractors = 0, FoundDetectors = 0, FoundControllers = 0;
+        private int FoundDetectors = 0, FoundControllers = 0;
 
         private KethaneDeposit DepositUnder = null;
 
@@ -119,7 +119,6 @@ namespace Kethane
         /// </summary>
         private void VerifyConfiguration()
         {
-            FoundExtractors = 0;
             FoundControllers = 0;
             FoundDetectors = 0;
             foreach (var part in this.vessel.parts)
@@ -127,10 +126,6 @@ namespace Kethane
                 if (part is MMI_Kethane_Controller)
                 {
                     FoundControllers++;
-                }
-                else if (part is MMI_Kethane_Extractor)
-                {
-                    FoundExtractors++;
                 }
                 else if (part is MMI_Kethane_Detector)
                 {
@@ -341,16 +336,12 @@ namespace Kethane
             GUILayout.Box(DebugTex);
             GUILayout.Label("", KGuiStyleLabels);
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Kethane extractor: ", KGuiStyleLabels);
-            GUILayout.Label(FoundExtractors > 0 ? "Present" : "Not found", KGuiStyleNumbers);
-            GUILayout.EndHorizontal();
-            GUILayout.BeginHorizontal();
             GUILayout.Label("Valid/active: ", KGuiStyleLabels);
             GUILayout.Label(ValidConfiguration.ToString() + "/" + this.gameObject.active, KGuiStyleNumbers);
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
-            GUILayout.Label("ED: ", KGuiStyleLabels);
-            GUILayout.Label(FoundExtractors + " " + FoundDetectors, KGuiStyleNumbers);
+            GUILayout.Label("D: ", KGuiStyleLabels);
+            GUILayout.Label(FoundDetectors.ToString(), KGuiStyleNumbers);
             GUILayout.EndHorizontal();
 
             if (GUILayout.Button("Verify", KGuiStyleButton, GUILayout.ExpandWidth(true)))
