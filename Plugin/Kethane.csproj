@@ -51,6 +51,7 @@
     <Compile Include="Detector.cs" />
     <Compile Include="Extractor.cs" />
     <Compile Include="KethaneController.cs" />
+    <Compile Include="KethaneDetector.cs" />
     <Compile Include="Misc.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="WeakReference.cs" />

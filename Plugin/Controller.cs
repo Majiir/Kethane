@@ -42,8 +42,6 @@ namespace Kethane
 
         private bool ScanningSound = true;
 
-        private MMI_Kethane_Detector DetectorPart;
-
         private Texture2D DebugTex = new Texture2D(256, 128, TextureFormat.ARGB32, false);
 
         private int FoundExtractors = 0, FoundDetectors = 0, FoundControllers = 0;
@@ -136,8 +134,6 @@ namespace Kethane
                 }
                 else if (part is MMI_Kethane_Detector)
                 {
-                    MMI_Kethane_Detector Detector = (MMI_Kethane_Detector)part;
-                    DetectorPart = Detector;
                     FoundDetectors++;
                 }
             }
@@ -215,16 +211,17 @@ namespace Kethane
         /// </summary>
         private void HandleDetection()
         {
-            if (DetectorPart != null && IsDetecting && this.vessel != null && this.vessel.gameObject.active)
+            var detector = this.vessel.parts.SelectMany(p => p.Modules.OfType<KethaneDetector>()).FirstOrDefault();
+            if (detector != null && IsDetecting && this.vessel != null && this.vessel.gameObject.active)
             {
                 TimerEcho += Time.deltaTime * (1 + Math.Log(TimeWarp.CurrentRate));
 
                 double Altitude = Misc.GetTrueAltitude(vessel);
-                TimerThreshold = DetectorPart.DetectingPeriod + Altitude * 0.000005d; // 0,5s delay at 100km
+                TimerThreshold = detector.DetectingPeriod + Altitude * 0.000005d; // 0,5s delay at 100km
 
                 if (TimerEcho >= TimerThreshold)
                 {
-                    if (DepositUnder != null && Altitude <= DetectorPart.DetectingHeight && DepositUnder.Kethane >= 1.0f)
+                    if (DepositUnder != null && Altitude <= detector.DetectingHeight && DepositUnder.Kethane >= 1.0f)
                     {
                         KethaneController.GetInstance(this.vessel).DrawMap(true);
                         LastLat = vessel.latitude;
@@ -290,7 +287,7 @@ namespace Kethane
 
             }
 
-            if (FoundDetectors > 0 && DetectorPart != null)
+            if (FoundDetectors > 0)
             {
                 GUILayout.BeginHorizontal();
                 IsDetecting = GUILayout.Toggle(IsDetecting, (IsDetecting ? "Detecting..." : "Start detection"), KGuiStyleButton, GUILayout.Width(115), GUILayout.ExpandWidth(false));

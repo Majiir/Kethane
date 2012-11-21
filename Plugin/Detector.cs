@@ -24,9 +24,6 @@ namespace Kethane
 {
     public class MMI_Kethane_Detector : Part
     {
-        public float DetectingPeriod = 1.0f; // sec 
-        public float DetectingHeight = 150000.0f; // meters
-
         protected double NormalizeAngle(double a)
         {
             a = a % 360;
