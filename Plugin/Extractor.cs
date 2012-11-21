@@ -33,9 +33,6 @@ namespace Kethane
 
         private bool CanDrill = false;
 
-        // Is vessel configuration valid? (has controller and tank)
-        private bool ValidConfiguration = false;
-
         // Part transforms
         private Transform BaseTransform, Cyl1Transform, Cyl2Transform, Cyl3Transform;
 
@@ -219,31 +216,10 @@ namespace Kethane
             this.stackIconGrouping = StackIconGrouping.SAME_MODULE;
         }
 
-        private void ValidateConfiguration()
-        {
-            int FoundControllers = 0;
-            foreach (var part in this.vessel.parts)
-            {
-                if (part is MMI_Kethane_Controller)
-                    FoundControllers++;
-            }
-
-            if (FoundControllers != 1)
-            {
-                ValidConfiguration = false;
-                this.deactivate();
-            }
-            else
-            {
-                ValidConfiguration = true;
-                this.force_activate();
-            }
-        }
-
         protected override void onFlightStart()
         {
             #region Configuration
-            ValidateConfiguration();
+            this.force_activate();
             foreach (CelestialBody Body in FlightGlobals.Bodies)
                 CollsionLayerMask = 1 << Body.gameObject.layer;
             #endregion
@@ -362,7 +338,7 @@ namespace Kethane
             IsDrillUndergorund = false;
 
             Physics.Raycast(Cyl3Transform.position, -Cyl3Transform.up, out hitdrill, 10, CollsionLayerMask);
-            if (ValidConfiguration && DeployLength > 0)
+            if (DeployLength > 0)
             {
                 if (Physics.Raycast(BaseTransform.position, -BaseTransform.up, out hit, 10, CollsionLayerMask) && (JustUnpacked == 0))//shoot a ray at centre of the vessels main body
                 {
@@ -415,7 +391,7 @@ namespace Kethane
         [KSPEvent(guiActive = true, guiName = "Toggle Extractor")]
         public void DeployArm()
         {
-            if (this.vessel.isActiveVessel && ValidConfiguration)
+            if (this.vessel.isActiveVessel)
             {
                 if (ArmWantToGoDown)
                     ArmWantToGoDown = false;
