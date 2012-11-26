@@ -120,16 +120,12 @@ namespace Kethane
         private void VerifyConfiguration()
         {
             FoundControllers = 0;
-            FoundDetectors = 0;
+            FoundDetectors = this.vessel.parts.Sum(p => p.Modules.OfType<KethaneDetector>().Count());
             foreach (var part in this.vessel.parts)
             {
                 if (part is MMI_Kethane_Controller)
                 {
                     FoundControllers++;
-                }
-                else if (part is MMI_Kethane_Detector)
-                {
-                    FoundDetectors++;
                 }
             }
 
