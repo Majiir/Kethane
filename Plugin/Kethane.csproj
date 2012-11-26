@@ -48,7 +48,6 @@
   <ItemGroup>
     <Compile Include="Controller.cs" />
     <Compile Include="Deposit.cs" />
-    <Compile Include="Detector.cs" />
     <Compile Include="Extractor.cs" />
     <Compile Include="KethaneController.cs" />
     <Compile Include="KethaneDetector.cs" />
