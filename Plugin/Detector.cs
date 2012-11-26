@@ -24,24 +24,6 @@ namespace Kethane
 {
     public class MMI_Kethane_Detector : Part
     {
-        protected double NormalizeAngle(double a)
-        {
-            a = a % 360;
-            if (a < 0)
-                a += 360;
-            return a;
-        }
-
-        private Vector2 CartesianToPolar(Vector3 point)
-        {
-            Vector2 polar = new Vector2();
-            polar.y = Mathf.Atan2(point.x, point.z);
-            float xzLen = new Vector2(point.x, point.z).magnitude;
-            polar.x = Mathf.Atan2(-point.y, xzLen);
-            polar *= Mathf.Rad2Deg;
-            return polar;
-        }
-
         protected override void onPartUpdate()
         {
             CelestialBody body = this.vessel.mainBody;
@@ -54,16 +36,16 @@ namespace Kethane
 
             Vector3 bodyCoords = BaseT.InverseTransformPoint(body.transform.position);
 
-            Vector2 pos = CartesianToPolar(bodyCoords);
+            Vector2 pos = Misc.CartesianToPolar(bodyCoords);
 
-            double alpha = NormalizeAngle(pos.x);
-            double beta = NormalizeAngle(pos.y);
+            double alpha = Misc.NormalizeAngle(pos.x);
+            double beta = Misc.NormalizeAngle(pos.y);
 
             Transform RotH = BaseT.FindChild("Horizontal Rotation");
             Transform RotV = RotH.FindChild("Vertical Rotation");
 
             double LocH = RotH.localRotation.eulerAngles.y;
-            double LocV = NormalizeAngle(RotV.localRotation.eulerAngles.x - 90);
+            double LocV = Misc.NormalizeAngle(RotV.localRotation.eulerAngles.x - 90);
 
             if (Math.Abs(beta - LocH) > 0.1f)
                 RotH.RotateAroundLocal(new Vector3(0, 1, 0), (beta > LocH ? 0.25f : -0.25f) * Time.deltaTime);
