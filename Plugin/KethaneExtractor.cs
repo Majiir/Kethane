@@ -27,7 +27,7 @@ namespace Kethane
     /// <summary>
     ///  Based on Zoxygene extractor
     /// </summary>
-    public class MMI_Kethane_Extractor : Part
+    public class KethaneExtractor : PartModule
     {
         #region Fields
 
@@ -37,10 +37,8 @@ namespace Kethane
         private Transform BaseTransform, Cyl1Transform, Cyl2Transform, Cyl3Transform;
 
         // Do we want arm to go down, or up?
+        [KSPField]
         private bool ArmWantToGoDown = false;
-
-        // Used to handle physics properly
-        private int JustLoaded = 0, JustUnpacked = 0;
 
         // Digging effects
         private const int EffectsNumber = 4;
@@ -209,10 +207,9 @@ namespace Kethane
 
         }
 
-        protected override void onFlightStart()
+        public override void OnStart(PartModule.StartState state)
         {
             #region Configuration
-            this.force_activate();
             foreach (CelestialBody Body in FlightGlobals.Bodies)
                 CollsionLayerMask = 1 << Body.gameObject.layer;
             #endregion
@@ -237,7 +234,7 @@ namespace Kethane
             #endregion
             #region Child model parts
 
-            BaseTransform = base.transform.FindChild("model").FindChild("Kethane Small Miner").FindChild("Main Box");
+            BaseTransform = this.part.transform.FindChild("model").FindChild("Kethane Small Miner").FindChild("Main Box");
             Cyl3Transform = BaseTransform.FindChild("1 Cyl");
             Cyl2Transform = Cyl3Transform.FindChild("2 Cyl");
             Cyl1Transform = Cyl2Transform.FindChild("3 Cyl");
@@ -260,16 +257,6 @@ namespace Kethane
 
             UpdateEffects();
             #endregion
-        }
-
-        protected override void onDecouple(float breakForce)
-        {
-            this.deactivate();
-        }
-
-        protected override bool onPartActivate()
-        {
-            return true;
         }
 
         private void ActivateEffects()
@@ -318,7 +305,7 @@ namespace Kethane
             #endregion
             #region Handle deploying
 
-            if ((TimeWarp.CurrentRateIndex == 0) && (JustUnpacked == 0))
+            if (TimeWarp.CurrentRateIndex == 0)
             {
                 if (ArmWantToGoDown)
                     HandleDeployment(Time.deltaTime);
@@ -333,7 +320,7 @@ namespace Kethane
             Physics.Raycast(Cyl3Transform.position, -Cyl3Transform.up, out hitdrill, 10, CollsionLayerMask);
             if (DeployLength > 0)
             {
-                if (Physics.Raycast(BaseTransform.position, -BaseTransform.up, out hit, 10, CollsionLayerMask) && (JustUnpacked == 0))//shoot a ray at centre of the vessels main body
+                if (Physics.Raycast(BaseTransform.position, -BaseTransform.up, out hit, 10, CollsionLayerMask))//shoot a ray at centre of the vessels main body
                 {
                     if (hit.collider != null)
                     {
@@ -400,28 +387,16 @@ namespace Kethane
             return -1;
         }
 
-        protected override void onPartUpdate()
+        public override void OnUpdate()
         {
-            if (JustLoaded == 0)
-                UpdateArm();
+            UpdateArm();
         }
 
-        protected override void onUnpack()
+        public override void OnFixedUpdate()
         {
-            JustUnpacked = 20;
-        }
-
-        protected override void onPartFixedUpdate()
-        {
-            if (JustLoaded > 0)
-                JustLoaded--;
-
-            if (JustUnpacked > 0)
-                JustUnpacked--;
-
             var DepositUnder = KethaneController.GetInstance(this.vessel).GetDepositUnder();
 
-            if (this.vessel != null && DepositUnder != null && this.DrillDeploymentState == MMI_Kethane_Extractor.DeployState.Deployed)
+            if (this.vessel != null && DepositUnder != null && this.DrillDeploymentState == KethaneExtractor.DeployState.Deployed)
             {
                 if (TimeWarp.WarpMode == TimeWarp.Modes.HIGH && TimeWarp.CurrentRateIndex > 0)
                 {
@@ -437,20 +412,9 @@ namespace Kethane
                 {
                     float Amount = TimeWarp.fixedDeltaTime * 1.25f;
                     Amount = Math.Min(Amount, DepositUnder.Kethane);
-                    DepositUnder.Kethane += this.RequestResource("Kethane", -Amount);
+                    DepositUnder.Kethane += this.part.RequestResource("Kethane", -Amount);
                 }
             }
-        }
-
-        public override void onFlightStateSave(Dictionary<string, KSPParseable> partDataCollection)
-        {
-            partDataCollection.Add("WantDown", new KSPParseable((object)this.ArmWantToGoDown, KSPParseable.Type.BOOL));
-        }
-
-        public override void onFlightStateLoad(Dictionary<string, KSPParseable> parsedData)
-        {
-            this.ArmWantToGoDown = bool.Parse(parsedData["WantDown"].value);
-            JustLoaded = 300;
         }
     }
 }
