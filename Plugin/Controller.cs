@@ -26,16 +26,12 @@ namespace Kethane
 {
     public class MMI_Kethane_Controller : Part
     {
-        private bool ValidConfiguration = false;
-
         private string ButtonMessage = "Kethane Controller";
 
         private Rect InfoWindowPosition, DebugWindowPosition;
         private bool InfoWindowShow = false, DebugWindowShow = false;
 
         private Texture2D DebugTex = new Texture2D(256, 128, TextureFormat.ARGB32, false);
-
-        private int FoundDetectors = 0, FoundControllers = 0;
 
         private static void Swap<T>(ref T lhs, ref T rhs) { T temp; temp = lhs; lhs = rhs; rhs = temp; }
 
@@ -94,38 +90,6 @@ namespace Kethane
         }
 
         /// <summary>
-        /// Check if oil equipment configuration is valid (there is proper number of every part)
-        /// </summary>
-        private void VerifyConfiguration()
-        {
-            FoundControllers = 0;
-            FoundDetectors = this.vessel.parts.Sum(p => p.Modules.OfType<KethaneDetector>().Count());
-            foreach (var part in this.vessel.parts)
-            {
-                if (part is MMI_Kethane_Controller)
-                {
-                    FoundControllers++;
-                }
-            }
-
-            if (FoundDetectors > 1)
-            {
-                print("More then one kethane detector found - cannot use controller");
-                ValidConfiguration = false;
-            }
-            else if (FoundControllers > 1)
-            {
-                MessageBox.print("More then one kethane controller found - error");
-                ValidConfiguration = false;
-            }
-            else
-                ValidConfiguration = true;
-
-            if (ValidConfiguration == false)
-                ButtonMessage = "Invalid part configuration";
-        }
-
-        /// <summary>
         /// On part start (Unity Start())
         /// </summary>
         protected override void onPartStart()
@@ -142,21 +106,9 @@ namespace Kethane
 
             RenderingManager.AddToPostDrawQueue(3, DrawGUI);
 
-            VerifyConfiguration();
             this.force_activate();
 
             KethaneController.GetInstance(this.vessel).SetMaps();
-        }
-
-        /// <summary>
-        /// Update every frame
-        /// </summary>
-        protected override void onPartUpdate()
-        {
-            if (this.gameObject.active && ValidConfiguration)
-            {
-                VerifyConfiguration();
-            }
         }
 
         private void DebugWindowGUI(int windowID)
@@ -166,16 +118,9 @@ namespace Kethane
             GUILayout.Box(DebugTex);
             GUILayout.Label("");
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Valid/active: ");
-            GUILayout.Label(ValidConfiguration.ToString() + "/" + this.gameObject.active);
+            GUILayout.Label("Active: ");
+            GUILayout.Label(this.gameObject.active.ToString());
             GUILayout.EndHorizontal();
-            GUILayout.BeginHorizontal();
-            GUILayout.Label("D: ");
-            GUILayout.Label(FoundDetectors.ToString());
-            GUILayout.EndHorizontal();
-
-            if (GUILayout.Button("Verify", GUILayout.ExpandWidth(true)))
-                VerifyConfiguration();
 
             GUILayout.Label("");
 
@@ -226,7 +171,7 @@ namespace Kethane
 
             if (this.gameObject.active)
             {
-                if (InfoWindowShow == true && ValidConfiguration)
+                if (InfoWindowShow == true)
                     InfoWindowPosition = GUILayout.Window(12355, InfoWindowPosition, InfoWindowGUI, "Kethane Controller", GUILayout.MinWidth(200), GUILayout.MaxWidth(200), GUILayout.MinHeight(20));
 
                 if (DebugWindowShow == true)
