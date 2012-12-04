@@ -30,13 +30,6 @@ namespace Kethane
 
         private string ButtonMessage = "Kethane Controller";
 
-        private GUIStyle KGuiStyleButton;
-        private GUIStyle KGuiStyleList;
-        private GUIStyle KGuiStyleListActive;
-        private GUIStyle KGuiStyleLabels;
-        private GUIStyle KGuiStyleLog;
-        private GUIStyle KGuiStyleNumbers;
-
         private Rect InfoWindowPosition, DetectorWindowPosition, DebugWindowPosition;
         private bool InfoWindowShow = false, DetectorWindowShow = false, DebugWindowShow = false;
 
@@ -267,12 +260,12 @@ namespace Kethane
                     inbound = false;
 
                 GUILayout.BeginHorizontal();
-                GUILayout.Label("Mouse Latitude: ", KGuiStyleLabels);
-                GUILayout.Label(" " + (inbound ? Misc.GetLatOnMap(yVar, planetTex.height).ToString("#0.0") : "-"), KGuiStyleNumbers);
+                GUILayout.Label("Mouse Latitude: ");
+                GUILayout.Label(" " + (inbound ? Misc.GetLatOnMap(yVar, planetTex.height).ToString("#0.0") : "-"));
                 GUILayout.EndHorizontal();
                 GUILayout.BeginHorizontal();
-                GUILayout.Label("Mouse Longitude: ", KGuiStyleLabels);
-                GUILayout.Label(" " + (inbound ? Misc.GetLonOnMap(xVar, planetTex.width).ToString("#0.0") : "-"), KGuiStyleNumbers);
+                GUILayout.Label("Mouse Longitude: ");
+                GUILayout.Label(" " + (inbound ? Misc.GetLonOnMap(xVar, planetTex.width).ToString("#0.0") : "-"));
                 GUILayout.EndHorizontal();
 
             }
@@ -280,7 +273,7 @@ namespace Kethane
             if (FoundDetectors > 0)
             {
                 GUILayout.BeginHorizontal();
-                IsDetecting = GUILayout.Toggle(IsDetecting, (IsDetecting ? "Detecting..." : "Start detection"), KGuiStyleButton, GUILayout.Width(115), GUILayout.ExpandWidth(false));
+                IsDetecting = GUILayout.Toggle(IsDetecting, (IsDetecting ? "Detecting..." : "Start detection"), GUILayout.Width(115), GUILayout.ExpandWidth(false));
                 if (IsDetecting)
                 {
                     int BoxWidth = 20 + (int)(40 * Math.Min(TimerEcho / TimerThreshold, 1.0d));
@@ -292,30 +285,30 @@ namespace Kethane
                         BoxLabelDepth = "~" + Math.Round(DepositUnder.Depth, 1) + " [m]";
                     }
                     GUILayout.BeginVertical();
-                    GUILayout.Label(BoxLabelAmount, KGuiStyleLabels);
-                    GUILayout.Label(BoxLabelDepth, KGuiStyleLabels);
+                    GUILayout.Label(BoxLabelAmount);
+                    GUILayout.Label(BoxLabelDepth);
                     GUILayout.EndVertical();
                     GUILayout.FlexibleSpace();
                     GUILayout.Box("", GUILayout.Width(BoxWidth));
 
                 }
                 GUILayout.EndHorizontal();
-                GUILayout.Label("", KGuiStyleLabels);
+                GUILayout.Label("");
                 GUILayout.BeginHorizontal();
-                GUILayout.Label("Last known latitude: ", KGuiStyleLabels);
-                GUILayout.Label(LastLat.ToString("#0.000"), KGuiStyleNumbers);
+                GUILayout.Label("Last known latitude: ");
+                GUILayout.Label(LastLat.ToString("#0.000"));
                 GUILayout.EndHorizontal();
                 GUILayout.BeginHorizontal();
-                GUILayout.Label("Last known longitude: ", KGuiStyleLabels);
-                GUILayout.Label(LastLon.ToString("#0.000"), KGuiStyleNumbers);
+                GUILayout.Label("Last known longitude: ");
+                GUILayout.Label(LastLon.ToString("#0.000"));
                 GUILayout.EndHorizontal();
                 ScanningSound = GUILayout.Toggle(ScanningSound, "Detection sound");
             }
             else
             {
                 GUILayout.BeginHorizontal();
-                GUILayout.Label("Kethane detector: ", KGuiStyleLabels);
-                GUILayout.Label("Not found", KGuiStyleNumbers);
+                GUILayout.Label("Kethane detector: ");
+                GUILayout.Label("Not found");
                 GUILayout.EndHorizontal();
             }
 
@@ -329,27 +322,27 @@ namespace Kethane
             GUILayout.BeginVertical();
             DrawDebugMap();
             GUILayout.Box(DebugTex);
-            GUILayout.Label("", KGuiStyleLabels);
+            GUILayout.Label("");
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Valid/active: ", KGuiStyleLabels);
-            GUILayout.Label(ValidConfiguration.ToString() + "/" + this.gameObject.active, KGuiStyleNumbers);
+            GUILayout.Label("Valid/active: ");
+            GUILayout.Label(ValidConfiguration.ToString() + "/" + this.gameObject.active);
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
-            GUILayout.Label("D: ", KGuiStyleLabels);
-            GUILayout.Label(FoundDetectors.ToString(), KGuiStyleNumbers);
+            GUILayout.Label("D: ");
+            GUILayout.Label(FoundDetectors.ToString());
             GUILayout.EndHorizontal();
 
-            if (GUILayout.Button("Verify", KGuiStyleButton, GUILayout.ExpandWidth(true)))
+            if (GUILayout.Button("Verify", GUILayout.ExpandWidth(true)))
                 VerifyConfiguration();
 
-            GUILayout.Label("", KGuiStyleLabels);
+            GUILayout.Label("");
 
-            if (GUILayout.Button("GEN", KGuiStyleButton, GUILayout.ExpandWidth(true)))
+            if (GUILayout.Button("GEN", GUILayout.ExpandWidth(true)))
                 KethaneController.GetInstance(this.vessel).GenerateKethaneDeposits();
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Deposit: ", KGuiStyleLabels);
-            GUILayout.Label(DepositUnder == null ? "-" : (DepositUnder.Depth.ToString() + "  " + DepositUnder.Kethane.ToString()), KGuiStyleNumbers);
+            GUILayout.Label("Deposit: ");
+            GUILayout.Label(DepositUnder == null ? "-" : (DepositUnder.Depth.ToString() + "  " + DepositUnder.Kethane.ToString()));
             GUILayout.EndHorizontal();
 
             GUILayout.EndVertical();
@@ -361,53 +354,11 @@ namespace Kethane
         /// </summary>
         private void InfoWindowGUI(int windowID)
         {
-
-            #region GUIStyles
-            KGuiStyleButton = new GUIStyle(GUI.skin.button);
-            KGuiStyleButton.normal.textColor = KGuiStyleButton.focused.textColor = Color.white;
-            KGuiStyleButton.hover.textColor = KGuiStyleButton.active.textColor = Color.yellow;
-            KGuiStyleButton.onNormal.textColor = KGuiStyleButton.onFocused.textColor = KGuiStyleButton.onHover.textColor = KGuiStyleButton.onActive.textColor = Color.green;
-            KGuiStyleButton.padding = new RectOffset(4, 4, 4, 4);
-
-            KGuiStyleList = new GUIStyle(GUI.skin.button);
-            KGuiStyleList.normal.textColor = KGuiStyleList.focused.textColor = XKCDColors.LightBlueGrey;
-            KGuiStyleList.fontSize = 11;
-            KGuiStyleList.hover.textColor = KGuiStyleList.active.textColor = Color.cyan;
-            KGuiStyleList.onNormal.textColor = KGuiStyleList.onFocused.textColor = KGuiStyleList.onHover.textColor = KGuiStyleList.onActive.textColor = Color.green;
-            KGuiStyleList.padding = new RectOffset(1, 1, 1, 1);
-
-            KGuiStyleListActive = new GUIStyle(GUI.skin.button);
-            KGuiStyleListActive.normal.textColor = KGuiStyleListActive.focused.textColor = XKCDColors.LightBlue;
-            KGuiStyleListActive.fontSize = 11;
-            KGuiStyleListActive.hover.textColor = KGuiStyleListActive.active.textColor = Color.cyan;
-            KGuiStyleListActive.onNormal.textColor = KGuiStyleListActive.onFocused.textColor = KGuiStyleListActive.onHover.textColor = KGuiStyleListActive.onActive.textColor = XKCDColors.LightGrassGreen;
-            KGuiStyleListActive.padding = new RectOffset(1, 1, 1, 1);
-
-            KGuiStyleLabels = new GUIStyle();
-            KGuiStyleLabels.normal.textColor = KGuiStyleLabels.focused.textColor = Color.white;
-            KGuiStyleLabels.alignment = TextAnchor.MiddleLeft;
-            KGuiStyleLabels.margin = new RectOffset(1, 1, 1, 1);
-            KGuiStyleLabels.fontSize = 12;
-
-            KGuiStyleLog = new GUIStyle();
-            KGuiStyleLog.normal.textColor = KGuiStyleLog.focused.textColor = Color.white;
-            KGuiStyleLog.alignment = TextAnchor.MiddleLeft;
-            KGuiStyleLog.margin = new RectOffset(1, 1, 1, 1);
-            KGuiStyleLog.fontSize = 10;
-
-            KGuiStyleNumbers = new GUIStyle();
-            KGuiStyleNumbers.normal.textColor = KGuiStyleNumbers.focused.textColor = Color.white;
-            KGuiStyleNumbers.alignment = TextAnchor.MiddleRight;
-            KGuiStyleNumbers.margin = new RectOffset(1, 1, 1, 1);
-            KGuiStyleNumbers.fontSize = 12;
-
-            #endregion
-
             GUILayout.BeginVertical();
 
             #region Info
 
-            GUILayout.Label("", KGuiStyleLabels);
+            GUILayout.Label("");
 
             DetectorWindowShow = GUILayout.Toggle(DetectorWindowShow, "Detecting");
             //DebugWindowShow = GUILayout.Toggle(DebugWindowShow, "DEBUG");
@@ -426,6 +377,8 @@ namespace Kethane
         {
             if (vessel != FlightGlobals.ActiveVessel || this.gameObject.active == false)
                 return;
+
+            GUI.skin = HighLogic.Skin;
 
             InfoWindowShow = GUI.Toggle(new Rect(Screen.width * 0.65f, 0, 200, 25), InfoWindowShow, ButtonMessage, GUI.skin.button);
 
