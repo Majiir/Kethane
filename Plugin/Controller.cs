@@ -31,7 +31,7 @@ namespace Kethane
         private string ButtonMessage = "Kethane Controller";
 
         private Rect InfoWindowPosition, DebugWindowPosition;
-        private bool InfoWindowShow = false, DetectorWindowShow = false, DebugWindowShow = false;
+        private bool InfoWindowShow = false, DebugWindowShow = false;
 
         private Texture2D DebugTex = new Texture2D(256, 128, TextureFormat.ARGB32, false);
 
@@ -211,7 +211,6 @@ namespace Kethane
 
             GUILayout.Label("");
 
-            DetectorWindowShow = GUILayout.Toggle(DetectorWindowShow, "Detecting");
             //DebugWindowShow = GUILayout.Toggle(DebugWindowShow, "DEBUG");
 
             #endregion
@@ -237,8 +236,6 @@ namespace Kethane
             {
                 if (InfoWindowShow == true && ValidConfiguration)
                     InfoWindowPosition = GUILayout.Window(12355, InfoWindowPosition, InfoWindowGUI, "Kethane Controller", GUILayout.MinWidth(200), GUILayout.MaxWidth(200), GUILayout.MinHeight(20));
-
-                KethaneController.GetInstance(this.vessel).ShowDetectorWindow = DetectorWindowShow;
 
                 if (DebugWindowShow == true)
                     DebugWindowPosition = GUILayout.Window(12360, DebugWindowPosition, DebugWindowGUI, "Debug", GUILayout.MinWidth(256), GUILayout.MaxWidth(300), GUILayout.MinHeight(20));

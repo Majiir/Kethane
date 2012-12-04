@@ -38,6 +38,24 @@ namespace Kethane
             Events["DisableDetection"].active = IsDetecting;
         }
 
+        [KSPEvent(guiActive = true, guiName = "Show Map", active = true)]
+        public void ShowMap()
+        {
+            var showMap = true;
+            KethaneController.GetInstance(this.vessel).ShowDetectorWindow = showMap;
+            Events["ShowMap"].active = !showMap;
+            Events["HideMap"].active = showMap;
+        }
+
+        [KSPEvent(guiActive = true, guiName = "Hide Map", active = false)]
+        public void HideMap()
+        {
+            var showMap = false;
+            KethaneController.GetInstance(this.vessel).ShowDetectorWindow = showMap;
+            Events["ShowMap"].active = !showMap;
+            Events["HideMap"].active = showMap;
+        }
+
         public override void OnStart(PartModule.StartState state)
         {
             #region Sound effects
