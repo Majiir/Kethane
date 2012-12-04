@@ -14,6 +14,8 @@ namespace Kethane
         [KSPField(isPersistant = false)]
         public float DetectingHeight;
 
+        private double TimerEcho;
+
         private static AudioSource PingEmpty;
         private static AudioSource PingDeposit;
 
@@ -75,13 +77,13 @@ namespace Kethane
             var controller = KethaneController.GetInstance(this.vessel);
             if (controller.IsDetecting && this.vessel != null && this.vessel.gameObject.active)
             {
-                controller.TimerEcho += Time.deltaTime * (1 + Math.Log(TimeWarp.CurrentRate));
+                TimerEcho += Time.deltaTime * (1 + Math.Log(TimeWarp.CurrentRate));
 
                 double Altitude = Misc.GetTrueAltitude(vessel);
-                controller.TimerThreshold = this.DetectingPeriod + Altitude * 0.000005d; // 0,5s delay at 100km
+                var TimerThreshold = this.DetectingPeriod + Altitude * 0.000005d; // 0,5s delay at 100km
                 var DepositUnder = controller.GetDepositUnder();
 
-                if (controller.TimerEcho >= controller.TimerThreshold)
+                if (TimerEcho >= TimerThreshold)
                 {
                     if (DepositUnder != null && Altitude <= this.DetectingHeight && DepositUnder.Kethane >= 1.0f)
                     {
@@ -97,7 +99,7 @@ namespace Kethane
                         if (vessel == FlightGlobals.ActiveVessel && controller.ScanningSound)
                             PingEmpty.Play();
                     }
-                    controller.TimerEcho = 0;
+                    TimerEcho = 0;
                 }
             }
         }

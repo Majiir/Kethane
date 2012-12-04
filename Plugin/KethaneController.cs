@@ -193,8 +193,6 @@ namespace Kethane
 
         public bool IsDetecting;
 
-        public double TimerEcho, TimerThreshold;
-
         public double LastLat, LastLon;
 
         private Rect DetectorWindowPosition = new Rect(Screen.width * 0.20f, 250, 10, 10);
