@@ -152,7 +152,6 @@ namespace Kethane
         protected override void onPartStart()
         {
             InfoWindowPosition = new Rect(Screen.width * 0.65f, 30, 10, 10);
-            DetectorWindowPosition = new Rect(Screen.width * 0.75f, 450, 10, 10);
             DetectorWindowPosition = new Rect(Screen.width * 0.20f, 250, 10, 10);
         }
 
