@@ -39,8 +39,6 @@ namespace Kethane
 
         private KethaneDeposit DepositUnder = null;
 
-        protected static AudioSource PingEmpty, PingDeposit;
-
         private static void Swap<T>(ref T lhs, ref T rhs) { T temp; temp = lhs; lhs = rhs; rhs = temp; }
 
         public bool PlotFunction(Texture2D tex, int x, int y)
@@ -142,26 +140,6 @@ namespace Kethane
         /// </summary>
         protected override void onFlightStart()
         {
-            #region Sound effects
-            PingEmpty = gameObject.AddComponent<AudioSource>();
-            WWW wwwE = new WWW("file://" + KSPUtil.ApplicationRootPath.Replace("\\", "/") + "PluginData/mmi_kethane/sounds/echo_empty.wav");
-            if ((PingEmpty != null) && (wwwE != null))
-            {
-                PingEmpty.clip = wwwE.GetAudioClip(false);
-                PingEmpty.volume = 1;
-                PingEmpty.Stop();
-            }
-
-            PingDeposit = gameObject.AddComponent<AudioSource>();
-            WWW wwwD = new WWW("file://" + KSPUtil.ApplicationRootPath.Replace("\\", "/") + "PluginData/mmi_kethane/sounds/echo_deposit.wav");
-            if ((PingDeposit != null) && (wwwD != null))
-            {
-                PingDeposit.clip = wwwD.GetAudioClip(false);
-                PingDeposit.volume = 1;
-                PingDeposit.Stop();
-            }
-            #endregion
-
             KethaneController.GetInstance(this.vessel).LoadKethaneDeposits();
 
             RenderingManager.AddToPostDrawQueue(3, DrawGUI);
@@ -179,42 +157,6 @@ namespace Kethane
         }
 
         /// <summary>
-        /// Do all operations related to detecing kethane
-        /// </summary>
-        private void HandleDetection()
-        {
-            var controller = KethaneController.GetInstance(this.vessel);
-            var detector = this.vessel.parts.SelectMany(p => p.Modules.OfType<KethaneDetector>()).FirstOrDefault();
-            if (detector != null && controller.IsDetecting && this.vessel != null && this.vessel.gameObject.active)
-            {
-                controller.TimerEcho += Time.deltaTime * (1 + Math.Log(TimeWarp.CurrentRate));
-
-                double Altitude = Misc.GetTrueAltitude(vessel);
-                controller.TimerThreshold = detector.DetectingPeriod + Altitude * 0.000005d; // 0,5s delay at 100km
-
-                if (controller.TimerEcho >= controller.TimerThreshold)
-                {
-                    if (DepositUnder != null && Altitude <= detector.DetectingHeight && DepositUnder.Kethane >= 1.0f)
-                    {
-                        controller.DrawMap(true);
-                        controller.LastLat = vessel.latitude;
-                        controller.LastLon = vessel.longitude;
-                        if (vessel == FlightGlobals.ActiveVessel && controller.ScanningSound)
-                            PingDeposit.Play();
-                    }
-                    else
-                    {
-                        controller.DrawMap(false);
-                        if (vessel == FlightGlobals.ActiveVessel && controller.ScanningSound)
-                            PingEmpty.Play();
-                    }
-                    controller.TimerEcho = 0;
-                }
-            }
-
-        }
-
-        /// <summary>
         /// Update every frame
         /// </summary>
         protected override void onPartUpdate()
@@ -223,7 +165,6 @@ namespace Kethane
             {
                 VerifyConfiguration();
                 GetDepositUnderVessel();
-                HandleDetection();
             }
         }
 
