@@ -37,8 +37,6 @@ namespace Kethane
 
         private int FoundDetectors = 0, FoundControllers = 0;
 
-        private KethaneDeposit DepositUnder = null;
-
         private static void Swap<T>(ref T lhs, ref T rhs) { T temp; temp = lhs; lhs = rhs; rhs = temp; }
 
         public bool PlotFunction(Texture2D tex, int x, int y)
@@ -150,12 +148,6 @@ namespace Kethane
             KethaneController.GetInstance(this.vessel).SetMaps();
         }
 
-        private KethaneDeposit GetDepositUnderVessel()
-        {
-            DepositUnder = KethaneController.GetInstance(this.vessel).GetDepositUnder();
-            return DepositUnder;
-        }
-
         /// <summary>
         /// Update every frame
         /// </summary>
@@ -164,7 +156,6 @@ namespace Kethane
             if (this.gameObject.active && ValidConfiguration)
             {
                 VerifyConfiguration();
-                GetDepositUnderVessel();
             }
         }
 
@@ -193,6 +184,7 @@ namespace Kethane
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Deposit: ");
+            var DepositUnder = KethaneController.GetInstance(this.vessel).GetDepositUnder();
             GUILayout.Label(DepositUnder == null ? "-" : (DepositUnder.Depth.ToString() + "  " + DepositUnder.Kethane.ToString()));
             GUILayout.EndHorizontal();
 
