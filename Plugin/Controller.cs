@@ -271,7 +271,6 @@ namespace Kethane
         {
             KethaneController.GetInstance(this.vessel).SaveKethaneDeposits();
             KethaneController.GetInstance(this.vessel).SaveAllMaps();
-            partDataCollection.Add("Detecting", new KSPParseable(KethaneController.GetInstance(this.vessel).IsDetecting, KSPParseable.Type.BOOL));
         }
 
         /// <summary>
@@ -281,7 +280,6 @@ namespace Kethane
         {
             KethaneController.GetInstance(this.vessel).LoadKethaneDeposits();
             KethaneController.GetInstance(this.vessel).SetMaps();
-            KethaneController.GetInstance(this.vessel).IsDetecting = bool.Parse(parsedData["Detecting"].value);
         }
     }
 }

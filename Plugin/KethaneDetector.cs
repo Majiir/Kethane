@@ -14,10 +14,29 @@ namespace Kethane
         [KSPField(isPersistant = false)]
         public float DetectingHeight;
 
+        [KSPField]
+        private bool IsDetecting;
+
         private double TimerEcho;
 
         private static AudioSource PingEmpty;
         private static AudioSource PingDeposit;
+
+        [KSPEvent(guiActive = true, guiName = "Activate Detector", active = true)]
+        public void EnableDetection()
+        {
+            IsDetecting = true;
+            Events["EnableDetection"].active = !IsDetecting;
+            Events["DisableDetection"].active = IsDetecting;
+        }
+
+        [KSPEvent(guiActive = true, guiName = "Deactivate Detector", active = false)]
+        public void DisableDetection()
+        {
+            IsDetecting = false;
+            Events["EnableDetection"].active = !IsDetecting;
+            Events["DisableDetection"].active = IsDetecting;
+        }
 
         public override void OnStart(PartModule.StartState state)
         {
@@ -75,7 +94,7 @@ namespace Kethane
         public override void OnFixedUpdate()
         {
             var controller = KethaneController.GetInstance(this.vessel);
-            if (controller.IsDetecting && this.vessel != null && this.vessel.gameObject.active)
+            if (IsDetecting && this.vessel != null && this.vessel.gameObject.active)
             {
                 TimerEcho += Time.deltaTime * (1 + Math.Log(TimeWarp.CurrentRate));
 

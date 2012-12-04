@@ -191,8 +191,6 @@ namespace Kethane
 
         public bool ScanningSound = true;
 
-        public bool IsDetecting;
-
         public double LastLat, LastLon;
 
         private Rect DetectorWindowPosition = new Rect(Screen.width * 0.20f, 250, 10, 10);
@@ -246,23 +244,18 @@ namespace Kethane
             if (Vessel.Parts.SelectMany(p => p.Modules.OfType<KethaneDetector>()).Count() > 0)
             {
                 GUILayout.BeginHorizontal();
-                IsDetecting = GUILayout.Toggle(IsDetecting, (IsDetecting ? "Detecting..." : "Start detection"), GUILayout.Width(115), GUILayout.ExpandWidth(false));
-                if (IsDetecting)
+                string BoxLabelAmount = "No reading";
+                string BoxLabelDepth = "-";
+                var DepositUnder = GetDepositUnder();
+                if (DepositUnder != null)
                 {
-                    string BoxLabelAmount = "No reading";
-                    string BoxLabelDepth = "-";
-                    var DepositUnder = GetDepositUnder();
-                    if (DepositUnder != null)
-                    {
-                        BoxLabelAmount = "~" + Math.Round(DepositUnder.Kethane, 1) + " [l]";
-                        BoxLabelDepth = "~" + Math.Round(DepositUnder.Depth, 1) + " [m]";
-                    }
-                    GUILayout.BeginVertical();
-                    GUILayout.Label(BoxLabelAmount);
-                    GUILayout.Label(BoxLabelDepth);
-                    GUILayout.EndVertical();
-
+                    BoxLabelAmount = "~" + Math.Round(DepositUnder.Kethane, 1) + " [l]";
+                    BoxLabelDepth = "~" + Math.Round(DepositUnder.Depth, 1) + " [m]";
                 }
+                GUILayout.BeginVertical();
+                GUILayout.Label(BoxLabelAmount);
+                GUILayout.Label(BoxLabelDepth);
+                GUILayout.EndVertical();
                 GUILayout.EndHorizontal();
                 GUILayout.Label("");
                 GUILayout.BeginHorizontal();
