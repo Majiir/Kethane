@@ -13,12 +13,14 @@ namespace Kethane
 
         public static KethaneController GetInstance(Vessel vessel)
         {
-            foreach (var wr in controllers.Keys.ToArray())
+            foreach (var kvp in controllers.ToArray())
             {
+                var wr = kvp.Key;
                 var v = wr.Target;
                 if (v == null)
                 {
                     controllers.Remove(wr);
+                    RenderingManager.RemoveFromPostDrawQueue(3, kvp.Value.drawGui);
                 }
                 else if (v == vessel)
                 {
@@ -33,7 +35,10 @@ namespace Kethane
 
         #endregion
 
-        private KethaneController() { }
+        private KethaneController()
+        {
+            RenderingManager.AddToPostDrawQueue(3, drawGui);
+        }
 
         public Vessel Vessel
         {
@@ -180,6 +185,14 @@ namespace Kethane
             Vector3 PointUnder = new Vector3((float)x, 0, (float)y);
 
             return Deposits.GetDepositOver(PointUnder);
+        }
+
+        private void drawGui()
+        {
+            if (FlightGlobals.ActiveVessel != Vessel)
+            { return; }
+
+            GUI.skin = HighLogic.Skin;
         }
     }
 }
