@@ -30,10 +30,8 @@ namespace Kethane
 
         private string ButtonMessage = "Kethane Controller";
 
-        private Rect InfoWindowPosition, DetectorWindowPosition, DebugWindowPosition;
+        private Rect InfoWindowPosition, DebugWindowPosition;
         private bool InfoWindowShow = false, DetectorWindowShow = false, DebugWindowShow = false;
-
-        private bool ScanningSound = true;
 
         private Texture2D DebugTex = new Texture2D(256, 128, TextureFormat.ARGB32, false);
 
@@ -41,15 +39,7 @@ namespace Kethane
 
         private KethaneDeposit DepositUnder = null;
 
-        private double TimerThreshold = 0.0;
-
-        private double LastLat = 0, LastLon = 0;
-
         protected static AudioSource PingEmpty, PingDeposit;
-
-        private double TimerEcho = 0.0f;
-
-        private bool IsDetecting = false;
 
         private static void Swap<T>(ref T lhs, ref T rhs) { T temp; temp = lhs; lhs = rhs; rhs = temp; }
 
@@ -145,7 +135,6 @@ namespace Kethane
         protected override void onPartStart()
         {
             InfoWindowPosition = new Rect(Screen.width * 0.65f, 30, 10, 10);
-            DetectorWindowPosition = new Rect(Screen.width * 0.20f, 250, 10, 10);
         }
 
         /// <summary>
@@ -194,31 +183,32 @@ namespace Kethane
         /// </summary>
         private void HandleDetection()
         {
+            var controller = KethaneController.GetInstance(this.vessel);
             var detector = this.vessel.parts.SelectMany(p => p.Modules.OfType<KethaneDetector>()).FirstOrDefault();
-            if (detector != null && IsDetecting && this.vessel != null && this.vessel.gameObject.active)
+            if (detector != null && controller.IsDetecting && this.vessel != null && this.vessel.gameObject.active)
             {
-                TimerEcho += Time.deltaTime * (1 + Math.Log(TimeWarp.CurrentRate));
+                controller.TimerEcho += Time.deltaTime * (1 + Math.Log(TimeWarp.CurrentRate));
 
                 double Altitude = Misc.GetTrueAltitude(vessel);
-                TimerThreshold = detector.DetectingPeriod + Altitude * 0.000005d; // 0,5s delay at 100km
+                controller.TimerThreshold = detector.DetectingPeriod + Altitude * 0.000005d; // 0,5s delay at 100km
 
-                if (TimerEcho >= TimerThreshold)
+                if (controller.TimerEcho >= controller.TimerThreshold)
                 {
                     if (DepositUnder != null && Altitude <= detector.DetectingHeight && DepositUnder.Kethane >= 1.0f)
                     {
-                        KethaneController.GetInstance(this.vessel).DrawMap(true);
-                        LastLat = vessel.latitude;
-                        LastLon = vessel.longitude;
-                        if (vessel == FlightGlobals.ActiveVessel && ScanningSound)
+                        controller.DrawMap(true);
+                        controller.LastLat = vessel.latitude;
+                        controller.LastLon = vessel.longitude;
+                        if (vessel == FlightGlobals.ActiveVessel && controller.ScanningSound)
                             PingDeposit.Play();
                     }
                     else
                     {
-                        KethaneController.GetInstance(this.vessel).DrawMap(false);
-                        if (vessel == FlightGlobals.ActiveVessel && ScanningSound)
+                        controller.DrawMap(false);
+                        if (vessel == FlightGlobals.ActiveVessel && controller.ScanningSound)
                             PingEmpty.Play();
                     }
-                    TimerEcho = 0;
+                    controller.TimerEcho = 0;
                 }
             }
 
@@ -235,86 +225,6 @@ namespace Kethane
                 GetDepositUnderVessel();
                 HandleDetection();
             }
-        }
-
-        private void DetectorWindowGUI(int windowID)
-        {
-            #region Detector
-            GUILayout.BeginVertical();
-
-            if (vessel.mainBody != null && KethaneController.PlanetTextures.ContainsKey(vessel.mainBody.name))
-            {
-                Texture2D planetTex = KethaneController.PlanetTextures[vessel.mainBody.name];
-                GUILayout.Box(planetTex);
-                Rect Last = UnityEngine.GUILayoutUtility.GetLastRect();
-
-                float xVar = ((Last.xMin + Last.xMax) / 2) - (planetTex.width / 2) + DetectorWindowPosition.x;
-                float yVar = ((Last.yMin + Last.yMax) / 2) - (planetTex.height / 2) + DetectorWindowPosition.y;
-                xVar = xVar - UnityEngine.Input.mousePosition.x;
-                yVar = (Screen.height - yVar) - UnityEngine.Input.mousePosition.y;
-
-                bool inbound = true;
-                if (yVar > planetTex.height || yVar < 0)
-                    inbound = false;
-                if (-xVar > planetTex.width || -xVar < 0)
-                    inbound = false;
-
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Mouse Latitude: ");
-                GUILayout.Label(" " + (inbound ? Misc.GetLatOnMap(yVar, planetTex.height).ToString("#0.0") : "-"));
-                GUILayout.EndHorizontal();
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Mouse Longitude: ");
-                GUILayout.Label(" " + (inbound ? Misc.GetLonOnMap(xVar, planetTex.width).ToString("#0.0") : "-"));
-                GUILayout.EndHorizontal();
-
-            }
-
-            if (FoundDetectors > 0)
-            {
-                GUILayout.BeginHorizontal();
-                IsDetecting = GUILayout.Toggle(IsDetecting, (IsDetecting ? "Detecting..." : "Start detection"), GUILayout.Width(115), GUILayout.ExpandWidth(false));
-                if (IsDetecting)
-                {
-                    int BoxWidth = 20 + (int)(40 * Math.Min(TimerEcho / TimerThreshold, 1.0d));
-                    string BoxLabelAmount = "No reading";
-                    string BoxLabelDepth = "-";
-                    if (DepositUnder != null)
-                    {
-                        BoxLabelAmount = "~" + Math.Round(DepositUnder.Kethane, 1) + " [l]";
-                        BoxLabelDepth = "~" + Math.Round(DepositUnder.Depth, 1) + " [m]";
-                    }
-                    GUILayout.BeginVertical();
-                    GUILayout.Label(BoxLabelAmount);
-                    GUILayout.Label(BoxLabelDepth);
-                    GUILayout.EndVertical();
-                    GUILayout.FlexibleSpace();
-                    GUILayout.Box("", GUILayout.Width(BoxWidth));
-
-                }
-                GUILayout.EndHorizontal();
-                GUILayout.Label("");
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Last known latitude: ");
-                GUILayout.Label(LastLat.ToString("#0.000"));
-                GUILayout.EndHorizontal();
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Last known longitude: ");
-                GUILayout.Label(LastLon.ToString("#0.000"));
-                GUILayout.EndHorizontal();
-                ScanningSound = GUILayout.Toggle(ScanningSound, "Detection sound");
-            }
-            else
-            {
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Kethane detector: ");
-                GUILayout.Label("Not found");
-                GUILayout.EndHorizontal();
-            }
-
-            GUILayout.EndVertical();
-            GUI.DragWindow(new Rect(0, 0, 300, 60));
-            #endregion
         }
 
         private void DebugWindowGUI(int windowID)
@@ -387,8 +297,7 @@ namespace Kethane
                 if (InfoWindowShow == true && ValidConfiguration)
                     InfoWindowPosition = GUILayout.Window(12355, InfoWindowPosition, InfoWindowGUI, "Kethane Controller", GUILayout.MinWidth(200), GUILayout.MaxWidth(200), GUILayout.MinHeight(20));
 
-                if (DetectorWindowShow == true && ValidConfiguration)
-                    DetectorWindowPosition = GUILayout.Window(12358, DetectorWindowPosition, DetectorWindowGUI, "Detecting", GUILayout.MinWidth(300), GUILayout.MaxWidth(300), GUILayout.MinHeight(20));
+                KethaneController.GetInstance(this.vessel).ShowDetectorWindow = DetectorWindowShow;
 
                 if (DebugWindowShow == true)
                     DebugWindowPosition = GUILayout.Window(12360, DebugWindowPosition, DebugWindowGUI, "Debug", GUILayout.MinWidth(256), GUILayout.MaxWidth(300), GUILayout.MinHeight(20));
@@ -421,7 +330,7 @@ namespace Kethane
         {
             KethaneController.GetInstance(this.vessel).SaveKethaneDeposits();
             KethaneController.GetInstance(this.vessel).SaveAllMaps();
-            partDataCollection.Add("Detecting", new KSPParseable(IsDetecting, KSPParseable.Type.BOOL));
+            partDataCollection.Add("Detecting", new KSPParseable(KethaneController.GetInstance(this.vessel).IsDetecting, KSPParseable.Type.BOOL));
         }
 
         /// <summary>
@@ -431,7 +340,7 @@ namespace Kethane
         {
             KethaneController.GetInstance(this.vessel).LoadKethaneDeposits();
             KethaneController.GetInstance(this.vessel).SetMaps();
-            IsDetecting = bool.Parse(parsedData["Detecting"].value);
+            KethaneController.GetInstance(this.vessel).IsDetecting = bool.Parse(parsedData["Detecting"].value);
         }
     }
 }

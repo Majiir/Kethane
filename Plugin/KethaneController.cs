@@ -187,12 +187,110 @@ namespace Kethane
             return Deposits.GetDepositOver(PointUnder);
         }
 
+        public bool ShowDetectorWindow;
+
+        public bool ScanningSound = true;
+
+        public bool IsDetecting;
+
+        public double TimerEcho, TimerThreshold;
+
+        public double LastLat, LastLon;
+
+        private Rect DetectorWindowPosition = new Rect(Screen.width * 0.20f, 250, 10, 10);
+
         private void drawGui()
         {
             if (FlightGlobals.ActiveVessel != Vessel)
             { return; }
 
             GUI.skin = HighLogic.Skin;
+
+            if (ShowDetectorWindow)
+            {
+                DetectorWindowPosition = GUILayout.Window(12358, DetectorWindowPosition, DetectorWindowGUI, "Detecting", GUILayout.MinWidth(300), GUILayout.MaxWidth(300), GUILayout.MinHeight(20));
+            }
+        }
+
+        private void DetectorWindowGUI(int windowID)
+        {
+            #region Detector
+            GUILayout.BeginVertical();
+
+            if (Vessel.mainBody != null && KethaneController.PlanetTextures.ContainsKey(Vessel.mainBody.name))
+            {
+                Texture2D planetTex = KethaneController.PlanetTextures[Vessel.mainBody.name];
+                GUILayout.Box(planetTex);
+                Rect Last = UnityEngine.GUILayoutUtility.GetLastRect();
+
+                float xVar = ((Last.xMin + Last.xMax) / 2) - (planetTex.width / 2) + DetectorWindowPosition.x;
+                float yVar = ((Last.yMin + Last.yMax) / 2) - (planetTex.height / 2) + DetectorWindowPosition.y;
+                xVar = xVar - UnityEngine.Input.mousePosition.x;
+                yVar = (Screen.height - yVar) - UnityEngine.Input.mousePosition.y;
+
+                bool inbound = true;
+                if (yVar > planetTex.height || yVar < 0)
+                    inbound = false;
+                if (-xVar > planetTex.width || -xVar < 0)
+                    inbound = false;
+
+                GUILayout.BeginHorizontal();
+                GUILayout.Label("Mouse Latitude: ");
+                GUILayout.Label(" " + (inbound ? Misc.GetLatOnMap(yVar, planetTex.height).ToString("#0.0") : "-"));
+                GUILayout.EndHorizontal();
+                GUILayout.BeginHorizontal();
+                GUILayout.Label("Mouse Longitude: ");
+                GUILayout.Label(" " + (inbound ? Misc.GetLonOnMap(xVar, planetTex.width).ToString("#0.0") : "-"));
+                GUILayout.EndHorizontal();
+
+            }
+
+            if (Vessel.Parts.SelectMany(p => p.Modules.OfType<KethaneDetector>()).Count() > 0)
+            {
+                GUILayout.BeginHorizontal();
+                IsDetecting = GUILayout.Toggle(IsDetecting, (IsDetecting ? "Detecting..." : "Start detection"), GUILayout.Width(115), GUILayout.ExpandWidth(false));
+                if (IsDetecting)
+                {
+                    int BoxWidth = 20 + (int)(40 * Math.Min(TimerEcho / TimerThreshold, 1.0d));
+                    string BoxLabelAmount = "No reading";
+                    string BoxLabelDepth = "-";
+                    var DepositUnder = GetDepositUnder();
+                    if (DepositUnder != null)
+                    {
+                        BoxLabelAmount = "~" + Math.Round(DepositUnder.Kethane, 1) + " [l]";
+                        BoxLabelDepth = "~" + Math.Round(DepositUnder.Depth, 1) + " [m]";
+                    }
+                    GUILayout.BeginVertical();
+                    GUILayout.Label(BoxLabelAmount);
+                    GUILayout.Label(BoxLabelDepth);
+                    GUILayout.EndVertical();
+                    GUILayout.FlexibleSpace();
+                    GUILayout.Box("", GUILayout.Width(BoxWidth));
+
+                }
+                GUILayout.EndHorizontal();
+                GUILayout.Label("");
+                GUILayout.BeginHorizontal();
+                GUILayout.Label("Last known latitude: ");
+                GUILayout.Label(LastLat.ToString("#0.000"));
+                GUILayout.EndHorizontal();
+                GUILayout.BeginHorizontal();
+                GUILayout.Label("Last known longitude: ");
+                GUILayout.Label(LastLon.ToString("#0.000"));
+                GUILayout.EndHorizontal();
+                ScanningSound = GUILayout.Toggle(ScanningSound, "Detection sound");
+            }
+            else
+            {
+                GUILayout.BeginHorizontal();
+                GUILayout.Label("Kethane detector: ");
+                GUILayout.Label("Not found");
+                GUILayout.EndHorizontal();
+            }
+
+            GUILayout.EndVertical();
+            GUI.DragWindow(new Rect(0, 0, 300, 60));
+            #endregion
         }
     }
 }
