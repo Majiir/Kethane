@@ -251,7 +251,6 @@ namespace Kethane
                 IsDetecting = GUILayout.Toggle(IsDetecting, (IsDetecting ? "Detecting..." : "Start detection"), GUILayout.Width(115), GUILayout.ExpandWidth(false));
                 if (IsDetecting)
                 {
-                    int BoxWidth = 20 + (int)(40 * Math.Min(TimerEcho / TimerThreshold, 1.0d));
                     string BoxLabelAmount = "No reading";
                     string BoxLabelDepth = "-";
                     var DepositUnder = GetDepositUnder();
@@ -264,8 +263,6 @@ namespace Kethane
                     GUILayout.Label(BoxLabelAmount);
                     GUILayout.Label(BoxLabelDepth);
                     GUILayout.EndVertical();
-                    GUILayout.FlexibleSpace();
-                    GUILayout.Box("", GUILayout.Width(BoxWidth));
 
                 }
                 GUILayout.EndHorizontal();
