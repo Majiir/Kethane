@@ -154,6 +154,7 @@ namespace Kethane
                 }
             }
             GenerateKethaneDeposits();
+            SetMaps();
         }
 
         /// <summary>
@@ -170,7 +171,6 @@ namespace Kethane
                 if (KSP.IO.File.Exists<MMI_Kethane_Controller>(body.name + ".png"))
                     KSP.IO.File.Delete<MMI_Kethane_Controller>(body.name + ".png");
             }
-            SetMaps();
         }
 
         public KethaneDeposit GetDepositUnder()

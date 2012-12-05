@@ -107,8 +107,6 @@ namespace Kethane
             RenderingManager.AddToPostDrawQueue(3, DrawGUI);
 
             this.force_activate();
-
-            KethaneController.GetInstance(this.vessel).SetMaps();
         }
 
         private void DebugWindowGUI(int windowID)
@@ -213,7 +211,6 @@ namespace Kethane
         public override void onFlightStateLoad(Dictionary<string, KSPParseable> parsedData)
         {
             KethaneController.GetInstance(this.vessel).LoadKethaneDeposits();
-            KethaneController.GetInstance(this.vessel).SetMaps();
         }
     }
 }
