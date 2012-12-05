@@ -102,8 +102,6 @@ namespace Kethane
         /// </summary>
         protected override void onFlightStart()
         {
-            KethaneController.GetInstance(this.vessel).LoadKethaneDeposits();
-
             RenderingManager.AddToPostDrawQueue(3, DrawGUI);
 
             this.force_activate();
@@ -203,14 +201,6 @@ namespace Kethane
         {
             KethaneController.GetInstance(this.vessel).SaveKethaneDeposits();
             KethaneController.GetInstance(this.vessel).SaveAllMaps();
-        }
-
-        /// <summary>
-        /// Loading plugin state
-        /// </summary>
-        public override void onFlightStateLoad(Dictionary<string, KSPParseable> parsedData)
-        {
-            KethaneController.GetInstance(this.vessel).LoadKethaneDeposits();
         }
     }
 }

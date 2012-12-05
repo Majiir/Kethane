@@ -37,6 +37,7 @@ namespace Kethane
 
         private KethaneController()
         {
+            LoadKethaneDeposits();
             RenderingManager.AddToPostDrawQueue(3, drawGui);
         }
 
