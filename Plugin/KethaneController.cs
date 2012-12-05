@@ -132,6 +132,7 @@ namespace Kethane
         /// </summary>
         public void LoadKethaneDeposits()
         {
+            if (PlanetDeposits != null) { return; }
             if (KSP.IO.File.Exists<MMI_Kethane_Controller>("Deposits.dat"))
             {
                 PlanetDeposits = new Dictionary<string, KethaneDeposits>();
