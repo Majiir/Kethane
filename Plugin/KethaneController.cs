@@ -111,7 +111,7 @@ namespace Kethane
             try
             {
                 if (PlanetDeposits == null)
-                    GenerateKethaneDeposits();
+                    return;
 
                 byte[] DepositsToSave = KSP.IO.IOUtils.SerializeToBinary(PlanetDeposits);
                 int HowManyToSave = DepositsToSave.Length;
