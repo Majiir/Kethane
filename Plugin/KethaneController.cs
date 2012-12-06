@@ -125,6 +125,7 @@ namespace Kethane
             {
                 MonoBehaviour.print("Kethane plugin - deposit save error: " + e);
             }
+            SaveAllMaps();
         }
 
         /// <summary>

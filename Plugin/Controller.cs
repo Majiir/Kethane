@@ -186,12 +186,6 @@ namespace Kethane
         protected override void onPack()
         {
             KethaneController.GetInstance(this.vessel).SaveKethaneDeposits();
-            KethaneController.GetInstance(this.vessel).SaveAllMaps();
-        }
-
-        protected override void onUnpack()
-        {
-            KethaneController.GetInstance(this.vessel).SaveAllMaps();
         }
 
         /// <summary>
@@ -200,7 +194,6 @@ namespace Kethane
         public override void onFlightStateSave(Dictionary<string, KSPParseable> partDataCollection)
         {
             KethaneController.GetInstance(this.vessel).SaveKethaneDeposits();
-            KethaneController.GetInstance(this.vessel).SaveAllMaps();
         }
     }
 }
