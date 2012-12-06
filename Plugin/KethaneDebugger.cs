@@ -24,7 +24,7 @@ using UnityEngine;
 
 namespace Kethane
 {
-    public class MMI_Kethane_Controller : Part
+    public class KethaneDebugger : Part
     {
         private string ButtonMessage = "Kethane Controller";
 

@@ -46,9 +46,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Controller.cs" />
     <Compile Include="Deposit.cs" />
     <Compile Include="KethaneController.cs" />
+    <Compile Include="KethaneDebugger.cs" />
     <Compile Include="KethaneDetector.cs" />
     <Compile Include="KethaneExtractor.cs" />
     <Compile Include="Misc.cs" />
