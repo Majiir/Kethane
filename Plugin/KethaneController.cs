@@ -50,6 +50,8 @@ namespace Kethane
 
         public static Dictionary<string, Texture2D> PlanetTextures = new Dictionary<string, Texture2D>();
 
+        private long lastSaveFrame = -1;
+
         public void SetMaps()
         {
             foreach (CelestialBody body in FlightGlobals.Bodies)
@@ -109,6 +111,8 @@ namespace Kethane
         /// </summary>
         public void SaveKethaneDeposits()
         {
+            if (lastSaveFrame == Time.frameCount) { return; }
+            lastSaveFrame = Time.frameCount;
             try
             {
                 if (PlanetDeposits == null)
