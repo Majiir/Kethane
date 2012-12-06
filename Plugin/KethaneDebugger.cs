@@ -144,7 +144,7 @@ namespace Kethane
 
             GUILayout.Label("");
 
-            //DebugWindowShow = GUILayout.Toggle(DebugWindowShow, "DEBUG");
+            DebugWindowShow = GUILayout.Toggle(DebugWindowShow, "DEBUG");
 
             #endregion
 
