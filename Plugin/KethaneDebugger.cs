@@ -7,10 +7,8 @@ namespace Kethane
 {
     public class KethaneDebugger : Part
     {
-        private string ButtonMessage = "Kethane Controller";
-
-        private Rect InfoWindowPosition, DebugWindowPosition;
-        private bool InfoWindowShow = false, DebugWindowShow = false;
+        private bool DebugWindowShow;
+        private Rect DebugWindowPosition;
 
         private Texture2D DebugTex = new Texture2D(256, 128, TextureFormat.ARGB32, false);
 
@@ -70,11 +68,6 @@ namespace Kethane
             }
         }
 
-        protected override void onPartStart()
-        {
-            InfoWindowPosition = new Rect(Screen.width * 0.65f, 30, 10, 10);
-        }
-
         protected override void onFlightStart()
         {
             RenderingManager.AddToPostDrawQueue(3, DrawGUI);
@@ -114,23 +107,6 @@ namespace Kethane
             GUI.DragWindow(new Rect(0, 0, 300, 60));
         }
 
-        private void InfoWindowGUI(int windowID)
-        {
-            GUILayout.BeginVertical();
-
-            #region Info
-
-            GUILayout.Label("");
-
-            DebugWindowShow = GUILayout.Toggle(DebugWindowShow, "DEBUG");
-
-            #endregion
-
-            GUILayout.EndVertical();
-
-            GUI.DragWindow(new Rect(0, 0, 300, 60));
-        }
-
         private void DrawGUI()
         {
             if (vessel != FlightGlobals.ActiveVessel || this.gameObject.active == false)
@@ -138,13 +114,8 @@ namespace Kethane
 
             GUI.skin = HighLogic.Skin;
 
-            InfoWindowShow = GUI.Toggle(new Rect(Screen.width * 0.65f, 0, 200, 25), InfoWindowShow, ButtonMessage, GUI.skin.button);
-
             if (this.gameObject.active)
             {
-                if (InfoWindowShow == true)
-                    InfoWindowPosition = GUILayout.Window(12355, InfoWindowPosition, InfoWindowGUI, "Kethane Controller", GUILayout.MinWidth(200), GUILayout.MaxWidth(200), GUILayout.MinHeight(20));
-
                 if (DebugWindowShow == true)
                     DebugWindowPosition = GUILayout.Window(12360, DebugWindowPosition, DebugWindowGUI, "Debug", GUILayout.MinWidth(256), GUILayout.MaxWidth(300), GUILayout.MinHeight(20));
             }
