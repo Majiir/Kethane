@@ -143,7 +143,6 @@ namespace Kethane
             if (PlanetDeposits != null) { return; }
             if (KSP.IO.File.Exists<KethaneController>("Deposits.dat"))
             {
-                PlanetDeposits = new Dictionary<string, KethaneDeposits>();
                 try
                 {
                     KSP.IO.BinaryReader Loader = KSP.IO.BinaryReader.CreateForType<KethaneController>("Deposits.dat");
