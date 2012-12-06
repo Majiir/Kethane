@@ -108,9 +108,6 @@ namespace Kethane
             }
         }
 
-        /// <summary>
-        /// Save kethane deposits to a file (via serialization)
-        /// </summary>
         public void SaveKethaneDeposits()
         {
             if (lastSaveFrame == Time.frameCount) { return; }
@@ -134,10 +131,6 @@ namespace Kethane
             SaveAllMaps();
         }
 
-        /// <summary>
-        /// Load kethane deposits from a file (via serialization)
-        /// In case of error try to generate new kethane deposits
-        /// </summary>
         public void LoadKethaneDeposits()
         {
             if (PlanetDeposits != null) { return; }
@@ -164,9 +157,6 @@ namespace Kethane
             SetMaps();
         }
 
-        /// <summary>
-        /// Generate kethane deposits on all celestial bodies and save them to file (ready to use)
-        /// </summary>
         public void GenerateKethaneDeposits()
         {
             if (FlightGlobals.fetch == null) { return; }

@@ -85,8 +85,6 @@ namespace Kethane
             if (body == null)
                 return;
 
-            // Rotation code just for test
-
             Transform BaseT = this.part.transform.FindChild("model").FindChild("Kethane Sensor");
 
             Vector3 bodyCoords = BaseT.InverseTransformPoint(body.transform.position);

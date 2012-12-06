@@ -1,23 +1,4 @@
-﻿/*
- * Code copyright 2012 by Kulesz
- * This file is part of MMI Kethane Plugin.
- *
- * MMI Kethane Plugin is a free software: you can redistribute it and/or modify it under the 
- * terms of the GNU General Public License as published by the Free Software Foundation, 
- * either version 3 of the License, or (at your option) any later version. MMI Kethane Plugin 
- * is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even 
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
- * See the GNU General Public License for more details.
- * 
- * Some elements of this application are inspired or based on code written by members of KSP 
- * community (with respect to the license), especially:
- * 
- * Zoxygene (Life Support) mod        http://kerbalspaceprogram.com/forum/showthread.php/8949-PLUGIN-PART-0-16-Zoxygene-(Life-Support)-mod-v0-6-1-(12-07-28)    
- * ISA MapSat        http://kerbalspaceprogram.com/forum/showthread.php/9396-0-16-ISA-MapSat-Satellite-mapping-module-and-map-generation-tool-v3-1-0
- * Anatid Robotics / MuMech - MechJeb        http://kerbalspaceprogram.com/forum/showthread.php/12384-PLUGIN-PART-0-16-Anatid-Robotics-MuMech-MechJeb-Autopilot-v1-9
-*/
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -89,17 +70,11 @@ namespace Kethane
             }
         }
 
-        /// <summary>
-        /// On part start (Unity Start())
-        /// </summary>
         protected override void onPartStart()
         {
             InfoWindowPosition = new Rect(Screen.width * 0.65f, 30, 10, 10);
         }
 
-        /// <summary>
-        /// On flight start (entering flight mode)
-        /// </summary>
         protected override void onFlightStart()
         {
             RenderingManager.AddToPostDrawQueue(3, DrawGUI);
@@ -139,9 +114,6 @@ namespace Kethane
             GUI.DragWindow(new Rect(0, 0, 300, 60));
         }
 
-        /// <summary>
-        /// Draw GUI window
-        /// </summary>
         private void InfoWindowGUI(int windowID)
         {
             GUILayout.BeginVertical();
@@ -159,9 +131,6 @@ namespace Kethane
             GUI.DragWindow(new Rect(0, 0, 300, 60));
         }
 
-        /// <summary>
-        /// Handle GUI
-        /// </summary>
         private void DrawGUI()
         {
             if (vessel != FlightGlobals.ActiveVessel || this.gameObject.active == false)
@@ -181,9 +150,6 @@ namespace Kethane
             }
         }
 
-        /// <summary>
-        /// On part destruction
-        /// </summary>
         protected override void onPartDestroy()
         {
             RenderingManager.RemoveFromPostDrawQueue(3, new Callback(DrawGUI)); //close the GUI

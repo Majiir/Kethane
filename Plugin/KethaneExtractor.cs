@@ -1,64 +1,34 @@
-﻿/*
- * Code copyright 2012 by Kulesz
- * This file is part of MMI Kethane Plugin.
- *
- * MMI Kethane Plugin is a free software: you can redistribute it and/or modify it under the 
- * terms of the GNU General Public License as published by the Free Software Foundation, 
- * either version 3 of the License, or (at your option) any later version. MMI Kethane Plugin 
- * is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even 
- * the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
- * See the GNU General Public License for more details.
- * 
- * Some elements of this application are inspired or based on code written by members of KSP 
- * community (with respect to the license), especially:
- * 
- * Zoxygene (Life Support) mod        http://kerbalspaceprogram.com/forum/showthread.php/8949-PLUGIN-PART-0-16-Zoxygene-(Life-Support)-mod-v0-6-1-(12-07-28)    
- * ISA MapSat        http://kerbalspaceprogram.com/forum/showthread.php/9396-0-16-ISA-MapSat-Satellite-mapping-module-and-map-generation-tool-v3-1-0
- * Anatid Robotics / MuMech - MechJeb        http://kerbalspaceprogram.com/forum/showthread.php/12384-PLUGIN-PART-0-16-Anatid-Robotics-MuMech-MechJeb-Autopilot-v1-9
-*/
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
 namespace Kethane
 {
-    /// <summary>
-    ///  Based on Zoxygene extractor
-    /// </summary>
     public class KethaneExtractor : PartModule
     {
         #region Fields
 
         private bool CanDrill = false;
 
-        // Part transforms
         private Transform BaseTransform, Cyl1Transform, Cyl2Transform, Cyl3Transform;
 
-        // Do we want arm to go down, or up?
         [KSPField]
         private bool ArmWantToGoDown = false;
 
-        // Digging effects
         private const int EffectsNumber = 4;
         private GameObject[] DigEffects = new GameObject[EffectsNumber];
         private Vector3[] DigEffectRotations = new Vector3[EffectsNumber];
         private Vector3 HitPoint = new Vector3();
 
-        // Mask used in collision (to hit only planet collider)
         private int CollsionLayerMask = 0;
 
-        // Drill turning when inside and outside ground
         protected static AudioSource DrillOut, DrillIn;
 
-        // Is drill under terrain?
         private bool IsDrillUndergorund = false;
 
-        // Lenght of deployed part
         private float DeployLength = 0.0f;
 
-        // State of deployment/undeployment
         public enum DeployState
         {
             Idle,
@@ -72,9 +42,6 @@ namespace Kethane
 
         #endregion
 
-        /// <summary>
-        /// Do all operations related to deploing drill (or hiding it) - animation
-        /// </summary>
         private void HandleDeployment(float dt, bool down = true)
         {
             if (DrillDeploymentState != DeployState.Idle)
@@ -98,13 +65,11 @@ namespace Kethane
                     {
                         Vector3 Translation = new Vector3(-dt * 0.35f, 0, 0);
                         BaseTransform.localPosition += (down ? Translation : -Translation);
-                        //BaseTransform.collider.transform.localPosition += Translation;
                         if (down)
                         {
                             if (BaseTransform.localPosition.x <= -0.35)
                             {
                                 BaseTransform.localPosition = new Vector3(-0.35f, BaseTransform.localPosition.y, BaseTransform.localPosition.z);
-                                //BaseTransform.collider.transform.localPosition.Set(-0.25f, 0, 0);
                                 DrillDeploymentState = DeployState.DeployArm1;
                             }
                         }
@@ -113,7 +78,6 @@ namespace Kethane
                             if (BaseTransform.localPosition.x >= -0.0521)
                             {
                                 BaseTransform.localPosition = new Vector3(-0.0521f, BaseTransform.localPosition.y, BaseTransform.localPosition.z);
-                                //BaseTransform.collider.transform.localPosition.Set(-0.25f, 0, 0);
                                 DrillDeploymentState = DeployState.Idle;
                             }
                         }
@@ -124,13 +88,11 @@ namespace Kethane
                         float Speed = (!IsDrillUndergorund ? 0.5f : 0.2f);
                         Vector3 Translation = new Vector3(0, -dt * Speed, 0);
                         Cyl1Transform.localPosition += (down ? Translation : -Translation);
-                        //Cyl1Transform.collider.transform.localPosition += Translation;
                         if (down)
                         {
                             if (Cyl1Transform.localPosition.y <= -0.399f)
                             {
                                 Cyl1Transform.localPosition = new Vector3(Cyl1Transform.localPosition.x, -0.399f, Cyl1Transform.localPosition.z);
-                                //Cyl1Transform.collider.transform.localPosition.Set(-5, 0, 0);
                                 DrillDeploymentState = DeployState.DeployArm2;
                             }
                         }
@@ -139,7 +101,6 @@ namespace Kethane
                             if (Cyl1Transform.localPosition.y >= 0.417346f)
                             {
                                 Cyl1Transform.localPosition = new Vector3(Cyl1Transform.localPosition.x, 0.417346f, Cyl1Transform.localPosition.z);
-                                //Cyl1Transform.collider.transform.localPosition.Set(-5, 0, 0);
                                 DrillDeploymentState = DeployState.DeployBase;
                             }
                         }
@@ -150,13 +111,11 @@ namespace Kethane
                         float Speed = (!IsDrillUndergorund ? 0.5f : 0.2f);
                         Vector3 Translation = new Vector3(0, -dt * Speed, 0);
                         Cyl2Transform.localPosition += (down ? Translation : -Translation);
-                        //Cyl2Transform.collider.transform.localPosition += Translation;
                         if (down)
                         {
                             if (Cyl2Transform.localPosition.y <= -0.899f)
                             {
                                 Cyl2Transform.localPosition = new Vector3(Cyl2Transform.localPosition.x, -0.899f, Cyl2Transform.localPosition.z);
-                                //Cyl1Transform.collider.transform.localPosition.Set(-5, 0, 0);
                                 DrillDeploymentState = DeployState.DeployArm3;
                             }
                         }
@@ -165,7 +124,6 @@ namespace Kethane
                             if (Cyl2Transform.localPosition.y >= -0.01016799f)
                             {
                                 Cyl2Transform.localPosition = new Vector3(Cyl2Transform.localPosition.x, -0.01016799f, Cyl2Transform.localPosition.z);
-                                //Cyl1Transform.collider.transform.localPosition.Set(-5, 0, 0);
                                 DrillDeploymentState = DeployState.DeployArm1;
                             }
                         }
@@ -176,13 +134,11 @@ namespace Kethane
                         float Speed = (!IsDrillUndergorund ? 0.5f : 0.2f);
                         Vector3 Translation = new Vector3(0, -dt * Speed, 0);
                         Cyl3Transform.localPosition += (down ? Translation : -Translation);
-                        //Cyl2Transform.collider.transform.localPosition += Translation;
                         if (down)
                         {
                             if (Cyl3Transform.localPosition.y <= -0.899f)
                             {
                                 Cyl3Transform.localPosition = new Vector3(Cyl3Transform.localPosition.x, -0.899f, Cyl3Transform.localPosition.z);
-                                //Cyl1Transform.collider.transform.localPosition.Set(-5, 0, 0);
                                 DrillDeploymentState = DeployState.Deployed;
                             }
                         }
@@ -191,7 +147,6 @@ namespace Kethane
                             if (Cyl3Transform.localPosition.y >= 0.037)
                             {
                                 Cyl3Transform.localPosition = new Vector3(Cyl3Transform.localPosition.x, 0.037f, Cyl3Transform.localPosition.z);
-                                //Cyl1Transform.collider.transform.localPosition.Set(-5, 0, 0);
                                 DrillDeploymentState = DeployState.DeployArm2;
                             }
                         }
@@ -284,28 +239,6 @@ namespace Kethane
 
         private void UpdateArm()
         {
-            #region Handle sound
-            //if (this.gameObject.active && vessel == FlightGlobals.ActiveVessel)
-            //{
-            //    if (DrillDeploymentState != DeployState.Idle && DrillDeploymentState != DeployState.DeployBase)
-            //    {
-            //        if (!DrillOut.isPlaying)
-            //            DrillOut.Play();
-            //        if (!DrillIn.isPlaying && IsDrillUndergorund)
-            //            DrillIn.Play();
-            //    }
-            //    else
-            //    {
-            //        DrillIn.Stop();
-            //        DrillOut.Stop();
-            //    }
-            //}
-            //else
-            //{
-            //    DrillIn.Stop();
-            //    DrillOut.Stop();
-            //} 
-            #endregion
             #region Handle deploying
 
             if (TimeWarp.CurrentRateIndex == 0)
@@ -327,7 +260,6 @@ namespace Kethane
                 {
                     if (hit.collider != null)
                     {
-                        //print("Hit: " + hit.collider.name + " at distance: " + hit.distance + " with deploy: " + DeployLength);
                         float InitialDistanceToGround = hit.distance - 3.95f;
 
                         // If there's possiblilty to drill
