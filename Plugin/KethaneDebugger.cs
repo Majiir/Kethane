@@ -14,13 +14,13 @@ namespace Kethane
 
         private static void Swap<T>(ref T lhs, ref T rhs) { T temp; temp = lhs; lhs = rhs; rhs = temp; }
 
-        public bool PlotFunction(Texture2D tex, int x, int y)
+        private bool PlotFunction(Texture2D tex, int x, int y)
         {
             tex.SetPixel(x, y, Color.red);
             return true;
         }
 
-        public void Line(Texture2D tex, int x0, int y0, int x1, int y1)
+        private void Line(Texture2D tex, int x0, int y0, int x1, int y1)
         {
             bool steep = Math.Abs(y1 - y0) > Math.Abs(x1 - x0);
             if (steep) { Swap<int>(ref x0, ref y0); Swap<int>(ref x1, ref y1); }
