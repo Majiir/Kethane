@@ -183,6 +183,7 @@ namespace Kethane
 
         public KethaneDeposit GetDepositUnder()
         {
+            if (!PlanetDeposits.ContainsKey(Vessel.mainBody.name)) { return null; }
             KethaneDeposits Deposits = KethaneController.PlanetDeposits[Vessel.mainBody.name];
 
             double lon = Misc.clampDegrees(Vessel.mainBody.GetLongitude(Vessel.transform.position));
