@@ -182,18 +182,5 @@ namespace Kethane
         {
             RenderingManager.RemoveFromPostDrawQueue(3, new Callback(DrawGUI)); //close the GUI
         }
-
-        protected override void onPack()
-        {
-            KethaneController.GetInstance(this.vessel).SaveKethaneDeposits();
-        }
-
-        /// <summary>
-        /// Saving plugin state
-        /// </summary>
-        public override void onFlightStateSave(Dictionary<string, KSPParseable> partDataCollection)
-        {
-            KethaneController.GetInstance(this.vessel).SaveKethaneDeposits();
-        }
     }
 }

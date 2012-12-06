@@ -416,5 +416,10 @@ namespace Kethane
                 }
             }
         }
+
+        public override void OnSave(ConfigNode node)
+        {
+            KethaneController.GetInstance(this.vessel).SaveKethaneDeposits();
+        }
     }
 }
