@@ -123,6 +123,17 @@ namespace Kethane
             if (GUILayout.Button("GEN", GUILayout.ExpandWidth(true)))
                 KethaneController.GetInstance(this.vessel).GenerateKethaneDeposits();
 
+            GUILayout.Label("");
+
+            if (GUILayout.Button("GEN HERE", GUILayout.ExpandWidth(true)))
+            {
+                var controller = KethaneController.GetInstance(this.vessel);
+                while (controller.GetDepositUnder() == null)
+                {
+                    controller.GenerateKethaneDeposits();
+                }
+            }
+
             GUILayout.BeginHorizontal();
             GUILayout.Label("Deposit: ");
             var DepositUnder = KethaneController.GetInstance(this.vessel).GetDepositUnder();
