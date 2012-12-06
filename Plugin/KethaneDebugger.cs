@@ -71,8 +71,6 @@ namespace Kethane
         protected override void onFlightStart()
         {
             RenderingManager.AddToPostDrawQueue(3, DrawGUI);
-
-            this.force_activate();
         }
 
         private void DebugWindowGUI(int windowID)
@@ -109,16 +107,13 @@ namespace Kethane
 
         private void DrawGUI()
         {
-            if (vessel != FlightGlobals.ActiveVessel || this.gameObject.active == false)
+            if (vessel != FlightGlobals.ActiveVessel)
                 return;
 
             GUI.skin = HighLogic.Skin;
 
-            if (this.gameObject.active)
-            {
                 if (DebugWindowShow == true)
                     DebugWindowPosition = GUILayout.Window(12360, DebugWindowPosition, DebugWindowGUI, "Debug", GUILayout.MinWidth(256), GUILayout.MaxWidth(300), GUILayout.MinHeight(20));
-            }
         }
 
         protected override void onPartDestroy()
