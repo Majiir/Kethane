@@ -60,9 +60,9 @@ namespace Kethane
                 {
                     PlanetTextures.Add(body.name, new Texture2D(256, 128, TextureFormat.ARGB32, false));
                 }
-                if (KSP.IO.File.Exists<MMI_Kethane_Controller>(body.name + ".png"))
+                if (KSP.IO.File.Exists<KethaneController>(body.name + ".png"))
                 {
-                    PlanetTextures[body.name].LoadImage(KSP.IO.File.ReadAllBytes<MMI_Kethane_Controller>(body.name + ".png"));
+                    PlanetTextures[body.name].LoadImage(KSP.IO.File.ReadAllBytes<KethaneController>(body.name + ".png"));
                 }
                 else
                 {
@@ -81,7 +81,7 @@ namespace Kethane
                 if (PlanetTextures.ContainsKey(body.name))
                 {
                     var pbytes = PlanetTextures[body.name].EncodeToPNG();
-                    KSP.IO.File.WriteAllBytes<MMI_Kethane_Controller>(pbytes, body.name + ".png", null);
+                    KSP.IO.File.WriteAllBytes<KethaneController>(pbytes, body.name + ".png", null);
                 }
             }
         }
@@ -120,7 +120,7 @@ namespace Kethane
 
                 byte[] DepositsToSave = KSP.IO.IOUtils.SerializeToBinary(PlanetDeposits);
                 int HowManyToSave = DepositsToSave.Length;
-                KSP.IO.BinaryWriter Writer = KSP.IO.BinaryWriter.CreateForType<MMI_Kethane_Controller>("Deposits.dat");
+                KSP.IO.BinaryWriter Writer = KSP.IO.BinaryWriter.CreateForType<KethaneController>("Deposits.dat");
                 Writer.Write(HowManyToSave);
                 Writer.Write(DepositsToSave);
                 Writer.Close();
@@ -139,12 +139,12 @@ namespace Kethane
         public void LoadKethaneDeposits()
         {
             if (PlanetDeposits != null) { return; }
-            if (KSP.IO.File.Exists<MMI_Kethane_Controller>("Deposits.dat"))
+            if (KSP.IO.File.Exists<KethaneController>("Deposits.dat"))
             {
                 PlanetDeposits = new Dictionary<string, KethaneDeposits>();
                 try
                 {
-                    KSP.IO.BinaryReader Loader = KSP.IO.BinaryReader.CreateForType<MMI_Kethane_Controller>("Deposits.dat");
+                    KSP.IO.BinaryReader Loader = KSP.IO.BinaryReader.CreateForType<KethaneController>("Deposits.dat");
                     int HowManyToLoad = Loader.ReadInt32();
                     byte[] DepositsToLoad = new byte[HowManyToLoad];
                     Loader.Read(DepositsToLoad, 0, HowManyToLoad);
@@ -174,8 +174,8 @@ namespace Kethane
             SaveKethaneDeposits();
             foreach (CelestialBody body in FlightGlobals.Bodies)
             {
-                if (KSP.IO.File.Exists<MMI_Kethane_Controller>(body.name + ".png"))
-                    KSP.IO.File.Delete<MMI_Kethane_Controller>(body.name + ".png");
+                if (KSP.IO.File.Exists<KethaneController>(body.name + ".png"))
+                    KSP.IO.File.Delete<KethaneController>(body.name + ".png");
             }
         }
 
