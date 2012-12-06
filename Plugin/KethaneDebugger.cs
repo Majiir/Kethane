@@ -12,18 +12,20 @@ namespace Kethane
 
         private Texture2D DebugTex = new Texture2D(256, 128, TextureFormat.ARGB32, false);
 
-        [KSPEvent(guiActive = true, guiName = "Show Debug Console", active = true)]
+        [KSPEvent(guiActive = true, guiName = "Show Debug Console")]
         public void ShowDebug()
         {
             DebugWindowShow = true;
-            Events["ShowDebug"].active = !DebugWindowShow;
-            Events["HideDebug"].active = DebugWindowShow;
         }
 
-        [KSPEvent(guiActive = true, guiName = "Hide Debug Console", active = false)]
+        [KSPEvent(guiActive = true, guiName = "Hide Debug Console")]
         public void HideDebug()
         {
             DebugWindowShow = false;
+        }
+
+        protected override void onPartUpdate()
+        {
             Events["ShowDebug"].active = !DebugWindowShow;
             Events["HideDebug"].active = DebugWindowShow;
         }

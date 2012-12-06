@@ -22,38 +22,28 @@ namespace Kethane
         private static AudioSource PingEmpty;
         private static AudioSource PingDeposit;
 
-        [KSPEvent(guiActive = true, guiName = "Activate Detector", active = true)]
+        [KSPEvent(guiActive = true, guiName = "Activate Detector")]
         public void EnableDetection()
         {
             IsDetecting = true;
-            Events["EnableDetection"].active = !IsDetecting;
-            Events["DisableDetection"].active = IsDetecting;
         }
 
-        [KSPEvent(guiActive = true, guiName = "Deactivate Detector", active = false)]
+        [KSPEvent(guiActive = true, guiName = "Deactivate Detector")]
         public void DisableDetection()
         {
             IsDetecting = false;
-            Events["EnableDetection"].active = !IsDetecting;
-            Events["DisableDetection"].active = IsDetecting;
         }
 
-        [KSPEvent(guiActive = true, guiName = "Show Map", active = true)]
+        [KSPEvent(guiActive = true, guiName = "Show Map")]
         public void ShowMap()
         {
-            var showMap = true;
-            KethaneController.GetInstance(this.vessel).ShowDetectorWindow = showMap;
-            Events["ShowMap"].active = !showMap;
-            Events["HideMap"].active = showMap;
+            KethaneController.GetInstance(this.vessel).ShowDetectorWindow = true;
         }
 
-        [KSPEvent(guiActive = true, guiName = "Hide Map", active = false)]
+        [KSPEvent(guiActive = true, guiName = "Hide Map")]
         public void HideMap()
         {
-            var showMap = false;
-            KethaneController.GetInstance(this.vessel).ShowDetectorWindow = showMap;
-            Events["ShowMap"].active = !showMap;
-            Events["HideMap"].active = showMap;
+            KethaneController.GetInstance(this.vessel).ShowDetectorWindow = false;
         }
 
         public override void OnStart(PartModule.StartState state)
@@ -82,6 +72,11 @@ namespace Kethane
 
         public override void OnUpdate()
         {
+            Events["EnableDetection"].active = !IsDetecting;
+            Events["DisableDetection"].active = IsDetecting;
+            Events["ShowMap"].active = !KethaneController.GetInstance(this.vessel).ShowDetectorWindow;
+            Events["HideMap"].active = KethaneController.GetInstance(this.vessel).ShowDetectorWindow;
+
             CelestialBody body = this.vessel.mainBody;
             if (body == null)
                 return;
