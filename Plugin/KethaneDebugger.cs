@@ -112,11 +112,6 @@ namespace Kethane
             GUILayout.BeginVertical();
             DrawDebugMap();
             GUILayout.Box(DebugTex);
-            GUILayout.Label("");
-            GUILayout.BeginHorizontal();
-            GUILayout.Label("Active: ");
-            GUILayout.Label(this.gameObject.active.ToString());
-            GUILayout.EndHorizontal();
 
             GUILayout.Label("");
 
