@@ -12,6 +12,22 @@ namespace Kethane
 
         private Texture2D DebugTex = new Texture2D(256, 128, TextureFormat.ARGB32, false);
 
+        [KSPEvent(guiActive = true, guiName = "Show Debug Console", active = true)]
+        public void ShowDebug()
+        {
+            DebugWindowShow = true;
+            Events["ShowDebug"].active = !DebugWindowShow;
+            Events["HideDebug"].active = DebugWindowShow;
+        }
+
+        [KSPEvent(guiActive = true, guiName = "Hide Debug Console", active = false)]
+        public void HideDebug()
+        {
+            DebugWindowShow = false;
+            Events["ShowDebug"].active = !DebugWindowShow;
+            Events["HideDebug"].active = DebugWindowShow;
+        }
+
         private static void Swap<T>(ref T lhs, ref T rhs) { T temp; temp = lhs; lhs = rhs; rhs = temp; }
 
         private bool PlotFunction(Texture2D tex, int x, int y)
