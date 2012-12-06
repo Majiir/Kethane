@@ -304,16 +304,16 @@ namespace Kethane
             }
         }
 
-        [KSPEvent(guiActive = true, guiName = "Toggle Extractor")]
-        public void DeployArm()
+        [KSPEvent(guiActive = true, guiName = "Deploy Drill")]
+        public void DeployDrill()
         {
-            if (this.vessel.isActiveVessel)
-            {
-                if (ArmWantToGoDown)
-                    ArmWantToGoDown = false;
-                else
-                    ArmWantToGoDown = true;
-            }
+            ArmWantToGoDown = true;
+        }
+
+        [KSPEvent(guiActive = true, guiName = "Retract Drill")]
+        public void RetractDrill()
+        {
+            ArmWantToGoDown = false;
         }
 
         public float DrillDepth()
@@ -325,6 +325,8 @@ namespace Kethane
 
         public override void OnUpdate()
         {
+            Events["DeployDrill"].active = !ArmWantToGoDown;
+            Events["RetractDrill"].active = ArmWantToGoDown;
             UpdateArm();
         }
 
