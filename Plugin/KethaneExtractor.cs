@@ -210,8 +210,11 @@ namespace Kethane
         public override void OnStart(PartModule.StartState state)
         {
             #region Configuration
-            foreach (CelestialBody Body in FlightGlobals.Bodies)
-                CollsionLayerMask = 1 << Body.gameObject.layer;
+            if (FlightGlobals.fetch != null)
+            {
+                foreach (CelestialBody Body in FlightGlobals.Bodies)
+                    CollsionLayerMask = 1 << Body.gameObject.layer;
+            }
             #endregion
             #region Sound effects
             DrillIn = gameObject.AddComponent<AudioSource>();

@@ -54,6 +54,7 @@ namespace Kethane
 
         public void SetMaps()
         {
+            if (FlightGlobals.fetch == null) { return; }
             foreach (CelestialBody body in FlightGlobals.Bodies)
             {
                 if (!PlanetTextures.ContainsKey(body.name))
@@ -76,6 +77,7 @@ namespace Kethane
 
         public void SaveAllMaps()
         {
+            if (FlightGlobals.fetch == null) { return; }
             foreach (CelestialBody body in FlightGlobals.Bodies)
             {
                 if (PlanetTextures.ContainsKey(body.name))
@@ -168,6 +170,7 @@ namespace Kethane
         /// </summary>
         public void GenerateKethaneDeposits()
         {
+            if (FlightGlobals.fetch == null) { return; }
             PlanetDeposits = new Dictionary<string, KethaneDeposits>();
             foreach (CelestialBody CBody in FlightGlobals.Bodies)
                 PlanetDeposits.Add(CBody.name, new KethaneDeposits(CBody));
@@ -204,6 +207,7 @@ namespace Kethane
 
         private void drawGui()
         {
+            if (FlightGlobals.fetch == null) { return; }
             if (FlightGlobals.ActiveVessel != Vessel)
             { return; }
 
