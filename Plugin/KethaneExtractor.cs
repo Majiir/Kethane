@@ -304,13 +304,13 @@ namespace Kethane
             }
         }
 
-        [KSPEvent(guiActive = true, guiName = "Deploy Drill")]
+        [KSPEvent(guiActive = true, guiName = "Deploy Drill", active = true)]
         public void DeployDrill()
         {
             ArmWantToGoDown = true;
         }
 
-        [KSPEvent(guiActive = true, guiName = "Retract Drill")]
+        [KSPEvent(guiActive = true, guiName = "Retract Drill", active = false)]
         public void RetractDrill()
         {
             ArmWantToGoDown = false;

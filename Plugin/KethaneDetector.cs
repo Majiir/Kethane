@@ -22,25 +22,25 @@ namespace Kethane
         private static AudioSource PingEmpty;
         private static AudioSource PingDeposit;
 
-        [KSPEvent(guiActive = true, guiName = "Activate Detector")]
+        [KSPEvent(guiActive = true, guiName = "Activate Detector", active = true)]
         public void EnableDetection()
         {
             IsDetecting = true;
         }
 
-        [KSPEvent(guiActive = true, guiName = "Deactivate Detector")]
+        [KSPEvent(guiActive = true, guiName = "Deactivate Detector", active = false)]
         public void DisableDetection()
         {
             IsDetecting = false;
         }
 
-        [KSPEvent(guiActive = true, guiName = "Show Map")]
+        [KSPEvent(guiActive = true, guiName = "Show Map", active = true)]
         public void ShowMap()
         {
             KethaneController.GetInstance(this.vessel).ShowDetectorWindow = true;
         }
 
-        [KSPEvent(guiActive = true, guiName = "Hide Map")]
+        [KSPEvent(guiActive = true, guiName = "Hide Map", active = false)]
         public void HideMap()
         {
             KethaneController.GetInstance(this.vessel).ShowDetectorWindow = false;
