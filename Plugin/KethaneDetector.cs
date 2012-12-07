@@ -14,10 +14,15 @@ namespace Kethane
         [KSPField(isPersistant = false)]
         public float DetectingHeight;
 
+        [KSPField(isPersistant = false)]
+        public float PowerConsumption;
+
         [KSPField]
         private bool IsDetecting;
 
         private double TimerEcho;
+
+        private float powerRatio;
 
         private static AudioSource PingEmpty;
         private static AudioSource PingDeposit;
@@ -97,10 +102,10 @@ namespace Kethane
             double LocV = Misc.NormalizeAngle(RotV.localRotation.eulerAngles.x - 90);
 
             if (Math.Abs(beta - LocH) > 0.1f)
-                RotH.RotateAroundLocal(new Vector3(0, 1, 0), (beta > LocH ? 0.25f : -0.25f) * Time.deltaTime);
+                RotH.RotateAroundLocal(new Vector3(0, 1, 0), (beta > LocH ? 0.25f : -0.25f) * Time.deltaTime * this.powerRatio);
 
             if (Math.Abs(alpha - LocV) > 0.1f)
-                RotV.RotateAroundLocal(new Vector3(1, 0, 0), (alpha > LocV ? 0.25f : -0.25f) * Time.deltaTime);
+                RotV.RotateAroundLocal(new Vector3(1, 0, 0), (alpha > LocV ? 0.25f : -0.25f) * Time.deltaTime * this.powerRatio);
         }
 
         public override void OnFixedUpdate()
@@ -108,7 +113,10 @@ namespace Kethane
             var controller = KethaneController.GetInstance(this.vessel);
             if (IsDetecting && this.vessel != null && this.vessel.gameObject.active)
             {
-                TimerEcho += Time.deltaTime * (1 + Math.Log(TimeWarp.CurrentRate));
+                var energyRequest = PowerConsumption * TimeWarp.fixedDeltaTime;
+                var energyDrawn = this.part.RequestResource("ElectricCharge", energyRequest);
+                this.powerRatio = energyDrawn / energyRequest;
+                TimerEcho += Time.deltaTime * (1 + Math.Log(TimeWarp.CurrentRate)) * this.powerRatio;
 
                 double Altitude = Misc.GetTrueAltitude(vessel);
                 var TimerThreshold = this.DetectingPeriod + Altitude * 0.000005d; // 0,5s delay at 100km
