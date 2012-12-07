@@ -48,6 +48,8 @@ namespace Kethane
 
         public void SaveAndLoadState()
         {
+            if (lastSaveFrame == Time.frameCount) { return; }
+            lastSaveFrame = Time.frameCount;
             SaveKethaneDeposits();
             LoadKethaneDeposits();
             SaveAllMaps();
@@ -58,7 +60,7 @@ namespace Kethane
 
         public static Dictionary<string, Texture2D> PlanetTextures = new Dictionary<string, Texture2D>();
 
-        private long lastSaveFrame = -1;
+        private static long lastSaveFrame = -1;
 
         private void SetMaps()
         {
@@ -118,8 +120,6 @@ namespace Kethane
 
         private void SaveKethaneDeposits()
         {
-            if (lastSaveFrame == Time.frameCount) { return; }
-            lastSaveFrame = Time.frameCount;
             try
             {
                 if (PlanetDeposits == null)
