@@ -37,8 +37,7 @@ namespace Kethane
 
         private KethaneController()
         {
-            LoadKethaneDeposits();
-            SetMaps();
+            SaveAndLoadState();
             RenderingManager.AddToPostDrawQueue(3, drawGui);
         }
 
@@ -47,13 +46,21 @@ namespace Kethane
             get { return controllers.Single(p => p.Value == this).Key.Target; }
         }
 
+        public void SaveAndLoadState()
+        {
+            SaveKethaneDeposits();
+            LoadKethaneDeposits();
+            SaveAllMaps();
+            SetMaps();
+        }
+
         public static Dictionary<string, KethaneDeposits> PlanetDeposits;
 
         public static Dictionary<string, Texture2D> PlanetTextures = new Dictionary<string, Texture2D>();
 
         private long lastSaveFrame = -1;
 
-        public void SetMaps()
+        private void SetMaps()
         {
             if (FlightGlobals.fetch == null) { return; }
             foreach (CelestialBody body in FlightGlobals.Bodies)
@@ -76,7 +83,7 @@ namespace Kethane
             }
         }
 
-        public void SaveAllMaps()
+        private void SaveAllMaps()
         {
             if (FlightGlobals.fetch == null) { return; }
             foreach (CelestialBody body in FlightGlobals.Bodies)
@@ -109,7 +116,7 @@ namespace Kethane
             }
         }
 
-        public void SaveKethaneDeposits()
+        private void SaveKethaneDeposits()
         {
             if (lastSaveFrame == Time.frameCount) { return; }
             lastSaveFrame = Time.frameCount;
@@ -129,10 +136,9 @@ namespace Kethane
             {
                 MonoBehaviour.print("Kethane plugin - deposit save error: " + e);
             }
-            SaveAllMaps();
         }
 
-        public void LoadKethaneDeposits()
+        private void LoadKethaneDeposits()
         {
             if (PlanetDeposits != null) { return; }
             if (KSP.IO.File.Exists<KethaneController>("Deposits.dat"))
