@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using System.Collections.Generic;
 
 namespace Kethane
 {
@@ -86,6 +87,13 @@ namespace Kethane
             polar.x = Mathf.Atan2(-point.y, xzLen);
             polar *= Mathf.Rad2Deg;
             return polar;
+        }
+
+        public static List<PartResource> GetConnectedResources(Part part, String resourceName)
+        {
+            var resources = new List<PartResource>();
+            part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition(resourceName).id, resources);
+            return resources;
         }
     }
 }
