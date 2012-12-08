@@ -237,20 +237,10 @@ namespace Kethane
                 if (-xVar > planetTex.width || -xVar < 0)
                     inbound = false;
 
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Mouse Latitude: ");
-                GUILayout.Label(" " + (inbound ? Misc.GetLatOnMap(yVar, planetTex.height).ToString("#0.0") : "-"));
-                GUILayout.EndHorizontal();
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Mouse Longitude: ");
-                GUILayout.Label(" " + (inbound ? Misc.GetLonOnMap(xVar, planetTex.width).ToString("#0.0") : "-"));
-                GUILayout.EndHorizontal();
+                GUILayout.Label(String.Format(inbound ? "Mouseover coordinates: {0:0.0}, {1:0.0}" : "Mouseover coordinates: -", Misc.GetLatOnMap(yVar, planetTex.height), Misc.GetLonOnMap(xVar, planetTex.width)));
 
             }
 
-            if (Vessel.Parts.SelectMany(p => p.Modules.OfType<KethaneDetector>()).Count() > 0)
-            {
-                GUILayout.BeginHorizontal();
                 string BoxLabelAmount = "No reading";
                 string BoxLabelDepth = "-";
                 var DepositUnder = GetDepositUnder();
@@ -259,29 +249,10 @@ namespace Kethane
                     BoxLabelAmount = "~" + Math.Round(DepositUnder.Kethane, 1) + " [l]";
                     BoxLabelDepth = "~" + Math.Round(DepositUnder.Depth, 1) + " [m]";
                 }
-                GUILayout.BeginVertical();
                 GUILayout.Label(BoxLabelAmount);
                 GUILayout.Label(BoxLabelDepth);
-                GUILayout.EndVertical();
-                GUILayout.EndHorizontal();
-                GUILayout.Label("");
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Last known latitude: ");
-                GUILayout.Label(LastLat.ToString("#0.000"));
-                GUILayout.EndHorizontal();
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Last known longitude: ");
-                GUILayout.Label(LastLon.ToString("#0.000"));
-                GUILayout.EndHorizontal();
+                GUILayout.Label(String.Format("Last known deposit: {0:0.000}, {1:0.000}", LastLat, LastLon));
                 ScanningSound = GUILayout.Toggle(ScanningSound, "Detection sound");
-            }
-            else
-            {
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Kethane detector: ");
-                GUILayout.Label("Not found");
-                GUILayout.EndHorizontal();
-            }
 
             GUILayout.EndVertical();
             GUI.DragWindow(new Rect(0, 0, 300, 60));
