@@ -37,6 +37,8 @@ namespace Kethane
 
         public override void OnStart(PartModule.StartState state)
         {
+            if (state == StartState.Editor) { return; }
+            this.part.force_activate();
             Events["ActivateConverter"].guiName = String.Format("Activate {0} Converter", TargetResource);
             Events["DeactivateConverter"].guiName = String.Format("Deactivate {0} Converter", TargetResource);
         }
