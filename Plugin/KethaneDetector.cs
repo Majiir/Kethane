@@ -112,20 +112,20 @@ namespace Kethane
         public override void OnFixedUpdate()
         {
             var controller = KethaneController.GetInstance(this.vessel);
-            if (IsDetecting && this.vessel != null && this.vessel.gameObject.active)
+            double Altitude = Misc.GetTrueAltitude(vessel);
+            if (IsDetecting && this.vessel != null && this.vessel.gameObject.active && Altitude <= this.DetectingHeight)
             {
                 var energyRequest = PowerConsumption * TimeWarp.fixedDeltaTime;
                 var energyDrawn = this.part.RequestResource("ElectricCharge", energyRequest);
                 this.powerRatio = energyDrawn / energyRequest;
                 TimerEcho += Time.deltaTime * (1 + Math.Log(TimeWarp.CurrentRate)) * this.powerRatio;
 
-                double Altitude = Misc.GetTrueAltitude(vessel);
                 var TimerThreshold = this.DetectingPeriod + Altitude * 0.000005d; // 0,5s delay at 100km
                 var DepositUnder = controller.GetDepositUnder();
 
                 if (TimerEcho >= TimerThreshold)
                 {
-                    if (DepositUnder != null && Altitude <= this.DetectingHeight && DepositUnder.Kethane >= 1.0f)
+                    if (DepositUnder != null && DepositUnder.Kethane >= 1.0f)
                     {
                         controller.DrawMap(true);
                         controller.LastLat = vessel.latitude;
