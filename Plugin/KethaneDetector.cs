@@ -54,6 +54,7 @@ namespace Kethane
         public override void OnStart(PartModule.StartState state)
         {
             if (state == StartState.Editor) { return; }
+            this.part.force_activate();
             #region Sound effects
             PingEmpty = gameObject.AddComponent<AudioSource>();
             WWW wwwE = new WWW("file://" + KSPUtil.ApplicationRootPath.Replace("\\", "/") + "PluginData/mmi_kethane/sounds/echo_empty.wav");
