@@ -51,6 +51,9 @@ namespace Kethane
             KethaneController.GetInstance(this.vessel).ShowDetectorWindow = false;
         }
 
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Status")]
+        public string Status;
+
         public override void OnStart(PartModule.StartState state)
         {
             if (state == StartState.Editor) { return; }
@@ -82,6 +85,15 @@ namespace Kethane
             Events["DisableDetection"].active = IsDetecting;
             Events["ShowMap"].active = !KethaneController.GetInstance(this.vessel).ShowDetectorWindow;
             Events["HideMap"].active = KethaneController.GetInstance(this.vessel).ShowDetectorWindow;
+
+            if (Misc.GetTrueAltitude(vessel) <= this.DetectingHeight)
+            {
+                Status = IsDetecting ? "Active" : "Idle";
+            }
+            else
+            {
+                Status = "Out Of Range";
+            }
 
             CelestialBody body = this.vessel.mainBody;
             if (body == null)
