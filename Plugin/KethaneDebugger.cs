@@ -58,8 +58,12 @@ namespace Kethane
             if (vessel.mainBody != null)
             {
                 for (int y = 0; y < DebugTex.height; y++)
+                {
                     for (int x = 0; x < DebugTex.width; x++)
+                    {
                         DebugTex.SetPixel(x, y, Color.black);
+                    }
+                }
 
                 KethaneDeposits Deposits = KethaneController.PlanetDeposits[this.vessel.mainBody.name];
 
@@ -100,7 +104,9 @@ namespace Kethane
             GUILayout.Label("");
 
             if (GUILayout.Button("GEN", GUILayout.ExpandWidth(true)))
+            {
                 KethaneController.GetInstance(this.vessel).GenerateKethaneDeposits();
+            }
 
             GUILayout.Label("");
 
@@ -125,13 +131,14 @@ namespace Kethane
 
         private void DrawGUI()
         {
-            if (vessel != FlightGlobals.ActiveVessel)
-                return;
+            if (vessel != FlightGlobals.ActiveVessel) { return; }
 
             GUI.skin = HighLogic.Skin;
 
             if (DebugWindowShow == true)
+            {
                 DebugWindowPosition = GUILayout.Window(12360, DebugWindowPosition, DebugWindowGUI, "Debug", GUILayout.MinWidth(256), GUILayout.MaxWidth(300), GUILayout.MinHeight(20));
+            }
         }
 
         protected override void onPartDestroy()
