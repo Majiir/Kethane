@@ -130,8 +130,8 @@ namespace Kethane
 
             GUI.skin = HighLogic.Skin;
 
-                if (DebugWindowShow == true)
-                    DebugWindowPosition = GUILayout.Window(12360, DebugWindowPosition, DebugWindowGUI, "Debug", GUILayout.MinWidth(256), GUILayout.MaxWidth(300), GUILayout.MinHeight(20));
+            if (DebugWindowShow == true)
+                DebugWindowPosition = GUILayout.Window(12360, DebugWindowPosition, DebugWindowGUI, "Debug", GUILayout.MinWidth(256), GUILayout.MaxWidth(300), GUILayout.MinHeight(20));
         }
 
         protected override void onPartDestroy()
