@@ -71,7 +71,7 @@ namespace Kethane
             Position = new Point(Pos.x, Pos.z);
             Depth = UnityEngine.Random.Range(1.0f, 2.0f);
 
-            InitialKethaneAmount = UnityEngine.Random.Range(1000, 100000);
+            InitialKethaneAmount = UnityEngine.Random.Range(10000, 500000);
             Kethane = InitialKethaneAmount;
 
             Vertices = new List<Point>();
@@ -104,7 +104,7 @@ namespace Kethane
             Name = CBody.name;
 
             int DepositCount = (CBody.name == "Kerbin" ? 15 : 20) + (CBody.name == "Mun" ? 7 : -3);
-            int NumberOfTries = 25;
+            int NumberOfTries = 30;
             float MinRadius = (CBody.name == "Kerbin" ? 0.25f : 0.45f) * Width * 0.045f;
             float MaxRadius = Width * 0.045f * (CBody.name == "Minmus" ? 0.8f : 1);
 
