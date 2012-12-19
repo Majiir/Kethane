@@ -76,7 +76,7 @@ namespace Kethane
                     {
                         Point p = (KD.Vertices[k] / Width) * DebugTex.width;
                         Point p2 = (KD.Vertices[k + 1] / Height) * DebugTex.height;
-                        Line(DebugTex, (int)p.x, (int)p.y, (int)p2.x, (int)p2.y);
+                        Line(DebugTex, (int)p.x, DebugTex.height - (int)p.y, (int)p2.x, DebugTex.height - (int)p2.y);
                     }
                 }
 
