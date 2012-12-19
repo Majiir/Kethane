@@ -142,7 +142,7 @@ namespace Kethane
                     {
                         controller.DrawMap(true);
                         controller.LastLat = vessel.latitude;
-                        controller.LastLon = vessel.longitude;
+                        controller.LastLon = Misc.clampDegrees(vessel.longitude);
                         if (vessel == FlightGlobals.ActiveVessel && controller.ScanningSound)
                             PingDeposit.Play();
                     }
