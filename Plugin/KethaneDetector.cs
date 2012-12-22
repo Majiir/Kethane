@@ -72,6 +72,11 @@ namespace Kethane
         [KSPField(isPersistant = false, guiActive = true, guiName = "Status")]
         public string Status;
 
+        public override string GetInfo()
+        {
+            return String.Format("Maximum Altitude: {0:N0}m\nPower Consumption: {1:F2}/s\nScanning Period: {2:F2}s", DetectingHeight, PowerConsumption, DetectingPeriod);
+        }
+
         public override void OnStart(PartModule.StartState state)
         {
             if (state == StartState.Editor) { return; }

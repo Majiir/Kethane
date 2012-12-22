@@ -348,6 +348,11 @@ namespace Kethane
             return -1;
         }
 
+        public override string GetInfo()
+        {
+            return String.Format("Extraction Rate: {0:F2}L/s\nPower Consumption: {1:F2}/s", ExtractionRate, PowerConsumption);
+        }
+
         public override void OnUpdate()
         {
             Events["DeployDrill"].active = !ArmWantToGoDown;

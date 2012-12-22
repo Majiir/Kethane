@@ -53,6 +53,11 @@ namespace Kethane
             IsEnabled = !IsEnabled;
         }
 
+        public override string GetInfo()
+        {
+            return String.Format("{0}:\n- Conversion Efficiency: {1:P0}\n- Kethane Consumption: {2:F1}L/s\n- Power Consumption: {3:F1}/s", TargetResource, ConversionEfficiency, KethaneConsumption, PowerConsumption);
+        }
+
         public override void OnStart(PartModule.StartState state)
         {
             Actions["ActivateConverterAction"].guiName = Events["ActivateConverter"].guiName = String.Format("Activate {0} Converter", TargetResource);
