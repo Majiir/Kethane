@@ -47,6 +47,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Deposit.cs" />
+    <Compile Include="HeatSinkAnimator.cs" />
     <Compile Include="KethaneController.cs" />
     <Compile Include="KethaneConverter.cs" />
     <Compile Include="KethaneDebugger.cs" />
