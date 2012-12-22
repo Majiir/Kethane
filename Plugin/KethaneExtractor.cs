@@ -14,6 +14,9 @@ namespace Kethane
         private Transform BaseTransform, Cyl1Transform, Cyl2Transform, Cyl3Transform;
 
         [KSPField(isPersistant = false)]
+        public float ExtractionRate;
+
+        [KSPField(isPersistant = false)]
         public float PowerConsumption;
 
         [KSPField]
@@ -373,7 +376,7 @@ namespace Kethane
                     var energyRequest = this.PowerConsumption * TimeWarp.fixedDeltaTime;
                     var energy = this.part.RequestResource("ElectricCharge", energyRequest);
 
-                    float Amount = TimeWarp.fixedDeltaTime * 1.25f * (energy / energyRequest);
+                    float Amount = TimeWarp.fixedDeltaTime * ExtractionRate * (energy / energyRequest);
                     Amount = Math.Min(Amount, DepositUnder.Kethane);
                     DepositUnder.Kethane += this.part.RequestResource("Kethane", -Amount);
                 }
