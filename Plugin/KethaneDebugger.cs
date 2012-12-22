@@ -97,6 +97,8 @@ namespace Kethane
 
         private void DebugWindowGUI(int windowID)
         {
+            var controller = KethaneController.GetInstance(this.vessel);
+
             GUILayout.BeginVertical();
             DrawDebugMap();
             GUILayout.Box(DebugTex);
@@ -105,14 +107,13 @@ namespace Kethane
 
             if (GUILayout.Button("GEN", GUILayout.ExpandWidth(true)))
             {
-                KethaneController.GetInstance(this.vessel).GenerateKethaneDeposits();
+                controller.GenerateKethaneDeposits();
             }
 
             GUILayout.Label("");
 
             if (GUILayout.Button("GEN HERE", GUILayout.ExpandWidth(true)))
             {
-                var controller = KethaneController.GetInstance(this.vessel);
                 while (controller.GetDepositUnder() == null)
                 {
                     controller.GenerateKethaneDeposits();
@@ -121,7 +122,7 @@ namespace Kethane
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Deposit: ");
-            var DepositUnder = KethaneController.GetInstance(this.vessel).GetDepositUnder();
+            var DepositUnder = controller.GetDepositUnder();
             GUILayout.Label(DepositUnder == null ? "-" : (DepositUnder.Depth.ToString() + "  " + DepositUnder.Kethane.ToString()));
             GUILayout.EndHorizontal();
 

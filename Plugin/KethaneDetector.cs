@@ -83,8 +83,9 @@ namespace Kethane
         {
             Events["EnableDetection"].active = !IsDetecting;
             Events["DisableDetection"].active = IsDetecting;
-            Events["ShowMap"].active = !KethaneController.GetInstance(this.vessel).ShowDetectorWindow;
-            Events["HideMap"].active = KethaneController.GetInstance(this.vessel).ShowDetectorWindow;
+            var controller = KethaneController.GetInstance(this.vessel);
+            Events["ShowMap"].active = !controller.ShowDetectorWindow;
+            Events["HideMap"].active = controller.ShowDetectorWindow;
 
             if (Misc.GetTrueAltitude(vessel) <= this.DetectingHeight)
             {
