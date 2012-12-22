@@ -39,6 +39,24 @@ namespace Kethane
             IsDetecting = false;
         }
 
+        [KSPAction("Activate Detector")]
+        public void EnableDetectionAction(KSPActionParam param)
+        {
+            EnableDetection();
+        }
+
+        [KSPAction("Deactivate Detector")]
+        public void DisableDetectionAction(KSPActionParam param)
+        {
+            DisableDetection();
+        }
+
+        [KSPAction("Toggle Detector")]
+        public void ToggleDetectionAction(KSPActionParam param)
+        {
+            IsDetecting = !IsDetecting;
+        }
+
         [KSPEvent(guiActive = true, guiName = "Show Map", active = true)]
         public void ShowMap()
         {

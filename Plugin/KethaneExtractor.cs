@@ -320,6 +320,24 @@ namespace Kethane
             ArmWantToGoDown = false;
         }
 
+        [KSPAction("Deploy Drill")]
+        public void DeployDrillAction(KSPActionParam param)
+        {
+            DeployDrill();
+        }
+
+        [KSPAction("Retract Drill")]
+        public void RetractDrillAction(KSPActionParam param)
+        {
+            RetractDrill();
+        }
+
+        [KSPAction("Toggle Drill")]
+        public void ToggleDrillAction(KSPActionParam param)
+        {
+            ArmWantToGoDown = !ArmWantToGoDown;
+        }
+
         public float DrillDepth()
         {
             if (IsDrillUndergorund && DrillDeploymentState == DeployState.Deployed && Math.Abs(DeployLength) > 0.01f)
