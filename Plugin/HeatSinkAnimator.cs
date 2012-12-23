@@ -12,6 +12,9 @@ namespace Kethane
         [KSPField(isPersistant = false)]
         public string OpenAnimation;
 
+        [KSPField(isPersistant = false)]
+        public float OpenTemperature;
+
         private AnimationState[] heatAnimationStates;
         private AnimationState[] openAnimationStates;
 
@@ -52,7 +55,7 @@ namespace Kethane
                 animationState.normalizedTime = heatFraction;
             }
 
-            var shouldOpen = heatFraction > 0;
+            var shouldOpen = this.part.temperature >= OpenTemperature;
 
             foreach (var state in openAnimationStates)
             {
