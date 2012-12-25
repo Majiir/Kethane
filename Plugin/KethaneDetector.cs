@@ -18,7 +18,7 @@ namespace Kethane
         public float PowerConsumption;
 
         [KSPField]
-        private bool IsDetecting;
+        public bool IsDetecting;
 
         private double TimerEcho;
 
