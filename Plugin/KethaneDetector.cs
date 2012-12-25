@@ -179,6 +179,10 @@ namespace Kethane
                     TimerEcho = 0;
                 }
             }
+            else
+            {
+                this.powerRatio = 0;
+            }
         }
 
         public override void OnSave(ConfigNode node)
