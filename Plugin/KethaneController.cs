@@ -237,7 +237,7 @@ namespace Kethane
                 if (-xVar > planetTex.width || -xVar < 0)
                     inbound = false;
 
-                GUILayout.Label(String.Format(inbound ? "Mouseover coordinates: {0:0.0}, {1:0.0}" : "Mouseover coordinates: -", Misc.GetLatOnMap(yVar, planetTex.height), Misc.GetLonOnMap(xVar, planetTex.width)));
+                GUILayout.Label(String.Format(inbound ? "Mouse coordinates: {0:0.0}, {1:0.0}" : "Mouse coordinates: -", Misc.GetLatOnMap(yVar, planetTex.height), Misc.GetLonOnMap(xVar, planetTex.width)));
 
             }
 
@@ -251,7 +251,7 @@ namespace Kethane
             }
             GUILayout.Label(BoxLabelAmount);
             GUILayout.Label(BoxLabelDepth);
-            GUILayout.Label(String.Format("Last known deposit: {0:0.000}, {1:0.000}", LastLat, LastLon));
+            GUILayout.Label(String.Format("Last deposit: {0:0.000}, {1:0.000}", LastLat, LastLon));
             ScanningSound = GUILayout.Toggle(ScanningSound, "Detection sound");
 
             GUILayout.EndVertical();
