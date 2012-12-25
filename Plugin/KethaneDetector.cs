@@ -166,6 +166,7 @@ namespace Kethane
                         controller.DrawMap(true);
                         controller.LastLat = vessel.latitude;
                         controller.LastLon = Misc.clampDegrees(vessel.longitude);
+                        controller.LastQuantity = DepositUnder.Kethane;
                         if (vessel == FlightGlobals.ActiveVessel && controller.ScanningSound)
                             PingDeposit.Play();
                     }

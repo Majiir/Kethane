@@ -198,6 +198,7 @@ namespace Kethane
         public bool ScanningSound = true;
 
         public double LastLat, LastLon;
+        public float LastQuantity;
 
         private Rect DetectorWindowPosition = new Rect(Screen.width * 0.20f, 250, 10, 10);
 
@@ -241,17 +242,7 @@ namespace Kethane
 
             }
 
-            string BoxLabelAmount = "No reading";
-            string BoxLabelDepth = "-";
-            var DepositUnder = GetDepositUnder();
-            if (DepositUnder != null)
-            {
-                BoxLabelAmount = "~" + Math.Round(DepositUnder.Kethane, 1) + " [l]";
-                BoxLabelDepth = "~" + Math.Round(DepositUnder.Depth, 1) + " [m]";
-            }
-            GUILayout.Label(BoxLabelAmount);
-            GUILayout.Label(BoxLabelDepth);
-            GUILayout.Label(String.Format("Last deposit: {0:0.000}, {1:0.000}", LastLat, LastLon));
+            GUILayout.Label(String.Format("Last deposit: {0:0.000}, {1:0.000} ({2:F0}L)", LastLat, LastLon, LastQuantity));
             ScanningSound = GUILayout.Toggle(ScanningSound, "Detection sound");
 
             GUILayout.EndVertical();
