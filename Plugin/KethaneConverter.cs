@@ -35,12 +35,36 @@ namespace Kethane
             IsEnabled = false;
         }
 
+        [KSPAction("Activate Converter")]
+        public void ActivateConverterAction(KSPActionParam param)
+        {
+            ActivateConverter();
+        }
+
+        [KSPAction("Deactivate Converter")]
+        public void DeactivateConverterAction(KSPActionParam param)
+        {
+            DeactivateConverter();
+        }
+
+        [KSPAction("Toggle Converter")]
+        public void ToggleConverterAction(KSPActionParam param)
+        {
+            IsEnabled = !IsEnabled;
+        }
+
+        public override string GetInfo()
+        {
+            return String.Format("{0}:\n- Conversion Efficiency: {1:P0}\n- Kethane Consumption: {2:F1}L/s\n- Power Consumption: {3:F1}/s", TargetResource, ConversionEfficiency, KethaneConsumption, PowerConsumption);
+        }
+
         public override void OnStart(PartModule.StartState state)
         {
+            Actions["ActivateConverterAction"].guiName = Events["ActivateConverter"].guiName = String.Format("Activate {0} Converter", TargetResource);
+            Actions["DeactivateConverterAction"].guiName = Events["DeactivateConverter"].guiName = String.Format("Deactivate {0} Converter", TargetResource);
+            Actions["ToggleConverterAction"].guiName = String.Format("Toggle {0} Converter", TargetResource);
             if (state == StartState.Editor) { return; }
             this.part.force_activate();
-            Events["ActivateConverter"].guiName = String.Format("Activate {0} Converter", TargetResource);
-            Events["DeactivateConverter"].guiName = String.Format("Deactivate {0} Converter", TargetResource);
         }
 
         public override void OnUpdate()

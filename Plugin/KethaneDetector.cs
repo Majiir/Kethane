@@ -39,6 +39,24 @@ namespace Kethane
             IsDetecting = false;
         }
 
+        [KSPAction("Activate Detector")]
+        public void EnableDetectionAction(KSPActionParam param)
+        {
+            EnableDetection();
+        }
+
+        [KSPAction("Deactivate Detector")]
+        public void DisableDetectionAction(KSPActionParam param)
+        {
+            DisableDetection();
+        }
+
+        [KSPAction("Toggle Detector")]
+        public void ToggleDetectionAction(KSPActionParam param)
+        {
+            IsDetecting = !IsDetecting;
+        }
+
         [KSPEvent(guiActive = true, guiName = "Show Map", active = true)]
         public void ShowMap()
         {
@@ -53,6 +71,11 @@ namespace Kethane
 
         [KSPField(isPersistant = false, guiActive = true, guiName = "Status")]
         public string Status;
+
+        public override string GetInfo()
+        {
+            return String.Format("Maximum Altitude: {0:N0}m\nPower Consumption: {1:F2}/s\nScanning Period: {2:F2}s", DetectingHeight, PowerConsumption, DetectingPeriod);
+        }
 
         public override void OnStart(PartModule.StartState state)
         {
@@ -83,8 +106,9 @@ namespace Kethane
         {
             Events["EnableDetection"].active = !IsDetecting;
             Events["DisableDetection"].active = IsDetecting;
-            Events["ShowMap"].active = !KethaneController.GetInstance(this.vessel).ShowDetectorWindow;
-            Events["HideMap"].active = KethaneController.GetInstance(this.vessel).ShowDetectorWindow;
+            var controller = KethaneController.GetInstance(this.vessel);
+            Events["ShowMap"].active = !controller.ShowDetectorWindow;
+            Events["HideMap"].active = controller.ShowDetectorWindow;
 
             if (Misc.GetTrueAltitude(vessel) <= this.DetectingHeight)
             {
@@ -141,7 +165,8 @@ namespace Kethane
                     {
                         controller.DrawMap(true);
                         controller.LastLat = vessel.latitude;
-                        controller.LastLon = vessel.longitude;
+                        controller.LastLon = Misc.clampDegrees(vessel.longitude);
+                        controller.LastQuantity = DepositUnder.Kethane;
                         if (vessel == FlightGlobals.ActiveVessel && controller.ScanningSound)
                             PingDeposit.Play();
                     }
@@ -153,6 +178,10 @@ namespace Kethane
                     }
                     TimerEcho = 0;
                 }
+            }
+            else
+            {
+                this.powerRatio = 0;
             }
         }
 

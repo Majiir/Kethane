@@ -14,6 +14,9 @@ namespace Kethane
         private Transform BaseTransform, Cyl1Transform, Cyl2Transform, Cyl3Transform;
 
         [KSPField(isPersistant = false)]
+        public float ExtractionRate;
+
+        [KSPField(isPersistant = false)]
         public float PowerConsumption;
 
         [KSPField]
@@ -320,11 +323,34 @@ namespace Kethane
             ArmWantToGoDown = false;
         }
 
+        [KSPAction("Deploy Drill")]
+        public void DeployDrillAction(KSPActionParam param)
+        {
+            DeployDrill();
+        }
+
+        [KSPAction("Retract Drill")]
+        public void RetractDrillAction(KSPActionParam param)
+        {
+            RetractDrill();
+        }
+
+        [KSPAction("Toggle Drill")]
+        public void ToggleDrillAction(KSPActionParam param)
+        {
+            ArmWantToGoDown = !ArmWantToGoDown;
+        }
+
         public float DrillDepth()
         {
             if (IsDrillUndergorund && DrillDeploymentState == DeployState.Deployed && Math.Abs(DeployLength) > 0.01f)
                 return Math.Abs(DeployLength);
             return -1;
+        }
+
+        public override string GetInfo()
+        {
+            return String.Format("Extraction Rate: {0:F2}L/s\nPower Consumption: {1:F2}/s", ExtractionRate, PowerConsumption);
         }
 
         public override void OnUpdate()
@@ -355,7 +381,7 @@ namespace Kethane
                     var energyRequest = this.PowerConsumption * TimeWarp.fixedDeltaTime;
                     var energy = this.part.RequestResource("ElectricCharge", energyRequest);
 
-                    float Amount = TimeWarp.fixedDeltaTime * 1.25f * (energy / energyRequest);
+                    float Amount = TimeWarp.fixedDeltaTime * ExtractionRate * (energy / energyRequest);
                     Amount = Math.Min(Amount, DepositUnder.Kethane);
                     DepositUnder.Kethane += this.part.RequestResource("Kethane", -Amount);
                 }
