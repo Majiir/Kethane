@@ -21,6 +21,9 @@ namespace Kethane
         public string BaseTransform;
 
         [KSPField(isPersistant = false)]
+        public string PartTransform;
+
+        [KSPField(isPersistant = false)]
         public string HeadingTransform;
 
         [KSPField(isPersistant = false)]
@@ -132,7 +135,14 @@ namespace Kethane
             if (body == null)
                 return;
 
-            Transform BaseT = this.part.transform.FindChild("model").FindChild(BaseTransform);
+            var BaseT = this.part.transform.FindChild("model");
+
+            if (!String.IsNullOrEmpty(PartTransform))
+            {
+                BaseT = BaseT.FindChild(PartTransform);
+            }
+
+            BaseT = BaseT.FindChild(BaseTransform);
 
             Vector3 bodyCoords = BaseT.InverseTransformPoint(body.transform.position);
             Vector2 pos = Misc.CartesianToPolar(bodyCoords);
