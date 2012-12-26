@@ -17,6 +17,15 @@ namespace Kethane
         [KSPField(isPersistant = false)]
         public float PowerConsumption;
 
+        [KSPField(isPersistant = false)]
+        public string BaseTransform;
+
+        [KSPField(isPersistant = false)]
+        public string HeadingTransform;
+
+        [KSPField(isPersistant = false)]
+        public string ElevationTransform;
+
         [KSPField]
         public bool IsDetecting;
 
@@ -123,17 +132,16 @@ namespace Kethane
             if (body == null)
                 return;
 
-            Transform BaseT = this.part.transform.FindChild("model").FindChild("Kethane Sensor");
+            Transform BaseT = this.part.transform.FindChild("model").FindChild(BaseTransform);
 
             Vector3 bodyCoords = BaseT.InverseTransformPoint(body.transform.position);
-
             Vector2 pos = Misc.CartesianToPolar(bodyCoords);
 
             double alpha = Misc.NormalizeAngle(pos.x);
             double beta = Misc.NormalizeAngle(pos.y);
 
-            Transform RotH = BaseT.FindChild("Horizontal Rotation");
-            Transform RotV = RotH.FindChild("Vertical Rotation");
+            Transform RotH = BaseT.FindChild(HeadingTransform);
+            Transform RotV = RotH.FindChild(ElevationTransform);
 
             double LocH = RotH.localRotation.eulerAngles.y;
             double LocV = Misc.NormalizeAngle(RotV.localRotation.eulerAngles.x - 90);
