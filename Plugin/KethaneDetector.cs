@@ -147,20 +147,19 @@ namespace Kethane
             Vector3 bodyCoords = BaseT.InverseTransformPoint(body.transform.position);
             Vector2 pos = Misc.CartesianToPolar(bodyCoords);
 
-            double alpha = Misc.NormalizeAngle(pos.x);
-            double beta = Misc.NormalizeAngle(pos.y);
+            var alpha = (float)Misc.NormalizeAngle(pos.x + 90);
+            var beta = (float)Misc.NormalizeAngle(pos.y);
 
             Transform RotH = BaseT.FindChild(HeadingTransform);
             Transform RotV = RotH.FindChild(ElevationTransform);
 
-            double LocH = RotH.localRotation.eulerAngles.y;
-            double LocV = Misc.NormalizeAngle(RotV.localRotation.eulerAngles.x - 90);
+            var speed = Time.deltaTime * this.powerRatio * 60;
 
-            if (Math.Abs(beta - LocH) > 0.1f)
-                RotH.RotateAroundLocal(new Vector3(0, 1, 0), (beta > LocH ? 0.25f : -0.25f) * Time.deltaTime * this.powerRatio);
+            RotH.localRotation = Quaternion.RotateTowards(RotH.localRotation, Quaternion.AngleAxis(beta, new Vector3(0, 1, 0)), speed);
+            RotV.localRotation = Quaternion.RotateTowards(RotV.localRotation, Quaternion.AngleAxis(alpha, new Vector3(1, 0, 0)), speed);
 
-            if (Math.Abs(alpha - LocV) > 0.1f)
-                RotV.RotateAroundLocal(new Vector3(1, 0, 0), (alpha > LocV ? 0.25f : -0.25f) * Time.deltaTime * this.powerRatio);
+            if (float.IsNaN(RotH.localRotation.w)) { RotH.localRotation = Quaternion.identity; }
+            if (float.IsNaN(RotV.localRotation.w)) { RotV.localRotation = Quaternion.identity; }
         }
 
         public override void OnFixedUpdate()
