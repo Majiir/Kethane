@@ -153,6 +153,12 @@ namespace Kethane
             Transform RotH = BaseT.FindChild(HeadingTransform);
             Transform RotV = RotH.FindChild(ElevationTransform);
 
+            if (Math.Abs(RotH.localEulerAngles.y - beta) > 90)
+            {
+                beta += 180;
+                alpha = 360 - alpha;
+            }
+
             var speed = Time.deltaTime * this.powerRatio * 60;
 
             RotH.localRotation = Quaternion.RotateTowards(RotH.localRotation, Quaternion.AngleAxis(beta, new Vector3(0, 1, 0)), speed);
