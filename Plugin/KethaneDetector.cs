@@ -124,7 +124,14 @@ namespace Kethane
 
             if (Misc.GetTrueAltitude(vessel) <= this.DetectingHeight)
             {
-                Status = IsDetecting ? "Active" : "Idle";
+                if (IsDetecting)
+                {
+                    Status = powerRatio > 0 ? "Active" : "Insufficient Power";
+                }
+                else
+                {
+                    Status = "Idle";
+                }
             }
             else
             {
