@@ -14,6 +14,12 @@ namespace Kethane
         public string OpenAnimation;
 
         [KSPField(isPersistant = false)]
+        public string OpenSound;
+
+        [KSPField(isPersistant = false)]
+        public string CloseSound;
+
+        [KSPField(isPersistant = false)]
         public float OpenTemperature;
 
         [KSPField(isPersistant = false)]
@@ -33,6 +39,9 @@ namespace Kethane
 
         [KSPField(isPersistant = false)]
         public Vector3 RadiatorNormal;
+        
+        private AudioSource openSound;
+        private AudioSource closeSound;
 
         private AnimationState[] heatAnimationStates;
         private AnimationState[] openAnimationStates;
@@ -47,6 +56,14 @@ namespace Kethane
         {
             openAnimationStates = Misc.SetUpAnimation(OpenAnimation, this.part);
             heatAnimationStates = Misc.SetUpAnimation(HeatAnimation, this.part);
+
+            if (state == StartState.Editor) { return; }
+
+            openSound = gameObject.AddComponent<AudioSource>();
+            closeSound = gameObject.AddComponent<AudioSource>();
+            openSound.clip = GameDatabase.Instance.GetAudioClip(OpenSound);
+            closeSound.clip = GameDatabase.Instance.GetAudioClip(CloseSound);
+            openSound.volume = closeSound.volume = 1;
         }
 
         public override void OnUpdate()
@@ -77,6 +94,7 @@ namespace Kethane
                     {
                         state.speed = shouldOpen ? 1 : -1;
                     }
+                    (shouldOpen ? openSound : closeSound).Play();
                 }
             }
         }
