@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace Kethane
@@ -54,7 +55,20 @@ namespace Kethane
             foreach (var state in openAnimationStates)
             {
                 state.normalizedTime = Mathf.Clamp01(state.normalizedTime);
+            }
+
+            var openState = openAnimationStates.First();
+            var isMoving = (openState.normalizedTime > 0) && (openState.normalizedTime < 1);
+            if (!isMoving)
+            {
+                var isOpen = openState.normalizedTime == 1;
+                if (isOpen != shouldOpen)
+                {
+                    foreach (var state in openAnimationStates)
+                    {
                 state.speed = shouldOpen ? 1 : -1;
+                    }
+                }
             }
         }
     }
