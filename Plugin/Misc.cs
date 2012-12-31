@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Kethane
 {
-    internal class Misc
+    internal static class Misc
     {
         public static bool SMatch(string input, string pattern)
         {
