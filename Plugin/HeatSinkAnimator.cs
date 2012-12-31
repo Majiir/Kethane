@@ -45,9 +45,9 @@ namespace Kethane
             var draperPoint = 525;
             var heatFraction = (this.part.temperature - draperPoint) / (this.part.maxTemp - draperPoint);
             
-            foreach (var animationState in heatAnimationStates)
+            foreach (var state in heatAnimationStates)
             {
-                animationState.normalizedTime = heatFraction;
+                state.normalizedTime = heatFraction;
             }
 
             var shouldOpen = this.part.temperature >= OpenTemperature;
@@ -66,7 +66,7 @@ namespace Kethane
                 {
                     foreach (var state in openAnimationStates)
                     {
-                state.speed = shouldOpen ? 1 : -1;
+                        state.speed = shouldOpen ? 1 : -1;
                     }
                 }
             }
