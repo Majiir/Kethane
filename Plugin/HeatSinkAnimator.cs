@@ -39,6 +39,10 @@ namespace Kethane
 
         private float temperature;
 
+        private float requested;
+        private float lastRequested;
+        private float dissipated;
+
         public override void OnStart(PartModule.StartState state)
         {
             openAnimationStates = SetUpAnimation(OpenAnimation);
@@ -92,6 +96,9 @@ namespace Kethane
             }
         }
 
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Cooling Efficiency", guiFormat = "P1")]
+        public float CoolingEfficiency;
+
         public override void OnFixedUpdate()
         {
             var position = this.part.transform.position;
@@ -106,12 +113,21 @@ namespace Kethane
             var rate = InternalDissipation + deployAmount * (HeatSinkDissipation + pressure * (PressureDissipation + AirSpeedDissipation * airSpeed));
 
             temperature = (float) (outsideTemp + (temperature - outsideTemp) * Math.Exp(-rate * TimeWarp.fixedDeltaTime));
+
+            CoolingEfficiency = requested == 0 ? 1 : dissipated / requested;
+
+            lastRequested = requested;
+            requested = dissipated = 0;
         }
 
         public float AddHeat(float heat)
         {
-            heat = Math.Min(heat, MaxTemperature - temperature);
+            requested += heat;
+            var remaining = MaxTemperature - (temperature - dissipated);
+            var requestRatio = Math.Min(heat / lastRequested, 1);
+            heat = Math.Min(heat, remaining * requestRatio);
             temperature += heat;
+            dissipated += heat;
             return heat;
         }
     }
