@@ -20,29 +20,23 @@ namespace Kethane
 
         public override void OnStart(PartModule.StartState state)
         {
-            var openStates = new List<AnimationState>();
-            foreach (var animation in this.part.FindModelAnimators(OpenAnimation))
-            {
-                var animationState = animation[OpenAnimation];
-                animationState.speed = 0;
-                animationState.enabled = true;
-                animationState.wrapMode = WrapMode.ClampForever;
-                animation.Blend(OpenAnimation);
-                openStates.Add(animationState);
-            }
-            openAnimationStates = openStates.ToArray();
+            openAnimationStates = SetUpAnimation(OpenAnimation);
+            heatAnimationStates = SetUpAnimation(HeatAnimation);
+        }
 
-            var heatStates = new List<AnimationState>();
-            foreach (var animation in this.part.FindModelAnimators(HeatAnimation))
+        private AnimationState[] SetUpAnimation(string animationName)
+        {
+            var states = new List<AnimationState>();
+            foreach (var animation in this.part.FindModelAnimators(animationName))
             {
-                var animationState = animation[HeatAnimation];
+                var animationState = animation[animationName];
                 animationState.speed = 0;
                 animationState.enabled = true;
                 animationState.wrapMode = WrapMode.ClampForever;
-                animation.Blend(HeatAnimation);
-                heatStates.Add(animationState);
+                animation.Blend(animationName);
+                states.Add(animationState);
             }
-            heatAnimationStates = heatStates.ToArray();
+            return states.ToArray();
         }
 
         public override void OnUpdate()
