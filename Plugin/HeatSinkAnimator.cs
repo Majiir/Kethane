@@ -16,8 +16,28 @@ namespace Kethane
         [KSPField(isPersistant = false)]
         public float OpenTemperature;
 
+        [KSPField(isPersistant = false)]
+        public float MaxTemperature;
+
+        [KSPField(isPersistant = false)]
+        public float InternalDissipation;
+
+        [KSPField(isPersistant = false)]
+        public float HeatSinkDissipation;
+
+        [KSPField(isPersistant = false)]
+        public float PressureDissipation;
+
+        [KSPField(isPersistant = false)]
+        public float AirSpeedDissipation;
+
+        [KSPField(isPersistant = false)]
+        public Vector3 RadiatorNormal;
+
         private AnimationState[] heatAnimationStates;
         private AnimationState[] openAnimationStates;
+
+        private float temperature;
 
         public override void OnStart(PartModule.StartState state)
         {
@@ -43,14 +63,14 @@ namespace Kethane
         public override void OnUpdate()
         {
             var draperPoint = 525;
-            var heatFraction = (this.part.temperature - draperPoint) / (this.part.maxTemp - draperPoint);
+            var heatFraction = (temperature - draperPoint) / (MaxTemperature - draperPoint);
             
             foreach (var state in heatAnimationStates)
             {
                 state.normalizedTime = heatFraction;
             }
 
-            var shouldOpen = this.part.temperature >= OpenTemperature;
+            var shouldOpen = temperature >= OpenTemperature;
 
             foreach (var state in openAnimationStates)
             {
@@ -70,6 +90,29 @@ namespace Kethane
                     }
                 }
             }
+        }
+
+        public override void OnFixedUpdate()
+        {
+            var position = this.part.transform.position;
+            var outsideTemp = FlightGlobals.getExternalTemperature(FlightGlobals.getAltitudeAtPos(position), FlightGlobals.getMainBody());
+            var pressure = FlightGlobals.getStaticPressure(position);
+
+            var surfaceVelocity = this.vessel.GetSrfVelocity();
+            var radiatorNormal = this.part.transform.InverseTransformDirection(RadiatorNormal);
+            var airSpeed = (surfaceVelocity - surfaceVelocity.Dot(radiatorNormal) * radiatorNormal).magnitude;
+
+            var deployAmount = Mathf.Clamp01(openAnimationStates.First().normalizedTime);
+            var rate = InternalDissipation + deployAmount * (HeatSinkDissipation + pressure * (PressureDissipation + AirSpeedDissipation * airSpeed));
+
+            temperature = (float) (outsideTemp + (temperature - outsideTemp) * Math.Exp(-rate * TimeWarp.fixedDeltaTime));
+        }
+
+        public float AddHeat(float heat)
+        {
+            heat = Math.Min(heat, MaxTemperature - temperature);
+            temperature += heat;
+            return heat;
         }
     }
 }
