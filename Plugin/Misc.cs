@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Kethane
 {
-    internal class Misc
+    internal static class Misc
     {
         public static bool SMatch(string input, string pattern)
         {
@@ -95,5 +95,7 @@ namespace Kethane
             part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition(resourceName).id, resources);
             return resources;
         }
+
+        public static float Dot(this Vector3 lhs, Vector3 rhs) { return Vector3.Dot(lhs, rhs); }
     }
 }

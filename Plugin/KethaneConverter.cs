@@ -20,6 +20,9 @@ namespace Kethane
         [KSPField(isPersistant = false)]
         public float PowerConsumption;
 
+        [KSPField(isPersistant = false)]
+        public float HeatProduction;
+
         [KSPField]
         public bool IsEnabled;
 
@@ -92,6 +95,13 @@ namespace Kethane
             var energyRatio = availableEnergy / requestedEnergy;
 
             var ratio = Math.Min(Math.Min(Math.Min(spaceRatio, kethaneRatio), energyRatio), 1);
+
+            var heatsink = this.part.Modules.OfType<HeatSinkAnimator>().SingleOrDefault();
+            if (heatsink != null)
+            {
+                var heatRequest = (float)ratio * HeatProduction * TimeWarp.fixedDeltaTime;
+                ratio = heatsink.AddHeat(heatRequest) / heatRequest;
+            }
 
             requestedSpace *= ratio;
             requestedKethane *= ratio;
