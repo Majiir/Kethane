@@ -17,8 +17,20 @@ namespace Kethane
         [KSPField(isPersistant = false)]
         public float PowerConsumption;
 
+        [KSPField(isPersistant = false)]
+        public string BaseTransform;
+
+        [KSPField(isPersistant = false)]
+        public string PartTransform;
+
+        [KSPField(isPersistant = false)]
+        public string HeadingTransform;
+
+        [KSPField(isPersistant = false)]
+        public string ElevationTransform;
+
         [KSPField]
-        private bool IsDetecting;
+        public bool IsDetecting;
 
         private double TimerEcho;
 
@@ -112,7 +124,14 @@ namespace Kethane
 
             if (Misc.GetTrueAltitude(vessel) <= this.DetectingHeight)
             {
-                Status = IsDetecting ? "Active" : "Idle";
+                if (IsDetecting)
+                {
+                    Status = powerRatio > 0 ? "Active" : "Insufficient Power";
+                }
+                else
+                {
+                    Status = "Idle";
+                }
             }
             else
             {
@@ -123,26 +142,37 @@ namespace Kethane
             if (body == null)
                 return;
 
-            Transform BaseT = this.part.transform.FindChild("model").FindChild("Kethane Sensor");
+            var BaseT = this.part.transform.FindChild("model");
+
+            if (!String.IsNullOrEmpty(PartTransform))
+            {
+                BaseT = BaseT.FindChild(PartTransform);
+            }
+
+            BaseT = BaseT.FindChild(BaseTransform);
 
             Vector3 bodyCoords = BaseT.InverseTransformPoint(body.transform.position);
-
             Vector2 pos = Misc.CartesianToPolar(bodyCoords);
 
-            double alpha = Misc.NormalizeAngle(pos.x);
-            double beta = Misc.NormalizeAngle(pos.y);
+            var alpha = (float)Misc.NormalizeAngle(pos.x + 90);
+            var beta = (float)Misc.NormalizeAngle(pos.y);
 
-            Transform RotH = BaseT.FindChild("Horizontal Rotation");
-            Transform RotV = RotH.FindChild("Vertical Rotation");
+            Transform RotH = BaseT.FindChild(HeadingTransform);
+            Transform RotV = RotH.FindChild(ElevationTransform);
 
-            double LocH = RotH.localRotation.eulerAngles.y;
-            double LocV = Misc.NormalizeAngle(RotV.localRotation.eulerAngles.x - 90);
+            if (Math.Abs(RotH.localEulerAngles.y - beta) > 90)
+            {
+                beta += 180;
+                alpha = 360 - alpha;
+            }
 
-            if (Math.Abs(beta - LocH) > 0.1f)
-                RotH.RotateAroundLocal(new Vector3(0, 1, 0), (beta > LocH ? 0.25f : -0.25f) * Time.deltaTime * this.powerRatio);
+            var speed = Time.deltaTime * this.powerRatio * 60;
 
-            if (Math.Abs(alpha - LocV) > 0.1f)
-                RotV.RotateAroundLocal(new Vector3(1, 0, 0), (alpha > LocV ? 0.25f : -0.25f) * Time.deltaTime * this.powerRatio);
+            RotH.localRotation = Quaternion.RotateTowards(RotH.localRotation, Quaternion.AngleAxis(beta, new Vector3(0, 1, 0)), speed);
+            RotV.localRotation = Quaternion.RotateTowards(RotV.localRotation, Quaternion.AngleAxis(alpha, new Vector3(1, 0, 0)), speed);
+
+            if (float.IsNaN(RotH.localRotation.w)) { RotH.localRotation = Quaternion.identity; }
+            if (float.IsNaN(RotV.localRotation.w)) { RotV.localRotation = Quaternion.identity; }
         }
 
         public override void OnFixedUpdate()

@@ -47,12 +47,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Deposit.cs" />
+    <Compile Include="HeatSinkAnimator.cs" />
     <Compile Include="KethaneController.cs" />
     <Compile Include="KethaneConverter.cs" />
     <Compile Include="KethaneDebugger.cs" />
     <Compile Include="KethaneDetector.cs" />
     <Compile Include="KethaneExtractor.cs" />
     <Compile Include="Misc.cs" />
+    <Compile Include="OrthogonalIntake.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="WeakReference.cs" />
   </ItemGroup>
