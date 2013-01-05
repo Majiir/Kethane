@@ -27,7 +27,8 @@ namespace Kethane
 
             var amount = BaseFlowRate;
 
-            var throttle = this.part.Modules.OfType<ModuleEngines>().Single().currentThrottle;
+            var engine = this.part.Modules.OfType<ModuleEngines>().Single();
+            var throttle = engine.finalThrust / engine.maxThrust;
             amount += throttle * PowerFlowRate;
 
             var airSpeed = (float)this.part.vessel.srf_velocity.magnitude;
