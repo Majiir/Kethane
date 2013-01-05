@@ -124,7 +124,7 @@ namespace Kethane
         {
             requested += heat;
             var remaining = MaxTemperature - (temperature - dissipated);
-            var requestRatio = Math.Min(heat / lastRequested, 1);
+            var requestRatio = lastRequested == 0 ? 1 : Math.Min(heat / lastRequested, 1);
             heat = Math.Min(heat, remaining * requestRatio);
             temperature += heat;
             dissipated += heat;
