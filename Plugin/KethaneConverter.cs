@@ -96,25 +96,32 @@ namespace Kethane
 
             var ratio = Math.Min(Math.Min(Math.Min(spaceRatio, kethaneRatio), energyRatio), 1);
 
+            requestedSpace *= ratio;
+            requestedKethane *= ratio;
+            requestedEnergy *= ratio;
+
+            var drawnEnergy = this.part.RequestResource("ElectricCharge", requestedEnergy);
+            if (drawnEnergy < requestedEnergy) {
+            		drawnEnergy /= requestedEnergy;
+            		requestedSpace 		*= drawnEnergy;
+            		requestedKethane 	*= drawnEnergy;
+            		ratio 						*= drawnEnergy;
+            }
+
+            var drawnKethane = this.part.RequestResource("Kethane", requestedKethane);
+            if (drawnKethane < requestedKethane) {
+                drawnKethane /= requestedKethane;
+                requestedSpace 	*= drawnKethane;
+            		ratio 					*= drawnEnergy;
+            }
+
             var heatsink = this.part.Modules.OfType<HeatSinkAnimator>().SingleOrDefault();
             if (heatsink != null)
             {
                 var heatRequest = (float)ratio * HeatProduction * TimeWarp.fixedDeltaTime;
                 ratio = heatsink.AddHeat(heatRequest) / heatRequest;
             }
-
-            requestedSpace *= ratio;
-            requestedKethane *= ratio;
-            requestedEnergy *= ratio;
-
-            var drawnKethane = this.part.RequestResource("Kethane", requestedKethane);
-            var drawnEnergy = this.part.RequestResource("ElectricCharge", requestedEnergy);
-
-            if (drawnKethane < requestedKethane || drawnEnergy < requestedEnergy)
-            {
-                MonoBehaviour.print("[KETHANE] Unexpected energy and/or Kethane deficit!");
-            }
-
+            
             this.part.RequestResource(TargetResource, -requestedSpace);
         }
     }
