@@ -108,6 +108,16 @@ namespace Kethane
             		ratio 						*= drawnEnergy;
             }
 
+            var heatsink = this.part.Modules.OfType<HeatSinkAnimator>().SingleOrDefault();
+            if (heatsink != null)
+            {
+                var heatRequest = (float)ratio * HeatProduction * TimeWarp.fixedDeltaTime;
+                heatRequest = heatsink.AddHeat(heatRequest) / heatRequest;
+            		requestedSpace 		*= heatRequest;
+            		requestedKethane 	*= heatRequest;
+            		ratio							*= heatRequest;
+            }
+            
             var drawnKethane = this.part.RequestResource("Kethane", requestedKethane);
             if (drawnKethane < requestedKethane) {
                 drawnKethane /= requestedKethane;
@@ -115,13 +125,6 @@ namespace Kethane
             		ratio 					*= drawnEnergy;
             }
 
-            var heatsink = this.part.Modules.OfType<HeatSinkAnimator>().SingleOrDefault();
-            if (heatsink != null)
-            {
-                var heatRequest = (float)ratio * HeatProduction * TimeWarp.fixedDeltaTime;
-                ratio = heatsink.AddHeat(heatRequest) / heatRequest;
-            }
-            
             this.part.RequestResource(TargetResource, -requestedSpace);
         }
     }
