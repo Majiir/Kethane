@@ -113,7 +113,7 @@ namespace Kethane
         	}
         	
         	totalRatio = Math.Min(Math.Min(availableKethane / totalRequestedKethane, availableEnergy / totalRequestedEnergy), 1);
-//        	print(string.Format("tK {0:F5}, tE {1:F5}, tH {2:F5}, tR {3:F5}", totalRequestedKethane, totalRequestedEnergy, totalRequestedHeat, totalRatio));
+        	print(string.Format("tK {0:F5}, tE {1:F5}, tH {2:F5}, tR {3:F5}", totalRequestedKethane, totalRequestedEnergy, totalRequestedHeat, totalRatio));
         	
         	foreach (KethaneConverter kc in converters)
         	{
@@ -127,12 +127,12 @@ namespace Kethane
         		availableEnergy = Misc.GetConnectedResources(this.part, "ElectricCharge").Sum(r => r.amount);
         		var availableSpace = Misc.GetConnectedResources(this.part, kc.TargetResource).Sum(r => r.maxAmount - r.amount);
         		
-        		var spaceRatio = availableSpace / requestedSpace * totalRatio;
-        		var kethaneRatio = availableKethane / requestedKethane * totalRatio;
-        		var energyRatio = availableEnergy / requestedEnergy * totalRatio;
+        		var spaceRatio = availableSpace / requestedSpace;
+        		var kethaneRatio = availableKethane / requestedKethane;
+        		var energyRatio = availableEnergy / requestedEnergy;
         		
-        		var ratio = Math.Min(Math.Min(Math.Min(spaceRatio, kethaneRatio), energyRatio), 1);
-//        		print(string.Format("aK {0:F5}, rK {1:F5}, r {2:F5}", availableKethane, requestedKethane, ratio));
+        		var ratio = Math.Min(Math.Min(Math.Min(Math.Min(spaceRatio, kethaneRatio), energyRatio), totalRatio), 1);
+        		print(string.Format("aK {0:F5}, rK {1:F5}, r {2:F5}", availableKethane, requestedKethane, ratio));
         		
         		if (heatsink != null)
         		{
@@ -143,7 +143,7 @@ namespace Kethane
         		requestedSpace *= ratio;
         		requestedKethane *= ratio;
         		requestedEnergy *= ratio;
-//        		print(string.Format("aK {0:F5}, rK {1:F5}, r {2:F5}", availableKethane, requestedKethane, ratio));
+        		print(string.Format("aK {0:F5}, rK {1:F5}, r {2:F5}", availableKethane, requestedKethane, ratio));
         		
         		var drawnEnergy = this.part.RequestResource("ElectricCharge", requestedEnergy);
         		if (drawnEnergy < requestedEnergy) {
