@@ -103,12 +103,18 @@ namespace Kethane
                 ratio = heatsink.AddHeat(heatRequest) / heatRequest;
             }
 
-            requestedSpace *= ratio;
             requestedKethane *= ratio;
-            requestedEnergy *= ratio;
 
             var drawnKethane = this.part.RequestResource("Kethane", requestedKethane);
+
+            ratio *= drawnKethane / requestedKethane;
+            requestedEnergy *= ratio;
+
             var drawnEnergy = this.part.RequestResource("ElectricCharge", requestedEnergy);
+
+            ratio *= drawnEnergy / requestedEnergy;
+            requestedSpace *= ratio;
+
             this.part.RequestResource(TargetResource, -requestedSpace);
         }
     }
