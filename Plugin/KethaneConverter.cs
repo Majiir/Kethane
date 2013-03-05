@@ -109,12 +109,6 @@ namespace Kethane
 
             var drawnKethane = this.part.RequestResource("Kethane", requestedKethane);
             var drawnEnergy = this.part.RequestResource("ElectricCharge", requestedEnergy);
-
-            if (drawnKethane < requestedKethane || drawnEnergy < requestedEnergy)
-            {
-                MonoBehaviour.print("[KETHANE] Unexpected energy and/or Kethane deficit!");
-            }
-
             this.part.RequestResource(TargetResource, -requestedSpace);
         }
     }
