@@ -60,6 +60,12 @@ namespace Kethane
         {
             return String.Format("{0}:\n- Conversion Efficiency: {1:P0}\n- Kethane Consumption: {2:F1}L/s\n- Power Consumption: {3:F1}/s", TargetResource, ConversionEfficiency, KethaneConsumption, PowerConsumption);
         }
+        
+        public float conversionRatio {
+        	get {
+        		return PartResourceLibrary.Instance.GetDefinition("Kethane").density / PartResourceLibrary.Instance.GetDefinition(TargetResource).density;
+        	}
+        }
 
         public override void OnStart(PartModule.StartState state)
         {
@@ -78,44 +84,82 @@ namespace Kethane
 
         public override void OnFixedUpdate()
         {
-            if (!IsEnabled) { return; }
-
-            var conversionRatio = PartResourceLibrary.Instance.GetDefinition("Kethane").density / PartResourceLibrary.Instance.GetDefinition(TargetResource).density;
-
-            double requestedSpace = KethaneConsumption * conversionRatio * ConversionEfficiency * TimeWarp.fixedDeltaTime;
-            double requestedKethane = KethaneConsumption * TimeWarp.fixedDeltaTime;
-            double requestedEnergy = PowerConsumption * TimeWarp.fixedDeltaTime;
-
-            var availableSpace = Misc.GetConnectedResources(this.part, TargetResource).Sum(r => r.maxAmount - r.amount);
-            var availableKethane = Misc.GetConnectedResources(this.part, "Kethane").Sum(r => r.amount);
-            var availableEnergy = Misc.GetConnectedResources(this.part, "ElectricCharge").Sum(r => r.amount);
-
-            var spaceRatio = availableSpace / requestedSpace;
-            var kethaneRatio = availableKethane / requestedKethane;
-            var energyRatio = availableEnergy / requestedEnergy;
-
-            var ratio = Math.Min(Math.Min(Math.Min(spaceRatio, kethaneRatio), energyRatio), 1);
-
-            var heatsink = this.part.Modules.OfType<HeatSinkAnimator>().SingleOrDefault();
-            if (heatsink != null)
-            {
-                var heatRequest = (float)ratio * HeatProduction * TimeWarp.fixedDeltaTime;
-                ratio = heatsink.AddHeat(heatRequest) / heatRequest;
-            }
-
-            requestedSpace *= ratio;
-            requestedKethane *= ratio;
-            requestedEnergy *= ratio;
-
-            var drawnKethane = this.part.RequestResource("Kethane", requestedKethane);
-            var drawnEnergy = this.part.RequestResource("ElectricCharge", requestedEnergy);
-
-            if (drawnKethane < requestedKethane || drawnEnergy < requestedEnergy)
-            {
-                MonoBehaviour.print("[KETHANE] Unexpected energy and/or Kethane deficit!");
-            }
-
-            this.part.RequestResource(TargetResource, -requestedSpace);
+        	KethaneConverter[] converters = this.part.Modules.OfType<KethaneConverter>().ToArray();
+        	if (converters[0] != this) { return; }
+        	
+        	var totalRequestedKethane = 0d;
+        	var totalRequestedEnergy = 0d;
+        	var totalRequestedHeat = 0d;
+        	var totalRatio = 0d;
+        	var availableKethane = Misc.GetConnectedResources(this.part, "Kethane").Sum(r => r.amount);
+        	var availableEnergy = Misc.GetConnectedResources(this.part, "ElectricCharge").Sum(r => r.amount);
+      		var heatsink = this.part.Modules.OfType<HeatSinkAnimator>().SingleOrDefault();
+        	
+        	foreach (KethaneConverter kc in converters)
+        	{
+        		if (!kc.IsEnabled) { continue; }
+        		
+        		double requestedSpace = kc.KethaneConsumption * kc.conversionRatio * kc.ConversionEfficiency * TimeWarp.fixedDeltaTime;
+        		double requestedKethane = kc.KethaneConsumption * TimeWarp.fixedDeltaTime;
+        		double requestedEnergy = kc.PowerConsumption * TimeWarp.fixedDeltaTime;
+        		var requestedHeat = kc.HeatProduction * TimeWarp.fixedDeltaTime;
+        		
+        		var availableSpace = Misc.GetConnectedResources(kc.part, kc.TargetResource).Sum(r => r.maxAmount - r.amount);
+        		var spaceRatio = Math.Min(availableSpace / requestedSpace, 1);
+        		
+        		totalRequestedKethane += requestedKethane * spaceRatio;
+        		totalRequestedEnergy  += requestedEnergy  * spaceRatio;
+        		totalRequestedHeat    += requestedHeat    * spaceRatio;
+        	}
+        	
+        	totalRatio = Math.Min(Math.Min(availableKethane / totalRequestedKethane, availableEnergy / totalRequestedEnergy), 1);
+//        	print(string.Format("tK {0:F5}, tE {1:F5}, tH {2:F5}, tR {3:F5}", totalRequestedKethane, totalRequestedEnergy, totalRequestedHeat, totalRatio));
+        	
+        	foreach (KethaneConverter kc in converters)
+        	{
+        		if (!kc.IsEnabled) { continue; }
+        		
+        		double requestedSpace = kc.KethaneConsumption * kc.conversionRatio * kc.ConversionEfficiency * TimeWarp.fixedDeltaTime;
+        		double requestedKethane = kc.KethaneConsumption * TimeWarp.fixedDeltaTime;
+        		double requestedEnergy = kc.PowerConsumption * TimeWarp.fixedDeltaTime;
+        		
+        		availableKethane = Misc.GetConnectedResources(this.part, "Kethane").Sum(r => r.amount);
+        		availableEnergy = Misc.GetConnectedResources(this.part, "ElectricCharge").Sum(r => r.amount);
+        		var availableSpace = Misc.GetConnectedResources(this.part, kc.TargetResource).Sum(r => r.maxAmount - r.amount);
+        		
+        		var spaceRatio = availableSpace / requestedSpace;
+        		var kethaneRatio = availableKethane / requestedKethane;
+        		var energyRatio = availableEnergy / requestedEnergy;
+        		
+        		var ratio = Math.Min(Math.Min(Math.Min(Math.Min(spaceRatio, kethaneRatio), energyRatio), totalRatio), 1);
+//        		print(string.Format("aK {0:F5}, rK {1:F5}, r {2:F5}", availableKethane, requestedKethane, ratio));
+        		
+        		if (heatsink != null)
+        		{
+        			var heatRequest = (float)ratio * kc.HeatProduction * TimeWarp.fixedDeltaTime;
+        			ratio *= Math.Min(heatsink.AddHeat(heatRequest) / heatRequest, 1);
+        		}
+        		
+        		requestedSpace *= ratio;
+        		requestedKethane *= ratio;
+        		requestedEnergy *= ratio;
+//        		print(string.Format("aK {0:F5}, rK {1:F5}, r {2:F5}", availableKethane, requestedKethane, ratio));
+        		
+        		var drawnEnergy = this.part.RequestResource("ElectricCharge", requestedEnergy);
+        		if (drawnEnergy < requestedEnergy) {
+        			drawnEnergy /= requestedEnergy;
+        			requestedSpace *= drawnEnergy;
+        			requestedKethane *= drawnEnergy;
+        		}
+        		
+        		var drawnKethane = this.part.RequestResource("Kethane", requestedKethane);
+        		if (drawnKethane < requestedKethane) {
+        			drawnKethane /= requestedKethane;
+        			requestedSpace *= drawnKethane;
+        		}
+        		
+        		this.part.RequestResource(kc.TargetResource, -requestedSpace);
+        	}
         }
     }
 }
