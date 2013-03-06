@@ -62,6 +62,18 @@ namespace Kethane
 
         private static long lastSaveFrame = -1;
 
+		// Structure to store current coordinates and corresponding map point
+		private struct vesselCoords
+		{
+			public double lon;
+			public double lat;
+			public int mapX;
+			public int mapY;
+		};
+		private static vesselCoords currentCoords = new vesselCoords();
+
+		private static Texture2D youAreHereMarker = new Texture2D(7, 7, TextureFormat.ARGB32, false);
+
         private void SetMaps()
         {
             if (FlightGlobals.fetch == null) { return; }
@@ -83,6 +95,8 @@ namespace Kethane
                     PlanetTextures[body.name].Apply();
                 }
             }
+			// Loads image from PluginData/mmi_kethane/ directory. It must be 7x7px transparent PNG
+			youAreHereMarker.LoadImage(KSP.IO.File.ReadAllBytes<KethaneController>("YouAreHereMarker.png"));
         }
 
         private void SaveAllMaps()
@@ -106,12 +120,18 @@ namespace Kethane
 
                 if (this.Vessel != null)
                 {
-                    int x = Misc.GetXOnMap(Misc.clampDegrees(Vessel.mainBody.GetLongitude(Vessel.transform.position)), planetTex.width);
-                    int y = Misc.GetYOnMap(Vessel.mainBody.GetLatitude(Vessel.transform.position), planetTex.height);
+                    //int x = Misc.GetXOnMap(Misc.clampDegrees(Vessel.mainBody.GetLongitude(Vessel.transform.position)), planetTex.width);
+                    //int y = Misc.GetYOnMap(Vessel.mainBody.GetLatitude(Vessel.transform.position), planetTex.height);
+					
+					// Instead of instantly using and dumping coordinates data, store it for later reuse 
+					currentCoords.lon = Misc.clampDegrees(Vessel.mainBody.GetLongitude(Vessel.transform.position));
+                    currentCoords.mapX = Misc.GetXOnMap(currentCoords.lon, planetTex.width);
+					currentCoords.lat = Vessel.mainBody.GetLatitude(Vessel.transform.position);
+					currentCoords.mapY = Misc.GetYOnMap(currentCoords.lat, planetTex.height);
                     if (deposit)
-                        planetTex.SetPixel(x, y, XKCDColors.Green);
+                        planetTex.SetPixel(currentCoords.mapX, currentCoords.mapY, XKCDColors.Green);
                     else
-                        planetTex.SetPixel(x, y, XKCDColors.Grey);
+                        planetTex.SetPixel(currentCoords.mapX, currentCoords.mapY, XKCDColors.DarkGrey); // Changed to dark grey for better readability with bright white current location marker
                 }
 
                 planetTex.Apply();
@@ -195,7 +215,7 @@ namespace Kethane
 
         public bool ShowDetectorWindow;
 
-        public bool ScanningSound = true;
+        public bool ScanningSound = false;
 
         public double LastLat, LastLon;
         public float LastQuantity;
@@ -227,6 +247,10 @@ namespace Kethane
                 GUILayout.Box(planetTex);
                 Rect Last = UnityEngine.GUILayoutUtility.GetLastRect();
 
+				// Draw pointer (7x7 transparent PNG image)
+				//GUI.DrawTexture(new Rect(((Last.xMin + Last.xMax) / 2) - (planetTex.width / 2) + currentCoords.mapX - 3.5f, Last.y + Last.height - currentCoords.mapY - 3.5f, 7, 7), youAreHereMarker);
+				GUI.DrawTexture(new Rect(((Last.xMin + Last.xMax) / 2) - (planetTex.width / 2) + currentCoords.mapX - 3.5f, ((Last.yMin + Last.yMax)/2) + (planetTex.height/2) - currentCoords.mapY - 3.5f, 7, 7), youAreHereMarker);
+
                 float xVar = ((Last.xMin + Last.xMax) / 2) - (planetTex.width / 2) + DetectorWindowPosition.x;
                 float yVar = ((Last.yMin + Last.yMax) / 2) - (planetTex.height / 2) + DetectorWindowPosition.y;
                 xVar = xVar - UnityEngine.Input.mousePosition.x;
@@ -243,6 +267,7 @@ namespace Kethane
             }
 
             GUILayout.Label(String.Format("Last deposit: {0:0.000}, {1:0.000} ({2:F0}L)", LastLat, LastLon, LastQuantity));
+			GUILayout.Label(String.Format("Current coords: {0:0.000}, {1:0.000}", currentCoords.lat, currentCoords.lon));
             ScanningSound = GUILayout.Toggle(ScanningSound, "Detection sound");
 
             GUILayout.EndVertical();
