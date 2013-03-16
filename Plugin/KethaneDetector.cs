@@ -179,7 +179,7 @@ namespace Kethane
         {
             var controller = KethaneController.GetInstance(this.vessel);
             double Altitude = Misc.GetTrueAltitude(vessel);
-            if (IsDetecting && this.vessel != null && this.vessel.gameObject.active && Altitude <= this.DetectingHeight)
+            if (IsDetecting && this.vessel != null && this.vessel.gameObject.activeSelf && Altitude <= this.DetectingHeight)
             {
                 var energyRequest = PowerConsumption * TimeWarp.fixedDeltaTime;
                 var energyDrawn = this.part.RequestResource("ElectricCharge", energyRequest);

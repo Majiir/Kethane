@@ -212,7 +212,7 @@ namespace Kethane
                 DigEffects[i].name = "DigEffect" + i.ToString();
                 DigEffects[i].transform.parent = BaseTransform;
 
-                DigEffects[i].gameObject.active = false;
+                DigEffects[i].gameObject.SetActive(false);
             }
 
 
@@ -228,13 +228,13 @@ namespace Kethane
         private void ActivateEffects()
         {
             foreach (GameObject Effect in DigEffects)
-                Effect.gameObject.active = true;
+                Effect.gameObject.SetActive(true);
         }
 
         private void DeactivateEffects()
         {
             foreach (GameObject Effect in DigEffects)
-                Effect.gameObject.active = false;
+                Effect.gameObject.SetActive(false);
         }
 
         private bool IsPlanet(Collider collider)
