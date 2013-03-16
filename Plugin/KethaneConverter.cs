@@ -100,7 +100,7 @@ namespace Kethane
             if (heatsink != null)
             {
                 var heatRequest = (float)ratio * HeatProduction * TimeWarp.fixedDeltaTime;
-                ratio = heatsink.AddHeat(heatRequest) / heatRequest;
+                ratio *= heatsink.AddHeat(heatRequest) / heatRequest;
             }
 
             requestedKethane *= ratio;
