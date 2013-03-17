@@ -86,9 +86,9 @@ namespace Kethane
             double requestedKethane = KethaneConsumption * TimeWarp.fixedDeltaTime;
             double requestedEnergy = PowerConsumption * TimeWarp.fixedDeltaTime;
 
-            var availableSpace = Misc.GetConnectedResources(this.part, TargetResource).Sum(r => r.maxAmount - r.amount);
-            var availableKethane = Misc.GetConnectedResources(this.part, "Kethane").Sum(r => r.amount);
-            var availableEnergy = Misc.GetConnectedResources(this.part, "ElectricCharge").Sum(r => r.amount);
+            var availableSpace = Misc.GetConnectedResources(this.part, TargetResource).Max(r => r.maxAmount - r.amount);
+            var availableKethane = Misc.GetConnectedResources(this.part, "Kethane").Max(r => r.amount);
+            var availableEnergy = Misc.GetConnectedResources(this.part, "ElectricCharge").Max(r => r.amount);
 
             var spaceRatio = availableSpace / requestedSpace;
             var kethaneRatio = availableKethane / requestedKethane;
@@ -100,20 +100,20 @@ namespace Kethane
             if (heatsink != null)
             {
                 var heatRequest = (float)ratio * HeatProduction * TimeWarp.fixedDeltaTime;
-                ratio = heatsink.AddHeat(heatRequest) / heatRequest;
+                ratio *= heatsink.AddHeat(heatRequest) / heatRequest;
             }
 
-            requestedSpace *= ratio;
             requestedKethane *= ratio;
-            requestedEnergy *= ratio;
 
             var drawnKethane = this.part.RequestResource("Kethane", requestedKethane);
+
+            ratio *= drawnKethane / requestedKethane;
+            requestedEnergy *= ratio;
+
             var drawnEnergy = this.part.RequestResource("ElectricCharge", requestedEnergy);
 
-            if (drawnKethane < requestedKethane || drawnEnergy < requestedEnergy)
-            {
-                MonoBehaviour.print("[KETHANE] Unexpected energy and/or Kethane deficit!");
-            }
+            ratio *= drawnEnergy / requestedEnergy;
+            requestedSpace *= ratio;
 
             this.part.RequestResource(TargetResource, -requestedSpace);
         }

@@ -62,6 +62,8 @@ namespace Kethane
 
         private static long lastSaveFrame = -1;
 
+        private static Texture2D youAreHereMarker = new Texture2D(0, 0);
+
         private void SetMaps()
         {
             if (FlightGlobals.fetch == null) { return; }
@@ -83,6 +85,7 @@ namespace Kethane
                     PlanetTextures[body.name].Apply();
                 }
             }
+            youAreHereMarker.LoadImage(KSP.IO.File.ReadAllBytes<KethaneController>("YouAreHereMarker.png"));
         }
 
         private void SaveAllMaps()
@@ -111,7 +114,7 @@ namespace Kethane
                     if (deposit)
                         planetTex.SetPixel(x, y, XKCDColors.Green);
                     else
-                        planetTex.SetPixel(x, y, XKCDColors.Grey);
+                        planetTex.SetPixel(x, y, XKCDColors.DarkGrey);
                 }
 
                 planetTex.Apply();
@@ -226,6 +229,10 @@ namespace Kethane
                 Texture2D planetTex = KethaneController.PlanetTextures[Vessel.mainBody.name];
                 GUILayout.Box(planetTex);
                 Rect Last = UnityEngine.GUILayoutUtility.GetLastRect();
+
+                int x = Misc.GetXOnMap(Misc.clampDegrees(Vessel.mainBody.GetLongitude(Vessel.transform.position)), planetTex.width);
+                int y = Misc.GetYOnMap(Vessel.mainBody.GetLatitude(Vessel.transform.position), planetTex.height);
+                GUI.DrawTexture(new Rect(((Last.xMin + Last.xMax) / 2) - (planetTex.width / 2) + x - (youAreHereMarker.width / 2), ((Last.yMin + Last.yMax) / 2) + (planetTex.height / 2) - y - (youAreHereMarker.height / 2), 7, 7), youAreHereMarker);
 
                 float xVar = ((Last.xMin + Last.xMax) / 2) - (planetTex.width / 2) + DetectorWindowPosition.x;
                 float yVar = ((Last.yMin + Last.yMax) / 2) - (planetTex.height / 2) + DetectorWindowPosition.y;
