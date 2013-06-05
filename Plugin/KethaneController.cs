@@ -39,6 +39,7 @@ namespace Kethane
         {
             SaveAndLoadState();
             RenderingManager.AddToPostDrawQueue(3, drawGui);
+            RenderingManager.AddToPostDrawQueue(3, drawSphere);
         }
 
         public Vessel Vessel
@@ -81,7 +82,7 @@ namespace Kethane
                 {
                     for (int y = 0; y < PlanetTextures[body.name].height; y++)
                         for (int x = 0; x < PlanetTextures[body.name].width; x++)
-                            PlanetTextures[body.name].SetPixel(x, y, Color.black);
+                            PlanetTextures[body.name].SetPixel(x, y, new Color(0.0f, 0.0f, 0.0f, 0.8f));
                     PlanetTextures[body.name].Apply();
                 }
             }
@@ -101,7 +102,7 @@ namespace Kethane
             }
         }
 
-        public void DrawMap(bool deposit)
+        public void DrawMap(bool deposit, KethaneDeposit kdeposit)
         {
             if (Vessel.mainBody != null && PlanetTextures.ContainsKey(Vessel.mainBody.name))
             {
@@ -111,10 +112,16 @@ namespace Kethane
                 {
                     int x = Misc.GetXOnMap(Misc.clampDegrees(Vessel.mainBody.GetLongitude(Vessel.transform.position)), planetTex.width);
                     int y = Misc.GetYOnMap(Vessel.mainBody.GetLatitude(Vessel.transform.position), planetTex.height);
-                    if (deposit)
-                        planetTex.SetPixel(x, y, XKCDColors.Green);
-                    else
-                        planetTex.SetPixel(x, y, XKCDColors.DarkGrey);
+                    if (deposit && kdeposit != null) {
+                        float ratio = kdeposit.Kethane / KethaneDeposit.MaximumKethane;
+                        Color col = Color.white - ratio * (Color.white - XKCDColors.Green);
+                        col.a = 0.8f;
+                        planetTex.SetPixel(x, y, col);
+                    } else {
+                        Color c = XKCDColors.Black;
+                        c.a = 0.1f;
+                        planetTex.SetPixel(x, y, c);
+                    }
                 }
 
                 planetTex.Apply();
@@ -200,10 +207,45 @@ namespace Kethane
 
         public bool ScanningSound = true;
 
-        public double LastLat, LastLon;
-        public float LastQuantity;
+        public bool DrawDepositSphere = false;
+        public float SphereSize = 0.01f;
 
+        public double LastLat, LastLon;
+        public KethaneDeposit LastDeposit;
+
+        private GameObject sphereObject;
+		
         private Rect DetectorWindowPosition = new Rect(Screen.width * 0.20f, 250, 10, 10);
+
+        private void drawSphere ()
+        {
+            if (DrawDepositSphere && this.Vessel != null && Vessel.mainBody != null) {
+                if (sphereObject == null) {
+                    sphereObject = GameObject.CreatePrimitive (PrimitiveType.Sphere);
+                    SphereCollider col = sphereObject.GetComponent<SphereCollider> ();
+                    col.isTrigger = true;
+					
+                    sphereObject.renderer.material = new Material (Shader.Find ("Transparent/Diffuse"));
+                }
+				
+                Vessel v = Vessel;
+                sphereObject.transform.position = v.mainBody.transform.position;
+                sphereObject.transform.localScale = (v.mainBody.Radius + SphereSize * v.orbit.altitude)
+                    * new Vector3d (2.0f, 2.0f, 2.0f);
+                sphereObject.transform.rotation = v.mainBody.transform.rotation;
+                sphereObject.transform.localRotation = v.mainBody.transform.localRotation;
+				
+                sphereObject.transform.Rotate (0.0f, 20.0f, 0.0f);
+				
+                var texture = KethaneController.PlanetTextures [Vessel.mainBody.name];
+                sphereObject.renderer.material.mainTexture = texture;
+				
+                texture.Apply ();
+            } else {
+                GameObject.Destroy (sphereObject);
+                sphereObject = null;
+            }
+        }
 
         private void drawGui()
         {
@@ -246,14 +288,20 @@ namespace Kethane
                     inbound = false;
 
                 GUILayout.Label(String.Format(inbound ? "Mouse coordinates: {0:0.0}, {1:0.0}" : "Mouse coordinates: -", Misc.GetLatOnMap(yVar, planetTex.height), Misc.GetLonOnMap(xVar, planetTex.width)));
-
             }
 
-            GUILayout.Label(String.Format("Last deposit: {0:0.000}, {1:0.000} ({2:F0}L)", LastLat, LastLon, LastQuantity));
+            if (LastDeposit != null) {
+                GUILayout.Label (String.Format ("Last deposit: {0:0.000}, {1:0.000} ({2:F0}L)", LastLat, LastLon, LastDeposit.Kethane));
+            }
+
             ScanningSound = GUILayout.Toggle(ScanningSound, "Detection sound");
+            DrawDepositSphere = GUILayout.Toggle (DrawDepositSphere, "Draw deposit sphere");
+			
+            GUILayout.Label ("Sphere size: ");
+            SphereSize = GUILayout.HorizontalSlider (SphereSize, 0, 1);
 
             GUILayout.EndVertical();
-            GUI.DragWindow(new Rect(0, 0, 300, 60));
+            GUI.DragWindow(new Rect (0, 0, 300, 60));
             #endregion
         }
     }

@@ -65,13 +65,15 @@ namespace Kethane
 
         public float Depth = 1.0f;
 
+        public const float MaximumKethane = 500000;
+
         public void Generate(Vector3 Pos, float r)
         {
             Radius = r;
             Position = new Point(Pos.x, Pos.z);
             Depth = UnityEngine.Random.Range(1.0f, 2.0f);
 
-            InitialKethaneAmount = UnityEngine.Random.Range(10000, 500000);
+            InitialKethaneAmount = UnityEngine.Random.Range(10000, MaximumKethane);
             Kethane = InitialKethaneAmount;
 
             Vertices = new List<Point>();
