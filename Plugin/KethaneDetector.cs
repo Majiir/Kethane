@@ -95,7 +95,7 @@ namespace Kethane
             this.part.force_activate();
             #region Sound effects
             PingEmpty = gameObject.AddComponent<AudioSource>();
-            WWW wwwE = new WWW("file://" + KSPUtil.ApplicationRootPath.Replace("\\", "/") + "PluginData/mmi_kethane/sounds/echo_empty.wav");
+            WWW wwwE = new WWW("file://" + KSPUtil.ApplicationRootPath.Replace("\\", "/") + "GameData/Kethane/Plugins/PluginData/MMI_Kethane/sounds/echo_empty.wav");
             if ((PingEmpty != null) && (wwwE != null))
             {
                 PingEmpty.clip = wwwE.GetAudioClip(false);
@@ -104,7 +104,7 @@ namespace Kethane
             }
 
             PingDeposit = gameObject.AddComponent<AudioSource>();
-            WWW wwwD = new WWW("file://" + KSPUtil.ApplicationRootPath.Replace("\\", "/") + "PluginData/mmi_kethane/sounds/echo_deposit.wav");
+            WWW wwwD = new WWW("file://" + KSPUtil.ApplicationRootPath.Replace("\\", "/") + "GameData/Kethane/Plugins/PluginData/MMI_Kethane/sounds/echo_deposit.wav");
             if ((PingDeposit != null) && (wwwD != null))
             {
                 PingDeposit.clip = wwwD.GetAudioClip(false);
