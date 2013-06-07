@@ -29,8 +29,6 @@ namespace Kethane
 
         private int CollsionLayerMask = 0;
 
-        protected static AudioSource DrillOut, DrillIn;
-
         private bool IsDrillUndergorund = false;
 
         private float DeployLength = 0.0f;
@@ -177,25 +175,6 @@ namespace Kethane
             {
                 foreach (CelestialBody Body in FlightGlobals.Bodies)
                     CollsionLayerMask = 1 << Body.gameObject.layer;
-            }
-            #endregion
-            #region Sound effects
-            DrillIn = gameObject.AddComponent<AudioSource>();
-            WWW dIn = new WWW("file://" + KSPUtil.ApplicationRootPath.Replace("\\", "/") + "PluginData/mmi_kethane/sounds/drillIn.wav");
-            if ((DrillIn != null) && (dIn != null))
-            {
-                DrillIn.clip = dIn.GetAudioClip(false);
-                DrillIn.volume = 2;
-                DrillIn.Stop();
-            }
-
-            DrillOut = gameObject.AddComponent<AudioSource>();
-            WWW dOut = new WWW("file://" + KSPUtil.ApplicationRootPath.Replace("\\", "/") + "PluginData/mmi_kethane/sounds/drillOut.wav");
-            if ((DrillOut != null) && (dOut != null))
-            {
-                DrillOut.clip = dOut.GetAudioClip(false);
-                DrillOut.volume = 0.25f;
-                DrillOut.Stop();
             }
             #endregion
             #region Child model parts
