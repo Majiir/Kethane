@@ -11,8 +11,7 @@ namespace Kethane
         public void ConsumeKerbal()
         {
             var vessel = FlightGlobals.ActiveVessel;
-            var kerbal = vessel.GetComponent<KerbalEVA>();
-            if (kerbal.name == "kerbalEVA (Jebediah Kerman)")
+            if (vessel.GetVesselCrew()[0].isBadass)
             {
                 vessel.rootPart.explosionPotential = 10000;
             }
