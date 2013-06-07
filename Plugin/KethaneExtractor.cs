@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 
 namespace Kethane
 {
@@ -70,19 +68,19 @@ namespace Kethane
 
         public override void OnFixedUpdate()
         {
-            var DepositUnder = KethaneController.GetInstance(this.vessel).GetDepositUnder();
+            var deposit = KethaneController.GetInstance(this.vessel).GetDepositUnder();
 
-            if (this.vessel != null && DepositUnder != null && animator.CurrentState == ExtractorState.Deployed)
+            if (deposit == null) { return; }
+            if (animator.CurrentState != ExtractorState.Deployed) { return; }
+
+            if (animator.CanExtract)
             {
-                if (animator.CanExtract)
-                {
-                    var energyRequest = this.PowerConsumption * TimeWarp.fixedDeltaTime;
-                    var energy = this.part.RequestResource("ElectricCharge", energyRequest);
+                var energyRequest = this.PowerConsumption * TimeWarp.fixedDeltaTime;
+                var energy = this.part.RequestResource("ElectricCharge", energyRequest);
 
-                    float Amount = TimeWarp.fixedDeltaTime * ExtractionRate * (energy / energyRequest);
-                    Amount = Math.Min(Amount, DepositUnder.Kethane);
-                    DepositUnder.Kethane += this.part.RequestResource("Kethane", -Amount);
-                }
+                var amount = TimeWarp.fixedDeltaTime * ExtractionRate * (energy / energyRequest);
+                amount = Math.Min(amount, deposit.Kethane);
+                deposit.Kethane += this.part.RequestResource("Kethane", -amount);
             }
         }
 
