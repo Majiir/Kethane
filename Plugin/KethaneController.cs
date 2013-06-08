@@ -67,9 +67,9 @@ namespace Kethane
                 {
                     PlanetTextures.Add(body.name, new Texture2D(256, 128, TextureFormat.ARGB32, false));
                 }
-                if (KSP.IO.File.Exists<KethaneController>(body.name + ".png"))
+                if (KSP.IO.File.Exists<KethaneController>(getMapFilename(body)))
                 {
-                    PlanetTextures[body.name].LoadImage(KSP.IO.File.ReadAllBytes<KethaneController>(body.name + ".png"));
+                    PlanetTextures[body.name].LoadImage(KSP.IO.File.ReadAllBytes<KethaneController>(getMapFilename(body)));
                 }
                 else
                 {
@@ -94,7 +94,7 @@ namespace Kethane
                 if (PlanetTextures.ContainsKey(body.name))
                 {
                     var pbytes = PlanetTextures[body.name].EncodeToPNG();
-                    KSP.IO.File.WriteAllBytes<KethaneController>(pbytes, body.name + ".png", null);
+                    KSP.IO.File.WriteAllBytes<KethaneController>(pbytes, getMapFilename(body), null);
                 }
             }
         }
@@ -119,6 +119,11 @@ namespace Kethane
 
                 planetTex.Apply();
             }
+        }
+
+        private string getMapFilename(CelestialBody body)
+        {
+            return String.Format("map_{0}_{1}.png", depositSeed, body.name);
         }
 
         private string configFilePath
@@ -207,11 +212,7 @@ namespace Kethane
             depositSeed = random.Next();
             generateFromSeed();
             SaveKethaneDeposits();
-            foreach (CelestialBody body in FlightGlobals.Bodies)
-            {
-                if (KSP.IO.File.Exists<KethaneController>(body.name + ".png"))
-                    KSP.IO.File.Delete<KethaneController>(body.name + ".png");
-            }
+            SetMaps();
         }
 
         public KethaneDeposit GetDepositUnder()
