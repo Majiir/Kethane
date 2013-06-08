@@ -37,7 +37,8 @@ namespace Kethane
 
         private KethaneController()
         {
-            SaveAndLoadState();
+            LoadKethaneDeposits();
+            SetMaps();
             RenderingManager.AddToPostDrawQueue(3, drawGui);
         }
 
@@ -46,23 +47,16 @@ namespace Kethane
             get { return controllers.Single(p => p.Value == this).Key.Target; }
         }
 
-        public void SaveAndLoadState()
-        {
-            if (lastSaveFrame == Time.frameCount) { return; }
-            lastSaveFrame = Time.frameCount;
-            SaveKethaneDeposits();
-            LoadKethaneDeposits();
-            SaveAllMaps();
-            SetMaps();
-        }
-
         public static Dictionary<string, KethaneDeposits> PlanetDeposits;
 
         public static Dictionary<string, Texture2D> PlanetTextures = new Dictionary<string, Texture2D>();
 
         private static long lastSaveFrame = -1;
+        private static long lastMapsSaveFrame = -1;
 
         private static Texture2D youAreHereMarker = new Texture2D(0, 0);
+
+        private static int depositSeed;
 
         private void SetMaps()
         {
@@ -73,9 +67,9 @@ namespace Kethane
                 {
                     PlanetTextures.Add(body.name, new Texture2D(256, 128, TextureFormat.ARGB32, false));
                 }
-                if (KSP.IO.File.Exists<KethaneController>(body.name + ".png"))
+                if (KSP.IO.File.Exists<KethaneController>(getMapFilename(body)))
                 {
-                    PlanetTextures[body.name].LoadImage(KSP.IO.File.ReadAllBytes<KethaneController>(body.name + ".png"));
+                    PlanetTextures[body.name].LoadImage(KSP.IO.File.ReadAllBytes<KethaneController>(getMapFilename(body)));
                 }
                 else
                 {
@@ -88,15 +82,19 @@ namespace Kethane
             youAreHereMarker.LoadImage(KSP.IO.File.ReadAllBytes<KethaneController>("YouAreHereMarker.png"));
         }
 
-        private void SaveAllMaps()
+        public void SaveAllMaps()
         {
             if (FlightGlobals.fetch == null) { return; }
+
+            if (lastMapsSaveFrame == Time.frameCount) { return; }
+            lastMapsSaveFrame = Time.frameCount;
+
             foreach (CelestialBody body in FlightGlobals.Bodies)
             {
                 if (PlanetTextures.ContainsKey(body.name))
                 {
                     var pbytes = PlanetTextures[body.name].EncodeToPNG();
-                    KSP.IO.File.WriteAllBytes<KethaneController>(pbytes, body.name + ".png", null);
+                    KSP.IO.File.WriteAllBytes<KethaneController>(pbytes, getMapFilename(body), null);
                 }
             }
         }
@@ -123,63 +121,98 @@ namespace Kethane
             }
         }
 
-        private void SaveKethaneDeposits()
+        private string getMapFilename(CelestialBody body)
         {
-            try
-            {
-                if (PlanetDeposits == null)
-                    return;
+            return String.Format("map_{0}_{1}.png", depositSeed, body.name);
+        }
 
-                byte[] DepositsToSave = KSP.IO.IOUtils.SerializeToBinary(PlanetDeposits);
-                int HowManyToSave = DepositsToSave.Length;
-                KSP.IO.BinaryWriter Writer = KSP.IO.BinaryWriter.CreateForType<KethaneController>("Deposits.dat");
-                Writer.Write(HowManyToSave);
-                Writer.Write(DepositsToSave);
-                Writer.Close();
-            }
-            catch (Exception e)
+        private string configFilePath
+        {
+            get { return KSPUtil.ApplicationRootPath + "saves/" + HighLogic.SaveFolder + "/kethane.cfg"; }
+        }
+
+        public void SaveKethaneDeposits()
+        {
+            if (PlanetDeposits == null) { return; }
+            if (lastSaveFrame == Time.frameCount) { return; }
+            lastSaveFrame = Time.frameCount;
+
+            var timer = System.Diagnostics.Stopwatch.StartNew();
+
+            var configNode = new ConfigNode();
+            configNode.AddValue("Seed", depositSeed);
+
+            foreach (var body in PlanetDeposits)
             {
-                MonoBehaviour.print("Kethane plugin - deposit save error: " + e);
+                var bodyNode = new ConfigNode("Body");
+                bodyNode.AddValue("Name", body.Key);
+
+                foreach (var deposit in body.Value.Deposits)
+                {
+                    var depositNode = new ConfigNode("Deposit");
+                    depositNode.AddValue("Kethane", deposit.Kethane);
+                    bodyNode.AddNode(depositNode);
+                }
+
+                configNode.AddNode(bodyNode);
             }
+
+            configNode.Save(configFilePath);
+
+            timer.Stop();
+            Debug.LogWarning(String.Format("Kethane deposits saved ({0}ms)", timer.ElapsedMilliseconds));
         }
 
         private void LoadKethaneDeposits()
         {
-            if (PlanetDeposits != null) { return; }
-            if (KSP.IO.File.Exists<KethaneController>("Deposits.dat"))
+            if (FlightGlobals.fetch == null) { return; }
+
+            var timer = System.Diagnostics.Stopwatch.StartNew();
+
+            var config = ConfigNode.Load(configFilePath);
+
+            if ((config == null) || !int.TryParse(config.GetValue("Seed"), out depositSeed))
             {
-                try
+                GenerateKethaneDeposits();
+                return;
+            }
+
+            generateFromSeed();
+
+            foreach (var body in PlanetDeposits)
+            {
+                var deposits = body.Value.Deposits;
+
+                var bodyNode = config.GetNodes("Body").Where(b => b.GetValue("Name") == body.Key).SingleOrDefault();
+                if (bodyNode == null) { continue; }
+
+                var depositNodes = bodyNode.GetNodes("Deposit");
+                for (int i = 0; i < Math.Min(deposits.Count, depositNodes.Length); i++)
                 {
-                    KSP.IO.BinaryReader Loader = KSP.IO.BinaryReader.CreateForType<KethaneController>("Deposits.dat");
-                    int HowManyToLoad = Loader.ReadInt32();
-                    byte[] DepositsToLoad = new byte[HowManyToLoad];
-                    Loader.Read(DepositsToLoad, 0, HowManyToLoad);
-                    Loader.Close();
-                    object ObjectToLoad = KSP.IO.IOUtils.DeserializeFromBinary(DepositsToLoad);
-                    PlanetDeposits = (Dictionary<string, KethaneDeposits>)ObjectToLoad;
-                    return;
-                }
-                catch (Exception e)
-                {
-                    MonoBehaviour.print("Kethane plugin - deposit load error: " + e);
-                    MonoBehaviour.print("Generating new kethane deposits");
+                    deposits[i].Kethane = float.Parse(depositNodes[i].GetValue("Kethane"));
                 }
             }
-            GenerateKethaneDeposits();
+
+            timer.Stop();
+            Debug.LogWarning(String.Format("Kethane deposits loaded ({0}ms)", timer.ElapsedMilliseconds));
         }
 
-        public void GenerateKethaneDeposits()
+        private void generateFromSeed()
+        {
+            PlanetDeposits = FlightGlobals.Bodies.ToDictionary(b => b.name, b => KethaneDeposits.Generate(b, new System.Random(depositSeed % b.name.GetHashCode())));
+        }
+
+        public void GenerateKethaneDeposits(System.Random random = null)
         {
             if (FlightGlobals.fetch == null) { return; }
-            PlanetDeposits = new Dictionary<string, KethaneDeposits>();
-            foreach (CelestialBody CBody in FlightGlobals.Bodies)
-                PlanetDeposits.Add(CBody.name, new KethaneDeposits(CBody));
+
+            Debug.LogWarning("Regenerating Kethane deposits");
+
+            if (random == null) { random = new System.Random(); }
+            depositSeed = random.Next();
+            generateFromSeed();
             SaveKethaneDeposits();
-            foreach (CelestialBody body in FlightGlobals.Bodies)
-            {
-                if (KSP.IO.File.Exists<KethaneController>(body.name + ".png"))
-                    KSP.IO.File.Delete<KethaneController>(body.name + ".png");
-            }
+            SetMaps();
         }
 
         public KethaneDeposit GetDepositUnder()
@@ -190,10 +223,10 @@ namespace Kethane
             double lon = Misc.clampDegrees(Vessel.mainBody.GetLongitude(Vessel.transform.position));
             double lat = Vessel.mainBody.GetLatitude(Vessel.transform.position);
 
-            double x = Math.Round((lon + 180d) * (Deposits.Width / 360d));
-            double y = Math.Round(((90d - lat) * (Deposits.Height / 180d)));
+            double x = Math.Round(lon + 180d);
+            double y = Math.Round(90d - lat);
 
-            Vector3 PointUnder = new Vector3((float)x, 0, (float)y);
+            Vector2 PointUnder = new Vector2((float)x, (float)y);
 
             return Deposits.GetDepositOver(PointUnder);
         }
