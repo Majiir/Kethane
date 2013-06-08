@@ -68,7 +68,7 @@ namespace Kethane
 
         public const float MaximumKethane = 500000;
 
-        public void Generate(Vector3 Pos, float r)
+        public void Generate(Vector2 Pos, float r)
         {
             InitialKethaneAmount = UnityEngine.Random.Range(10000, MaximumKethane);
             Kethane = InitialKethaneAmount;
@@ -80,7 +80,7 @@ namespace Kethane
                 float RandomRadius = UnityEngine.Random.Range(0.45f * r, r);
                 float Angle = 2.0f * (float)Math.PI * ((float)i / (float)VerticesCount);
                 float x = Pos.x + RandomRadius * (float)Math.Cos(Angle);
-                float z = Pos.z - RandomRadius * (float)Math.Sin(Angle);
+                float z = Pos.y - RandomRadius * (float)Math.Sin(Angle);
 
                 Vertices.Add(new Point(x, z));
             }
@@ -111,7 +111,7 @@ namespace Kethane
                 float R = UnityEngine.Random.Range(MinRadius, MaxRadius);
                 for (int j = 0; j < NumberOfTries; j++)
                 {
-                    Vector3 Pos = new Vector3(UnityEngine.Random.Range(R, Width - R), 0, UnityEngine.Random.Range(R, Height - R));
+                    Vector2 Pos = new Vector2(UnityEngine.Random.Range(R, Width - R), UnityEngine.Random.Range(R, Height - R));
                         Deposit.Generate(Pos, R);
                     if (depositFits(Deposit))
                     {
