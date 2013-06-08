@@ -37,7 +37,8 @@ namespace Kethane
 
         private KethaneController()
         {
-            SaveAndLoadState();
+            LoadKethaneDeposits();
+            SetMaps();
             RenderingManager.AddToPostDrawQueue(3, drawGui);
         }
 
@@ -46,21 +47,12 @@ namespace Kethane
             get { return controllers.Single(p => p.Value == this).Key.Target; }
         }
 
-        public void SaveAndLoadState()
-        {
-            if (lastSaveFrame == Time.frameCount) { return; }
-            lastSaveFrame = Time.frameCount;
-            SaveKethaneDeposits();
-            LoadKethaneDeposits();
-            SaveAllMaps();
-            SetMaps();
-        }
-
         public static Dictionary<string, KethaneDeposits> PlanetDeposits;
 
         public static Dictionary<string, Texture2D> PlanetTextures = new Dictionary<string, Texture2D>();
 
         private static long lastSaveFrame = -1;
+        private static long lastMapsSaveFrame = -1;
 
         private static Texture2D youAreHereMarker = new Texture2D(0, 0);
 
@@ -88,9 +80,13 @@ namespace Kethane
             youAreHereMarker.LoadImage(KSP.IO.File.ReadAllBytes<KethaneController>("YouAreHereMarker.png"));
         }
 
-        private void SaveAllMaps()
+        public void SaveAllMaps()
         {
             if (FlightGlobals.fetch == null) { return; }
+
+            if (lastMapsSaveFrame == Time.frameCount) { return; }
+            lastMapsSaveFrame = Time.frameCount;
+
             foreach (CelestialBody body in FlightGlobals.Bodies)
             {
                 if (PlanetTextures.ContainsKey(body.name))
@@ -123,8 +119,11 @@ namespace Kethane
             }
         }
 
-        private void SaveKethaneDeposits()
+        public void SaveKethaneDeposits()
         {
+            if (lastSaveFrame == Time.frameCount) { return; }
+            lastSaveFrame = Time.frameCount;
+
             try
             {
                 if (PlanetDeposits == null)
