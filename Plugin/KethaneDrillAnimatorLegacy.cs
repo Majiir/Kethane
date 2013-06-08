@@ -161,7 +161,6 @@ namespace Kethane
         public override void OnStart(PartModule.StartState state)
         {
             if (state == StartState.Editor) { return; }
-            this.part.force_activate();
             #region Configuration
             if (FlightGlobals.fetch != null)
             {

@@ -15,6 +15,7 @@ namespace Kethane
 
         public override void OnStart(PartModule.StartState state)
         {
+            this.part.force_activate();
             animator = part.Modules.OfType<IExtractorAnimator>().Single();
         }
 
