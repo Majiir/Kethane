@@ -111,9 +111,10 @@ namespace Kethane
 
             if (GUILayout.Button("GEN HERE", GUILayout.ExpandWidth(true)))
             {
+                var random = new System.Random();
                 while (controller.GetDepositUnder() == null)
                 {
-                    controller.GenerateKethaneDeposits();
+                    controller.GenerateKethaneDeposits(random);
                 }
             }
 

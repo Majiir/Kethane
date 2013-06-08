@@ -197,13 +197,14 @@ namespace Kethane
             PlanetDeposits = FlightGlobals.Bodies.ToDictionary(b => b.name, b => KethaneDeposits.Generate(b, new System.Random(depositSeed % b.name.GetHashCode())));
         }
 
-        public void GenerateKethaneDeposits()
+        public void GenerateKethaneDeposits(System.Random random = null)
         {
             if (FlightGlobals.fetch == null) { return; }
 
             Debug.LogWarning("Regenerating Kethane deposits");
 
-            depositSeed = new System.Random().Next();
+            if (random == null) { random = new System.Random(); }
+            depositSeed = random.Next();
             generateFromSeed();
             SaveKethaneDeposits();
             foreach (CelestialBody body in FlightGlobals.Bodies)
