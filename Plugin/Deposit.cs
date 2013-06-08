@@ -94,13 +94,11 @@ namespace Kethane
         public List<KethaneDeposit> Deposits = new List<KethaneDeposit>();
         public float Width;
         public float Height;
-        private string Name;
 
         public KethaneDeposits(CelestialBody CBody)
         {
             Width = 2.0f * (float)Math.PI * (float)CBody.Radius;
             Height = Width / 2.0f;
-            Name = CBody.name;
 
             int DepositCount = (CBody.name == "Kerbin" ? 15 : 20) + (CBody.name == "Mun" ? 7 : -3);
             int NumberOfTries = 30;
