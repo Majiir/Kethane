@@ -137,7 +137,9 @@ namespace Kethane
                 V = Pos - V2;
                 V.y = 0;
                 if (V.magnitude < 1.1f * (R1 + R2))
+                {
                     return false;
+                }
             }
             return true;
         }
@@ -145,16 +147,24 @@ namespace Kethane
         public bool IsPointOverDeposit(Vector3 Point)
         {
             foreach (KethaneDeposit KD in Deposits)
+            {
                 if (KD.Shape.PointInPolygon(Point))
+                {
                     return true;
+                }
+            }
             return false;
         }
 
         public KethaneDeposit GetDepositOver(Vector3 Point)
         {
             foreach (KethaneDeposit KD in Deposits)
+            {
                 if (KD.Shape.PointInPolygon(Point))
+                {
                     return KD;
+                }
+            }
             return null;
         }
     }
