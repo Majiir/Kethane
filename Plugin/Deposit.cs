@@ -68,10 +68,17 @@ namespace Kethane
 
         public const float MaximumKethane = 500000;
 
-        public void Generate(Vector2 Pos, float r)
+        public KethaneDeposit(Polygon shape, float kethane, float initialKethane)
         {
-            InitialKethaneAmount = UnityEngine.Random.Range(10000, MaximumKethane);
-            Kethane = InitialKethaneAmount;
+            Shape = shape;
+            Kethane = kethane;
+            InitialKethaneAmount = initialKethane;
+        }
+
+        public static KethaneDeposit Generate(Vector2 Pos, float r)
+        {
+            var InitialKethaneAmount = UnityEngine.Random.Range(10000, MaximumKethane);
+            var Kethane = InitialKethaneAmount;
 
             var Vertices = new List<Point>();
             int VerticesCount = UnityEngine.Random.Range(20, 50);
@@ -84,7 +91,9 @@ namespace Kethane
 
                 Vertices.Add(new Point(x, z));
             }
-            Shape = new Polygon(Vertices.ToArray());
+            var Shape = new Polygon(Vertices.ToArray());
+
+            return new KethaneDeposit(Shape, Kethane, InitialKethaneAmount);
         }
     }
 
@@ -102,12 +111,11 @@ namespace Kethane
 
             for (int i = 0; i < DepositCount; i++)
             {
-                KethaneDeposit Deposit = new KethaneDeposit();
                 float R = UnityEngine.Random.Range(MinRadius, MaxRadius);
                 for (int j = 0; j < NumberOfTries; j++)
                 {
                     Vector2 Pos = new Vector2(UnityEngine.Random.Range(R, 360 - R), UnityEngine.Random.Range(R, 180 - R));
-                        Deposit.Generate(Pos, R);
+                    var Deposit = KethaneDeposit.Generate(Pos, R);
                     if (depositFits(Deposit))
                     {
                         Deposits.Add(Deposit);
