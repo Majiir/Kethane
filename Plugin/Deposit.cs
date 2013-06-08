@@ -144,18 +144,6 @@ namespace Kethane
             return true;
         }
 
-        public bool IsPointOverDeposit(Vector3 Point)
-        {
-            foreach (KethaneDeposit KD in Deposits)
-            {
-                if (KD.Shape.PointInPolygon(Point))
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
         public KethaneDeposit GetDepositOver(Vector3 Point)
         {
             foreach (KethaneDeposit KD in Deposits)
