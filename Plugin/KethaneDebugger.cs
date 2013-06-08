@@ -123,7 +123,7 @@ namespace Kethane
             GUILayout.BeginHorizontal();
             GUILayout.Label("Deposit: ");
             var DepositUnder = controller.GetDepositUnder();
-            GUILayout.Label(DepositUnder == null ? "-" : (DepositUnder.Depth.ToString() + "  " + DepositUnder.Kethane.ToString()));
+            GUILayout.Label(DepositUnder == null ? "-" : DepositUnder.Kethane.ToString());
             GUILayout.EndHorizontal();
 
             GUILayout.EndVertical();
