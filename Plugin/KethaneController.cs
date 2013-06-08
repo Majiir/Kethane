@@ -212,6 +212,7 @@ namespace Kethane
             if (FlightGlobals.fetch == null) { return; }
             if (FlightGlobals.ActiveVessel != Vessel)
             { return; }
+            if (!Vessel.Parts.SelectMany(p => p.Modules.OfType<KethaneDetector>()).Any()) { return; }
 
             GUI.skin = HighLogic.Skin;
 
