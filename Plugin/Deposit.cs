@@ -61,8 +61,6 @@ namespace Kethane
     [Serializable]
     public class KethaneDeposit
     {
-        public Point Position { get; set; }
-        public float Radius { get; set; }
         public Polygon Shape;
 
         public float Kethane { get; set; }
@@ -72,9 +70,6 @@ namespace Kethane
 
         public void Generate(Vector3 Pos, float r)
         {
-            Radius = r;
-            Position = new Point(Pos.x, Pos.z);
-
             InitialKethaneAmount = UnityEngine.Random.Range(10000, MaximumKethane);
             Kethane = InitialKethaneAmount;
 
@@ -119,9 +114,9 @@ namespace Kethane
                 for (int j = 0; j < NumberOfTries; j++)
                 {
                     Vector3 Pos = new Vector3(UnityEngine.Random.Range(R, Width - R), 0, UnityEngine.Random.Range(R, Height - R));
-                    if (IsPositionOK(Pos, R))
-                    {
                         Deposit.Generate(Pos, R);
+                    if (depositFits(Deposit))
+                    {
                         Deposits.Add(Deposit);
                         break;
                     }
@@ -129,21 +124,9 @@ namespace Kethane
             }
         }
 
-        private bool IsPositionOK(Vector3 Pos, float R1)
+        private bool depositFits(KethaneDeposit deposit)
         {
-            foreach (KethaneDeposit KD in Deposits)
-            {
-                float R2 = KD.Radius;
-                Vector3 V = new Vector3();
-                Vector3 V2 = new Vector3(KD.Position.x, 0, KD.Position.y);
-                V = Pos - V2;
-                V.y = 0;
-                if (V.magnitude < 1.1f * (R1 + R2))
-                {
-                    return false;
-                }
-            }
-            return true;
+            return !Deposits.Any(d => d.Shape.Vertices.Any(v => deposit.Shape.PointInPolygon(new Vector3(v.x, 0, v.y)))) && !deposit.Shape.Vertices.Any(v => Deposits.Any(d => d.Shape.PointInPolygon(new Vector3(v.x, 0, v.y))));
         }
 
         public KethaneDeposit GetDepositOver(Vector3 Point)
