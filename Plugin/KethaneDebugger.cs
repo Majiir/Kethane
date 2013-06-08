@@ -67,15 +67,12 @@ namespace Kethane
 
                 KethaneDeposits Deposits = KethaneController.PlanetDeposits[this.vessel.mainBody.name];
 
-                float Width = Deposits.Width;
-                float Height = Deposits.Height;
-
                 foreach (KethaneDeposit KD in Deposits.Deposits)
                 {
                     for (int k = 0; k < KD.Shape.Vertices.Count - 1; k++)
                     {
-                        Point p = (KD.Shape.Vertices[k] / Width) * DebugTex.width;
-                        Point p2 = (KD.Shape.Vertices[k + 1] / Height) * DebugTex.height;
+                        Point p = (KD.Shape.Vertices[k] / 360) * DebugTex.width;
+                        Point p2 = (KD.Shape.Vertices[k + 1] / 180) * DebugTex.height;
                         Line(DebugTex, (int)p.x, DebugTex.height - (int)p.y, (int)p2.x, DebugTex.height - (int)p2.y);
                     }
                 }

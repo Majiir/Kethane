@@ -92,18 +92,13 @@ namespace Kethane
     public class KethaneDeposits
     {
         public List<KethaneDeposit> Deposits = new List<KethaneDeposit>();
-        public float Width;
-        public float Height;
 
         public KethaneDeposits(CelestialBody CBody)
         {
-            Width = 2.0f * (float)Math.PI * (float)CBody.Radius;
-            Height = Width / 2.0f;
-
             int DepositCount = (CBody.name == "Kerbin" ? 15 : 20) + (CBody.name == "Mun" ? 7 : -3);
             int NumberOfTries = 30;
-            float MinRadius = (CBody.name == "Kerbin" ? 0.25f : 0.45f) * Width * 0.045f;
-            float MaxRadius = Width * 0.045f * (CBody.name == "Minmus" ? 0.8f : 1);
+            float MinRadius = (CBody.name == "Kerbin" ? 0.25f : 0.45f) * 360 * 0.045f;
+            float MaxRadius = 360 * 0.045f * (CBody.name == "Minmus" ? 0.8f : 1);
 
             for (int i = 0; i < DepositCount; i++)
             {
@@ -111,7 +106,7 @@ namespace Kethane
                 float R = UnityEngine.Random.Range(MinRadius, MaxRadius);
                 for (int j = 0; j < NumberOfTries; j++)
                 {
-                    Vector2 Pos = new Vector2(UnityEngine.Random.Range(R, Width - R), UnityEngine.Random.Range(R, Height - R));
+                    Vector2 Pos = new Vector2(UnityEngine.Random.Range(R, 360 - R), UnityEngine.Random.Range(R, 180 - R));
                         Deposit.Generate(Pos, R);
                     if (depositFits(Deposit))
                     {

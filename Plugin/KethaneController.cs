@@ -190,8 +190,8 @@ namespace Kethane
             double lon = Misc.clampDegrees(Vessel.mainBody.GetLongitude(Vessel.transform.position));
             double lat = Vessel.mainBody.GetLatitude(Vessel.transform.position);
 
-            double x = Math.Round((lon + 180d) * (Deposits.Width / 360d));
-            double y = Math.Round(((90d - lat) * (Deposits.Height / 180d)));
+            double x = Math.Round(lon + 180d);
+            double y = Math.Round(90d - lat);
 
             Vector2 PointUnder = new Vector2((float)x, (float)y);
 
