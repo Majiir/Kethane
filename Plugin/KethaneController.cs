@@ -193,7 +193,7 @@ namespace Kethane
             double x = Math.Round((lon + 180d) * (Deposits.Width / 360d));
             double y = Math.Round(((90d - lat) * (Deposits.Height / 180d)));
 
-            Vector3 PointUnder = new Vector3((float)x, 0, (float)y);
+            Vector2 PointUnder = new Vector2((float)x, (float)y);
 
             return Deposits.GetDepositOver(PointUnder);
         }

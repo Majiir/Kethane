@@ -43,13 +43,13 @@ namespace Kethane
             get { return new ReadOnlyCollection<Point>(_vertices); }
         }
 
-        public bool PointInPolygon(Vector3 p)
+        public bool PointInPolygon(Vector2 p)
         {
             bool isInside = false;
             for (int i = 0, j = _vertices.Length - 1; i < _vertices.Length; j = i++)
             {
-                if (((_vertices[i].y > p.z) != (_vertices[j].y > p.z)) &&
-                (p.x < (_vertices[j].x - _vertices[i].x) * (p.z - _vertices[i].y) / (_vertices[j].y - _vertices[i].y) + _vertices[i].x))
+                if (((_vertices[i].y > p.y) != (_vertices[j].y > p.y)) &&
+                (p.x < (_vertices[j].x - _vertices[i].x) * (p.y - _vertices[i].y) / (_vertices[j].y - _vertices[i].y) + _vertices[i].x))
                 {
                     isInside = !isInside;
                 }
@@ -124,10 +124,10 @@ namespace Kethane
 
         private bool depositFits(KethaneDeposit deposit)
         {
-            return !Deposits.Any(d => d.Shape.Vertices.Any(v => deposit.Shape.PointInPolygon(new Vector3(v.x, 0, v.y)))) && !deposit.Shape.Vertices.Any(v => Deposits.Any(d => d.Shape.PointInPolygon(new Vector3(v.x, 0, v.y))));
+            return !Deposits.Any(d => d.Shape.Vertices.Any(v => deposit.Shape.PointInPolygon(new Vector2(v.x, v.y)))) && !deposit.Shape.Vertices.Any(v => Deposits.Any(d => d.Shape.PointInPolygon(new Vector2(v.x, v.y))));
         }
 
-        public KethaneDeposit GetDepositOver(Vector3 Point)
+        public KethaneDeposit GetDepositOver(Vector2 Point)
         {
             foreach (KethaneDeposit KD in Deposits)
             {
