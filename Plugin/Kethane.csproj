@@ -49,6 +49,7 @@
     <Compile Include="Deposit.cs" />
     <Compile Include="HeatSinkAnimator.cs" />
     <Compile Include="IExtractorAnimator.cs" />
+    <Compile Include="KethaneDrillAnimator.cs" />
     <Compile Include="KethaneDrillAnimatorLegacy.cs" />
     <Compile Include="KethaneKerbalBlender.cs" />
     <Compile Include="KethaneController.cs" />
