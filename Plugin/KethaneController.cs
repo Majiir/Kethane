@@ -111,7 +111,7 @@ namespace Kethane
                     int y = Misc.GetYOnMap(Vessel.mainBody.GetLatitude(Vessel.transform.position), planetTex.height);
                     if (deposit) {
                         float ratio = GetDepositUnder().InitialKethaneAmount / KethaneDeposit.MaximumKethane;
-                        planetTex.SetPixel(x, y, Color.white - ratio * (Color.white - XKCDColors.Green));
+                        planetTex.SetPixel(x, y, Color.white - ratio * 0.6f * (Color.white - XKCDColors.Green));
                     } else {
                         planetTex.SetPixel(x, y, XKCDColors.DarkGrey);
                     }
