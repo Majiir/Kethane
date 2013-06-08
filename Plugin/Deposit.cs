@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using UnityEngine;
 
@@ -37,6 +38,11 @@ namespace Kethane
             _vertices = vertices.ToArray();
         }
 
+        public ReadOnlyCollection<Point> Vertices
+        {
+            get { return new ReadOnlyCollection<Point>(_vertices); }
+        }
+
         public bool PointInPolygon(Vector3 p)
         {
             bool isInside = false;
@@ -58,7 +64,6 @@ namespace Kethane
         public Point Position { get; set; }
         public float Radius { get; set; }
         public Polygon Shape;
-        public List<Point> Vertices;
 
         public float Kethane { get; set; }
         public float InitialKethaneAmount { get; set; }
@@ -76,7 +81,7 @@ namespace Kethane
             InitialKethaneAmount = UnityEngine.Random.Range(10000, MaximumKethane);
             Kethane = InitialKethaneAmount;
 
-            Vertices = new List<Point>();
+            var Vertices = new List<Point>();
             int VerticesCount = UnityEngine.Random.Range(20, 50);
             for (int i = 0; i < VerticesCount; i++)
             {
