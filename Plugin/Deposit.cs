@@ -75,16 +75,16 @@ namespace Kethane
             InitialKethaneAmount = initialKethane;
         }
 
-        public static KethaneDeposit Generate(Vector2 Pos, float r)
+        public static KethaneDeposit Generate(Vector2 Pos, float r, System.Random random)
         {
-            var InitialKethaneAmount = UnityEngine.Random.Range(10000, MaximumKethane);
+            var InitialKethaneAmount = random.Range(10000, MaximumKethane);
             var Kethane = InitialKethaneAmount;
 
             var Vertices = new List<Point>();
-            int VerticesCount = UnityEngine.Random.Range(20, 50);
+            int VerticesCount = random.Next(20, 50);
             for (int i = 0; i < VerticesCount; i++)
             {
-                float RandomRadius = UnityEngine.Random.Range(0.45f * r, r);
+                float RandomRadius = random.Range(0.45f * r, r);
                 float Angle = 2.0f * (float)Math.PI * ((float)i / (float)VerticesCount);
                 float x = Pos.x + RandomRadius * (float)Math.Cos(Angle);
                 float z = Pos.y - RandomRadius * (float)Math.Sin(Angle);
@@ -107,7 +107,7 @@ namespace Kethane
             Deposits = deposits.ToList();
         }
 
-        public static KethaneDeposits Generate(CelestialBody CBody)
+        public static KethaneDeposits Generate(CelestialBody CBody, System.Random random)
         {
             var Deposits = new List<KethaneDeposit>();
 
@@ -118,11 +118,11 @@ namespace Kethane
 
             for (int i = 0; i < DepositCount; i++)
             {
-                float R = UnityEngine.Random.Range(MinRadius, MaxRadius);
+                float R = random.Range(MinRadius, MaxRadius);
                 for (int j = 0; j < NumberOfTries; j++)
                 {
-                    Vector2 Pos = new Vector2(UnityEngine.Random.Range(R, 360 - R), UnityEngine.Random.Range(R, 180 - R));
-                    var Deposit = KethaneDeposit.Generate(Pos, R);
+                    Vector2 Pos = new Vector2(random.Range(R, 360 - R), random.Range(R, 180 - R));
+                    var Deposit = KethaneDeposit.Generate(Pos, R, random);
                     if (depositFits(Deposit, Deposits))
                     {
                         Deposits.Add(Deposit);

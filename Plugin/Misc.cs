@@ -97,5 +97,10 @@ namespace Kethane
         }
 
         public static float Dot(this Vector3 lhs, Vector3 rhs) { return Vector3.Dot(lhs, rhs); }
+
+        public static float Range(this System.Random random, float min, float max)
+        {
+            return (float)(random.NextDouble() * (max - min) + min);
+        }
     }
 }
