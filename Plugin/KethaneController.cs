@@ -173,7 +173,7 @@ namespace Kethane
             if (FlightGlobals.fetch == null) { return; }
             PlanetDeposits = new Dictionary<string, KethaneDeposits>();
             foreach (CelestialBody CBody in FlightGlobals.Bodies)
-                PlanetDeposits.Add(CBody.name, new KethaneDeposits(CBody));
+                PlanetDeposits.Add(CBody.name, KethaneDeposits.Generate(CBody));
             SaveKethaneDeposits();
             foreach (CelestialBody body in FlightGlobals.Bodies)
             {

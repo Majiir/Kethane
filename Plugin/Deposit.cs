@@ -102,8 +102,15 @@ namespace Kethane
     {
         public List<KethaneDeposit> Deposits = new List<KethaneDeposit>();
 
-        public KethaneDeposits(CelestialBody CBody)
+        public KethaneDeposits(IEnumerable<KethaneDeposit> deposits)
         {
+            Deposits = deposits.ToList();
+        }
+
+        public static KethaneDeposits Generate(CelestialBody CBody)
+        {
+            var Deposits = new List<KethaneDeposit>();
+
             int DepositCount = (CBody.name == "Kerbin" ? 15 : 20) + (CBody.name == "Mun" ? 7 : -3);
             int NumberOfTries = 30;
             float MinRadius = (CBody.name == "Kerbin" ? 0.25f : 0.45f) * 360 * 0.045f;
@@ -116,16 +123,18 @@ namespace Kethane
                 {
                     Vector2 Pos = new Vector2(UnityEngine.Random.Range(R, 360 - R), UnityEngine.Random.Range(R, 180 - R));
                     var Deposit = KethaneDeposit.Generate(Pos, R);
-                    if (depositFits(Deposit))
+                    if (depositFits(Deposit, Deposits))
                     {
                         Deposits.Add(Deposit);
                         break;
                     }
                 }
             }
+
+            return new KethaneDeposits(Deposits);
         }
 
-        private bool depositFits(KethaneDeposit deposit)
+        private static bool depositFits(KethaneDeposit deposit, IEnumerable<KethaneDeposit> Deposits)
         {
             return !Deposits.Any(d => d.Shape.Vertices.Any(v => deposit.Shape.PointInPolygon(new Vector2(v.x, v.y)))) && !deposit.Shape.Vertices.Any(v => Deposits.Any(d => d.Shape.PointInPolygon(new Vector2(v.x, v.y))));
         }
