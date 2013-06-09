@@ -112,5 +112,10 @@ namespace Kethane
             }
             return states.ToArray();
         }
+
+        public static float Range(this System.Random random, float min, float max)
+        {
+            return (float)(random.NextDouble() * (max - min) + min);
+        }
     }
 }

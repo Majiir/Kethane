@@ -316,7 +316,7 @@ namespace Kethane
                 else
                 {
                     float DrillDepth = this.DrillDepth();
-                    CanDrill = (DrillDepth >= DepositUnder.Depth) && (DrillDepth > 0);
+                    CanDrill = (DrillDepth > 0);
                 }
             }
         }
