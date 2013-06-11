@@ -94,12 +94,20 @@ namespace Kethane
 
         public bool CanExtract
         {
-            get
-            {
-                var mask = 1 << FlightGlobals.getMainBody().gameObject.layer;
-                var direction = headTransform.position - tailTransform.position;
-                return Physics.Raycast(tailTransform.position, direction, direction.magnitude, mask);
-            }
+            get { return raycastGround(); }
+        }
+
+        private bool raycastGround()
+        {
+            RaycastHit hitInfo;
+            return raycastGround(out hitInfo);
+        }
+
+        private bool raycastGround(out RaycastHit hitInfo)
+        {
+            var mask = 1 << FlightGlobals.getMainBody().gameObject.layer;
+            var direction = headTransform.position - tailTransform.position;
+            return Physics.Raycast(tailTransform.position, direction, out hitInfo, direction.magnitude, mask);
         }
     }
 }
