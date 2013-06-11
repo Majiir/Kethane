@@ -9,6 +9,9 @@ namespace Kethane
     public class KethaneConverter : PartModule
     {
         [KSPField(isPersistant = false)]
+        public string SourceResource;
+
+        [KSPField(isPersistant = false)]
         public string TargetResource;
 
         [KSPField(isPersistant = false)]
@@ -58,7 +61,7 @@ namespace Kethane
 
         public override string GetInfo()
         {
-            return String.Format("{0}:\n- Conversion Efficiency: {1:P0}\n- Kethane Consumption: {2:F1}L/s\n- Power Consumption: {3:F1}/s", TargetResource, ConversionEfficiency, KethaneConsumption, PowerConsumption);
+            return String.Format("{0}:\n- Conversion Efficiency: {1:P0}\n- {4} Consumption: {2:F1}L/s\n- Power Consumption: {3:F1}/s", TargetResource, ConversionEfficiency, KethaneConsumption, PowerConsumption, SourceResource);
         }
 
         public override void OnStart(PartModule.StartState state)
@@ -80,14 +83,14 @@ namespace Kethane
         {
             if (!IsEnabled) { return; }
 
-            var conversionRatio = PartResourceLibrary.Instance.GetDefinition("Kethane").density / PartResourceLibrary.Instance.GetDefinition(TargetResource).density;
+            var conversionRatio = PartResourceLibrary.Instance.GetDefinition(SourceResource).density / PartResourceLibrary.Instance.GetDefinition(TargetResource).density;
 
             double requestedSpace = KethaneConsumption * conversionRatio * ConversionEfficiency * TimeWarp.fixedDeltaTime;
             double requestedKethane = KethaneConsumption * TimeWarp.fixedDeltaTime;
             double requestedEnergy = PowerConsumption * TimeWarp.fixedDeltaTime;
 
             var availableSpace = Misc.GetConnectedResources(this.part, TargetResource).Max(r => r.maxAmount - r.amount);
-            var availableKethane = Misc.GetConnectedResources(this.part, "Kethane").Max(r => r.amount);
+            var availableKethane = Misc.GetConnectedResources(this.part, SourceResource).Max(r => r.amount);
             var availableEnergy = Misc.GetConnectedResources(this.part, "ElectricCharge").Max(r => r.amount);
 
             var spaceRatio = availableSpace / requestedSpace;
@@ -105,7 +108,7 @@ namespace Kethane
 
             requestedKethane *= ratio;
 
-            var drawnKethane = this.part.RequestResource("Kethane", requestedKethane);
+            var drawnKethane = this.part.RequestResource(SourceResource, requestedKethane);
 
             ratio *= drawnKethane / requestedKethane;
             requestedEnergy *= ratio;
