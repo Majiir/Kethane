@@ -98,6 +98,21 @@ namespace Kethane
 
         public static float Dot(this Vector3 lhs, Vector3 rhs) { return Vector3.Dot(lhs, rhs); }
 
+        public static AnimationState[] SetUpAnimation(string animationName, Part part)
+        {
+            var states = new List<AnimationState>();
+            foreach (var animation in part.FindModelAnimators(animationName))
+            {
+                var animationState = animation[animationName];
+                animationState.speed = 0;
+                animationState.enabled = true;
+                animationState.wrapMode = WrapMode.ClampForever;
+                animation.Blend(animationName);
+                states.Add(animationState);
+            }
+            return states.ToArray();
+        }
+
         public static float Range(this System.Random random, float min, float max)
         {
             return (float)(random.NextDouble() * (max - min) + min);
