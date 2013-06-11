@@ -37,9 +37,36 @@ namespace Kethane
 
         private KethaneController()
         {
+            loadResourceDefinitions();
             LoadKethaneDeposits();
             SetMaps();
             RenderingManager.AddToPostDrawQueue(3, drawGui);
+        }
+
+        private static void loadResourceDefinitions()
+        {
+            if (resourceDefinitions != null) { return; }
+            resourceDefinitions = new Dictionary<String, ResourceDefinition>();
+            foreach (var definitionNode in GameDatabase.Instance.GetConfigNodes("KethaneResource"))
+            {
+                try
+                {
+                    var definition = new ResourceDefinition(definitionNode);
+                    if (!resourceDefinitions.ContainsKey(definition.Resource))
+                    {
+                        resourceDefinitions[definition.Resource] = definition;
+                    }
+                    else
+                    {
+                        Debug.LogWarning(String.Format("[Kethane] Duplicate definition for {0}, ignoring", definition.Resource));
+                    }
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError(String.Format("[Kethane] Error loading resource definition:\n\n{0}", e));
+                }
+            }
+            Debug.Log(String.Format("[Kethane] Loaded {0} resource definitions", resourceDefinitions.Count));
         }
 
         public Vessel Vessel
@@ -51,6 +78,8 @@ namespace Kethane
         private static Dictionary<string, int> bodySeeds;
 
         public static Dictionary<string, Texture2D> PlanetTextures = new Dictionary<string, Texture2D>();
+
+        public static Dictionary<String, ResourceDefinition> resourceDefinitions = null;
 
         private static long lastSaveFrame = -1;
         private static long lastMapsSaveFrame = -1;
