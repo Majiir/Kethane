@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using UnityEngine;
 
@@ -37,13 +38,18 @@ namespace Kethane
             _vertices = vertices.ToArray();
         }
 
-        public bool PointInPolygon(Vector3 p)
+        public ReadOnlyCollection<Point> Vertices
+        {
+            get { return new ReadOnlyCollection<Point>(_vertices); }
+        }
+
+        public bool PointInPolygon(Vector2 p)
         {
             bool isInside = false;
             for (int i = 0, j = _vertices.Length - 1; i < _vertices.Length; j = i++)
             {
-                if (((_vertices[i].y > p.z) != (_vertices[j].y > p.z)) &&
-                (p.x < (_vertices[j].x - _vertices[i].x) * (p.z - _vertices[i].y) / (_vertices[j].y - _vertices[i].y) + _vertices[i].x))
+                if (((_vertices[i].y > p.y) != (_vertices[j].y > p.y)) &&
+                (p.x < (_vertices[j].x - _vertices[i].x) * (p.y - _vertices[i].y) / (_vertices[j].y - _vertices[i].y) + _vertices[i].x))
                 {
                     isInside = !isInside;
                 }
@@ -55,37 +61,39 @@ namespace Kethane
     [Serializable]
     public class KethaneDeposit
     {
-        public Point Position { get; set; }
-        public float Radius { get; set; }
         public Polygon Shape;
-        public List<Point> Vertices;
 
         public float Kethane { get; set; }
         public float InitialKethaneAmount { get; set; }
 
-        public float Depth = 1.0f;
+        public const float MaximumKethane = 500000;
 
-        public void Generate(Vector3 Pos, float r)
+        public KethaneDeposit(Polygon shape, float kethane, float initialKethane)
         {
-            Radius = r;
-            Position = new Point(Pos.x, Pos.z);
-            Depth = UnityEngine.Random.Range(1.0f, 2.0f);
+            Shape = shape;
+            Kethane = kethane;
+            InitialKethaneAmount = initialKethane;
+        }
 
-            InitialKethaneAmount = UnityEngine.Random.Range(10000, 500000);
-            Kethane = InitialKethaneAmount;
+        public static KethaneDeposit Generate(Vector2 Pos, float r, System.Random random)
+        {
+            var InitialKethaneAmount = random.Range(10000, MaximumKethane);
+            var Kethane = InitialKethaneAmount;
 
-            Vertices = new List<Point>();
-            int VerticesCount = UnityEngine.Random.Range(20, 50);
+            var Vertices = new List<Point>();
+            int VerticesCount = random.Next(20, 50);
             for (int i = 0; i < VerticesCount; i++)
             {
-                float RandomRadius = UnityEngine.Random.Range(0.45f * r, r);
+                float RandomRadius = random.Range(0.45f * r, r);
                 float Angle = 2.0f * (float)Math.PI * ((float)i / (float)VerticesCount);
                 float x = Pos.x + RandomRadius * (float)Math.Cos(Angle);
-                float z = Pos.z - RandomRadius * (float)Math.Sin(Angle);
+                float z = Pos.y - RandomRadius * (float)Math.Sin(Angle);
 
                 Vertices.Add(new Point(x, z));
             }
-            Shape = new Polygon(Vertices.ToArray());
+            var Shape = new Polygon(Vertices.ToArray());
+
+            return new KethaneDeposit(Shape, Kethane, InitialKethaneAmount);
         }
     }
 
@@ -93,66 +101,53 @@ namespace Kethane
     public class KethaneDeposits
     {
         public List<KethaneDeposit> Deposits = new List<KethaneDeposit>();
-        public float Width;
-        public float Height;
-        private string Name;
 
-        public KethaneDeposits(CelestialBody CBody)
+        public KethaneDeposits(IEnumerable<KethaneDeposit> deposits)
         {
-            Width = 2.0f * (float)Math.PI * (float)CBody.Radius;
-            Height = Width / 2.0f;
-            Name = CBody.name;
+            Deposits = deposits.ToList();
+        }
+
+        public static KethaneDeposits Generate(CelestialBody CBody, System.Random random)
+        {
+            var Deposits = new List<KethaneDeposit>();
 
             int DepositCount = (CBody.name == "Kerbin" ? 15 : 20) + (CBody.name == "Mun" ? 7 : -3);
             int NumberOfTries = 30;
-            float MinRadius = (CBody.name == "Kerbin" ? 0.25f : 0.45f) * Width * 0.045f;
-            float MaxRadius = Width * 0.045f * (CBody.name == "Minmus" ? 0.8f : 1);
+            float MinRadius = (CBody.name == "Kerbin" ? 0.25f : 0.45f) * 360 * 0.045f;
+            float MaxRadius = 360 * 0.045f * (CBody.name == "Minmus" ? 0.8f : 1);
 
             for (int i = 0; i < DepositCount; i++)
             {
-                KethaneDeposit Deposit = new KethaneDeposit();
-                float R = UnityEngine.Random.Range(MinRadius, MaxRadius);
+                float R = random.Range(MinRadius, MaxRadius);
                 for (int j = 0; j < NumberOfTries; j++)
                 {
-                    Vector3 Pos = new Vector3(UnityEngine.Random.Range(R, Width - R), 0, UnityEngine.Random.Range(R, Height - R));
-                    if (IsPositionOK(Pos, R))
+                    Vector2 Pos = new Vector2(random.Range(R, 360 - R), random.Range(R, 180 - R));
+                    var Deposit = KethaneDeposit.Generate(Pos, R, random);
+                    if (depositFits(Deposit, Deposits))
                     {
-                        Deposit.Generate(Pos, R);
                         Deposits.Add(Deposit);
                         break;
                     }
                 }
             }
+
+            return new KethaneDeposits(Deposits);
         }
 
-        private bool IsPositionOK(Vector3 Pos, float R1)
+        private static bool depositFits(KethaneDeposit deposit, IEnumerable<KethaneDeposit> Deposits)
+        {
+            return !Deposits.Any(d => d.Shape.Vertices.Any(v => deposit.Shape.PointInPolygon(new Vector2(v.x, v.y)))) && !deposit.Shape.Vertices.Any(v => Deposits.Any(d => d.Shape.PointInPolygon(new Vector2(v.x, v.y))));
+        }
+
+        public KethaneDeposit GetDepositOver(Vector2 Point)
         {
             foreach (KethaneDeposit KD in Deposits)
             {
-                float R2 = KD.Radius;
-                Vector3 V = new Vector3();
-                Vector3 V2 = new Vector3(KD.Position.x, 0, KD.Position.y);
-                V = Pos - V2;
-                V.y = 0;
-                if (V.magnitude < 1.1f * (R1 + R2))
-                    return false;
-            }
-            return true;
-        }
-
-        public bool IsPointOverDeposit(Vector3 Point)
-        {
-            foreach (KethaneDeposit KD in Deposits)
                 if (KD.Shape.PointInPolygon(Point))
-                    return true;
-            return false;
-        }
-
-        public KethaneDeposit GetDepositOver(Vector3 Point)
-        {
-            foreach (KethaneDeposit KD in Deposits)
-                if (KD.Shape.PointInPolygon(Point))
+                {
                     return KD;
+                }
+            }
             return null;
         }
     }

@@ -217,7 +217,7 @@ namespace Kethane
 
         public override void OnSave(ConfigNode node)
         {
-            KethaneController.GetInstance(this.vessel).SaveAndLoadState();
+            KethaneController.GetInstance(this.vessel).SaveAllMaps();
         }
     }
 }
