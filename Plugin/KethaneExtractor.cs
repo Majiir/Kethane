@@ -66,8 +66,8 @@ namespace Kethane
 
         public override void OnUpdate()
         {
-            Events["DeployDrill"].active = (animator.CurrentState == ExtractorState.Retracted || animator.CurrentState == ExtractorState.Retracting);
-            Events["RetractDrill"].active = (animator.CurrentState == ExtractorState.Deployed || animator.CurrentState == ExtractorState.Deploying);
+            Events["DeployDrill"].active = (animator.CurrentState == ExtractorState.Retracted);
+            Events["RetractDrill"].active = (animator.CurrentState == ExtractorState.Deployed);
             Status = animator.CurrentState.ToString();
         }
 
