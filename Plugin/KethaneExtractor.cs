@@ -13,6 +13,9 @@ namespace Kethane
         [KSPField(isPersistant = false)]
         public float PowerConsumption;
 
+        [KSPField(isPersistant = false, guiActive = true, guiName = "Status")]
+        public string Status;
+
         public override void OnStart(PartModule.StartState state)
         {
             this.part.force_activate();
@@ -65,6 +68,7 @@ namespace Kethane
         {
             Events["DeployDrill"].active = (animator.CurrentState == ExtractorState.Retracted || animator.CurrentState == ExtractorState.Retracting);
             Events["RetractDrill"].active = (animator.CurrentState == ExtractorState.Deployed || animator.CurrentState == ExtractorState.Deploying);
+            Status = animator.CurrentState.ToString();
         }
 
         public override void OnFixedUpdate()
