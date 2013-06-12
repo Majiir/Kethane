@@ -74,7 +74,7 @@ namespace Kethane
             get { return controllers.Single(p => p.Value == this).Key.Target; }
         }
 
-        public static Dictionary<string, List<KethaneDeposit>> PlanetDeposits;
+        public static Dictionary<string, Dictionary<string, List<KethaneDeposit>>> PlanetDeposits;
         private static Dictionary<string, int> bodySeeds;
 
         public static Dictionary<string, Texture2D> PlanetTextures = new Dictionary<string, Texture2D>();
@@ -173,7 +173,7 @@ namespace Kethane
             var configNode = new ConfigNode();
             configNode.AddValue("Seed", depositSeed);
 
-            foreach (var body in PlanetDeposits)
+            foreach (var body in PlanetDeposits["Kethane"])
             {
                 var bodyNode = new ConfigNode("Body");
                 bodyNode.AddValue("Name", body.Key);
@@ -234,7 +234,7 @@ namespace Kethane
 
             generateFromSeed();
 
-            foreach (var body in PlanetDeposits)
+            foreach (var body in PlanetDeposits["Kethane"])
             {
                 var deposits = body.Value;
 
@@ -254,12 +254,12 @@ namespace Kethane
 
         private void generateFromSeed()
         {
-            PlanetDeposits = FlightGlobals.Bodies.ToDictionary(b => b.name, b => generate(b, depositSeed));
+            PlanetDeposits = resourceDefinitions.Values.ToDictionary(d => d.Resource, d => FlightGlobals.Bodies.ToDictionary(b => b.name, b => generate(b, depositSeed, d)));
         }
 
-        private static List<KethaneDeposit> generate(CelestialBody CBody, int seed)
+        private static List<KethaneDeposit> generate(CelestialBody CBody, int seed, ResourceDefinition resource)
         {
-            var random = new System.Random(depositSeed ^ bodySeeds[CBody.name]);
+            var random = new System.Random(depositSeed ^ bodySeeds[CBody.name] ^ resource.SeedModifier);
 
             var Deposits = new List<KethaneDeposit>();
 
@@ -302,7 +302,7 @@ namespace Kethane
 
         public KethaneDeposit GetDepositUnder()
         {
-            if (!PlanetDeposits.ContainsKey(Vessel.mainBody.name)) { return null; }
+            if (!PlanetDeposits["Kethane"].ContainsKey(Vessel.mainBody.name)) { return null; }
 
             double lon = Misc.clampDegrees(Vessel.mainBody.GetLongitude(Vessel.transform.position));
             double lat = Vessel.mainBody.GetLatitude(Vessel.transform.position);
@@ -317,7 +317,7 @@ namespace Kethane
 
         public KethaneDeposit GetDepositOver(Vector2 Point, CelestialBody body)
         {
-            foreach (KethaneDeposit KD in PlanetDeposits[body.name])
+            foreach (KethaneDeposit KD in PlanetDeposits["Kethane"][body.name])
             {
                 if (KD.Shape.PointInPolygon(Point))
                 {
