@@ -236,19 +236,28 @@ namespace Kethane
             KethaneDeposits Deposits = KethaneController.PlanetDeposits[Vessel.mainBody.name];
 
             double lon = Misc.clampDegrees(Vessel.mainBody.GetLongitude(Vessel.transform.position));
-            double lat = Vessel.mainBody.GetLatitude(Vessel.transform.position);
+            double lat = Math.Max(Math.Min(Vessel.mainBody.GetLatitude(Vessel.transform.position), 90), -90);
 
             double x = Math.Round(lon + 180d);
             double y = Math.Round(90d - lat);
 
             Vector2 PointUnder = new Vector2((float)x, (float)y);
+            
+            var ret = Deposits.GetDepositOver(PointUnder);
+            
+            if (StoreCSV && ret != null) {
+				var efile = KSP.IO.File.AppendText<KethaneController>(Vessel.mainBody.name + "_kethane.csv", null);
+				efile.WriteLine(string.Format("{0:0.00};{1:0.00};{2}", lon, lat, ret.Kethane));
+				efile.Close();
+            }
 
-            return Deposits.GetDepositOver(PointUnder);
+            return ret;
         }
 
         public bool ShowDetectorWindow;
 
-        public bool ScanningSound = true;
+        public bool ScanningSound = false;
+        public bool StoreCSV = false;
 
         public double LastLat, LastLon;
         public float LastQuantity;
@@ -302,7 +311,8 @@ namespace Kethane
 
             GUILayout.Label(String.Format("Last deposit: {0:0.000}, {1:0.000} ({2:F0}L)", LastLat, LastLon, LastQuantity));
             ScanningSound = GUILayout.Toggle(ScanningSound, "Detection sound");
-
+			StoreCSV = GUILayout.Toggle(StoreCSV, "Store to CSV");
+            
             GUILayout.EndVertical();
             GUI.DragWindow(new Rect(0, 0, 300, 60));
             #endregion
