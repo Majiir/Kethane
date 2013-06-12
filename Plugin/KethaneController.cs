@@ -74,7 +74,7 @@ namespace Kethane
             get { return controllers.Single(p => p.Value == this).Key.Target; }
         }
 
-        public static Dictionary<string, KethaneDeposits> PlanetDeposits;
+        public static Dictionary<string, List<KethaneDeposit>> PlanetDeposits;
         private static Dictionary<string, int> bodySeeds;
 
         public static Dictionary<string, Texture2D> PlanetTextures = new Dictionary<string, Texture2D>();
@@ -183,7 +183,7 @@ namespace Kethane
                     bodyNode.AddValue("SeedModifier", bodySeeds[body.Key]);
                 }
 
-                foreach (var deposit in body.Value.Deposits)
+                foreach (var deposit in body.Value)
                 {
                     var depositNode = new ConfigNode("Deposit");
                     depositNode.AddValue("Kethane", deposit.Kethane);
@@ -236,7 +236,7 @@ namespace Kethane
 
             foreach (var body in PlanetDeposits)
             {
-                var deposits = body.Value.Deposits;
+                var deposits = body.Value;
 
                 var bodyNode = config.GetNodes("Body").Where(b => b.GetValue("Name") == body.Key).SingleOrDefault();
                 if (bodyNode == null) { continue; }
@@ -257,7 +257,7 @@ namespace Kethane
             PlanetDeposits = FlightGlobals.Bodies.ToDictionary(b => b.name, b => generate(b, new System.Random(depositSeed ^ bodySeeds[b.name])));
         }
 
-        private static KethaneDeposits generate(CelestialBody CBody, System.Random random)
+        private static List<KethaneDeposit> generate(CelestialBody CBody, System.Random random)
         {
             var Deposits = new List<KethaneDeposit>();
 
@@ -281,7 +281,7 @@ namespace Kethane
                 }
             }
 
-            return new KethaneDeposits(Deposits);
+            return Deposits;
         }
 
         public void GenerateKethaneDeposits(System.Random random = null)
@@ -315,7 +315,7 @@ namespace Kethane
 
         public KethaneDeposit GetDepositOver(Vector2 Point, CelestialBody body)
         {
-            foreach (KethaneDeposit KD in PlanetDeposits[body.name].Deposits)
+            foreach (KethaneDeposit KD in PlanetDeposits[body.name])
             {
                 if (KD.Shape.PointInPolygon(Point))
                 {

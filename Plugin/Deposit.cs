@@ -93,14 +93,4 @@ namespace Kethane
             return new KethaneDeposit(Shape, Kethane, InitialKethaneAmount);
         }
     }
-
-    internal class KethaneDeposits
-    {
-        public List<KethaneDeposit> Deposits = new List<KethaneDeposit>();
-
-        public KethaneDeposits(IEnumerable<KethaneDeposit> deposits)
-        {
-            Deposits = deposits.ToList();
-        }
-    }
 }
