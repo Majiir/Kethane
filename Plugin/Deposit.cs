@@ -6,7 +6,6 @@ using UnityEngine;
 
 namespace Kethane
 {
-    [Serializable]
     public class Point
     {
         public float x, y;
@@ -28,7 +27,6 @@ namespace Kethane
 
     }
 
-    [Serializable]
     public class Polygon
     {
         private Point[] _vertices;
@@ -58,7 +56,6 @@ namespace Kethane
         }
     }
 
-    [Serializable]
     public class KethaneDeposit
     {
         public Polygon Shape;
@@ -97,7 +94,6 @@ namespace Kethane
         }
     }
 
-    [Serializable]
     public class KethaneDeposits
     {
         public List<KethaneDeposit> Deposits = new List<KethaneDeposit>();
