@@ -48,6 +48,7 @@ namespace Kethane
         }
 
         public static Dictionary<string, KethaneDeposits> PlanetDeposits;
+        private static Dictionary<string, int> bodySeeds;
 
         public static Dictionary<string, Texture2D> PlanetTextures = new Dictionary<string, Texture2D>();
 
@@ -147,6 +148,7 @@ namespace Kethane
             {
                 var bodyNode = new ConfigNode("Body");
                 bodyNode.AddValue("Name", body.Key);
+                bodyNode.AddValue("SeedModifier", bodySeeds[body.Key]);
 
                 foreach (var deposit in body.Value.Deposits)
                 {
@@ -178,6 +180,17 @@ namespace Kethane
                 return;
             }
 
+            bodySeeds = config.GetNodes("Body").ToDictionary(n => n.GetValue("Name"), n =>
+            {
+                int seed;
+                if (!int.TryParse(n.GetValue("SeedModifier"), out seed))
+                {
+                    var oldSeed = depositSeed % n.GetValue("Name").GetHashCode();
+                    seed = depositSeed ^ oldSeed;
+                }
+                return seed;
+            });
+
             generateFromSeed();
 
             foreach (var body in PlanetDeposits)
@@ -200,7 +213,7 @@ namespace Kethane
 
         private void generateFromSeed()
         {
-            PlanetDeposits = FlightGlobals.Bodies.ToDictionary(b => b.name, b => KethaneDeposits.Generate(b, new System.Random(depositSeed % b.name.GetHashCode())));
+            PlanetDeposits = FlightGlobals.Bodies.ToDictionary(b => b.name, b => KethaneDeposits.Generate(b, new System.Random(depositSeed ^ bodySeeds[b.name])));
         }
 
         public void GenerateKethaneDeposits(System.Random random = null)
@@ -211,6 +224,7 @@ namespace Kethane
 
             if (random == null) { random = new System.Random(); }
             depositSeed = random.Next();
+            bodySeeds = FlightGlobals.Bodies.ToDictionary(b => b.name, b => b.name.GetHashCode());
             generateFromSeed();
             SaveKethaneDeposits();
             SetMaps();
