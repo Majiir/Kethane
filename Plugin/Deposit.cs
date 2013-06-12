@@ -63,8 +63,6 @@ namespace Kethane
         public float Kethane { get; set; }
         public float InitialKethaneAmount { get; set; }
 
-        public const float MaximumKethane = 500000;
-
         public KethaneDeposit(Polygon shape, float kethane, float initialKethane)
         {
             Shape = shape;
@@ -72,9 +70,9 @@ namespace Kethane
             InitialKethaneAmount = initialKethane;
         }
 
-        public static KethaneDeposit Generate(Vector2 Pos, float r, System.Random random)
+        public static KethaneDeposit Generate(Vector2 Pos, float r, System.Random random, ResourceDefinition resource)
         {
-            var InitialKethaneAmount = random.Range(10000, MaximumKethane);
+            var InitialKethaneAmount = random.Range(resource.MinQuantity, resource.MaxQuantity);
             var Kethane = InitialKethaneAmount;
 
             var Vertices = new List<Point>();

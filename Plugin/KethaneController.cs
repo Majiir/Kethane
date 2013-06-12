@@ -140,7 +140,7 @@ namespace Kethane
                     int x = Misc.GetXOnMap(Misc.clampDegrees(Vessel.mainBody.GetLongitude(Vessel.transform.position)), planetTex.width);
                     int y = Misc.GetYOnMap(Vessel.mainBody.GetLatitude(Vessel.transform.position), planetTex.height);
                     if (deposit) {
-                        float ratio = GetDepositUnder().InitialKethaneAmount / KethaneDeposit.MaximumKethane;
+                        float ratio = GetDepositUnder().InitialKethaneAmount / resourceDefinitions["Kethane"].MaxQuantity;
                         ratio = ratio * 0.8f + 0.2f;
                         planetTex.SetPixel(x, y, XKCDColors.DarkGrey * (1 - ratio) + XKCDColors.Green * ratio);
                     } else {
@@ -274,7 +274,7 @@ namespace Kethane
                 for (int j = 0; j < NumberOfTries; j++)
                 {
                     Vector2 Pos = new Vector2(random.Range(R, 360 - R), random.Range(R, 180 - R));
-                    var Deposit = KethaneDeposit.Generate(Pos, R, random);
+                    var Deposit = KethaneDeposit.Generate(Pos, R, random, resource);
                     if (!Deposits.Any(d => d.Shape.Vertices.Any(v => Deposit.Shape.PointInPolygon(new Vector2(v.x, v.y)))) && !Deposit.Shape.Vertices.Any(v => Deposits.Any(d => d.Shape.PointInPolygon(new Vector2(v.x, v.y)))))
                     {
                         Deposits.Add(Deposit);
