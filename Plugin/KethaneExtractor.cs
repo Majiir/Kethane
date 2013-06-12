@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using UnityEngine;
 
 namespace Kethane
 {
@@ -66,8 +67,16 @@ namespace Kethane
 
         public override void OnUpdate()
         {
-            Events["DeployDrill"].active = (animator.CurrentState == ExtractorState.Retracted);
-            Events["RetractDrill"].active = (animator.CurrentState == ExtractorState.Deployed);
+            var retracted = (animator.CurrentState == ExtractorState.Retracted);
+            var deployed = (animator.CurrentState == ExtractorState.Deployed);
+            if (Events["DeployDrill"].active != retracted || Events["RetractDrill"].active != deployed)
+            {
+                Events["DeployDrill"].active = retracted;
+                Events["RetractDrill"].active = deployed;
+                foreach (var window in GameObject.FindObjectsOfType(typeof(UIPartActionWindow)).OfType<UIPartActionWindow>().Where(w => w.part == part)) {
+                    window.displayDirty = true;
+                }
+            }
             Status = animator.CurrentState.ToString();
         }
 
