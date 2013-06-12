@@ -134,17 +134,5 @@ namespace Kethane
         {
             return !Deposits.Any(d => d.Shape.Vertices.Any(v => deposit.Shape.PointInPolygon(new Vector2(v.x, v.y)))) && !deposit.Shape.Vertices.Any(v => Deposits.Any(d => d.Shape.PointInPolygon(new Vector2(v.x, v.y))));
         }
-
-        public KethaneDeposit GetDepositOver(Vector2 Point)
-        {
-            foreach (KethaneDeposit KD in Deposits)
-            {
-                if (KD.Shape.PointInPolygon(Point))
-                {
-                    return KD;
-                }
-            }
-            return null;
-        }
     }
 }

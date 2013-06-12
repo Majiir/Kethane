@@ -274,7 +274,6 @@ namespace Kethane
         public KethaneDeposit GetDepositUnder()
         {
             if (!PlanetDeposits.ContainsKey(Vessel.mainBody.name)) { return null; }
-            KethaneDeposits Deposits = KethaneController.PlanetDeposits[Vessel.mainBody.name];
 
             double lon = Misc.clampDegrees(Vessel.mainBody.GetLongitude(Vessel.transform.position));
             double lat = Vessel.mainBody.GetLatitude(Vessel.transform.position);
@@ -284,7 +283,19 @@ namespace Kethane
 
             Vector2 PointUnder = new Vector2((float)x, (float)y);
 
-            return Deposits.GetDepositOver(PointUnder);
+            return GetDepositOver(PointUnder, Vessel.mainBody);
+        }
+
+        public KethaneDeposit GetDepositOver(Vector2 Point, CelestialBody body)
+        {
+            foreach (KethaneDeposit KD in PlanetDeposits[body.name].Deposits)
+            {
+                if (KD.Shape.PointInPolygon(Point))
+                {
+                    return KD;
+                }
+            }
+            return null;
         }
 
         public bool ShowDetectorWindow;
