@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace Kethane
 {
-    public class Point
+    internal class Point
     {
         public float x, y;
         public Point(float X, float Y)
@@ -27,7 +27,7 @@ namespace Kethane
 
     }
 
-    public class Polygon
+    internal class Polygon
     {
         private Point[] _vertices;
 
@@ -56,7 +56,7 @@ namespace Kethane
         }
     }
 
-    public class KethaneDeposit
+    internal class KethaneDeposit
     {
         public Polygon Shape;
 
@@ -94,7 +94,7 @@ namespace Kethane
         }
     }
 
-    public class KethaneDeposits
+    internal class KethaneDeposits
     {
         public List<KethaneDeposit> Deposits = new List<KethaneDeposit>();
 
