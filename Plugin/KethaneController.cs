@@ -254,7 +254,34 @@ namespace Kethane
 
         private void generateFromSeed()
         {
-            PlanetDeposits = FlightGlobals.Bodies.ToDictionary(b => b.name, b => KethaneDeposits.Generate(b, new System.Random(depositSeed ^ bodySeeds[b.name])));
+            PlanetDeposits = FlightGlobals.Bodies.ToDictionary(b => b.name, b => generate(b, new System.Random(depositSeed ^ bodySeeds[b.name])));
+        }
+
+        private static KethaneDeposits generate(CelestialBody CBody, System.Random random)
+        {
+            var Deposits = new List<KethaneDeposit>();
+
+            int DepositCount = (CBody.name == "Kerbin" ? 15 : 20) + (CBody.name == "Mun" ? 7 : -3);
+            int NumberOfTries = 30;
+            float MinRadius = (CBody.name == "Kerbin" ? 0.25f : 0.45f) * 360 * 0.045f;
+            float MaxRadius = 360 * 0.045f * (CBody.name == "Minmus" ? 0.8f : 1);
+
+            for (int i = 0; i < DepositCount; i++)
+            {
+                float R = random.Range(MinRadius, MaxRadius);
+                for (int j = 0; j < NumberOfTries; j++)
+                {
+                    Vector2 Pos = new Vector2(random.Range(R, 360 - R), random.Range(R, 180 - R));
+                    var Deposit = KethaneDeposit.Generate(Pos, R, random);
+                    if (!Deposits.Any(d => d.Shape.Vertices.Any(v => Deposit.Shape.PointInPolygon(new Vector2(v.x, v.y)))) && !Deposit.Shape.Vertices.Any(v => Deposits.Any(d => d.Shape.PointInPolygon(new Vector2(v.x, v.y)))))
+                    {
+                        Deposits.Add(Deposit);
+                        break;
+                    }
+                }
+            }
+
+            return new KethaneDeposits(Deposits);
         }
 
         public void GenerateKethaneDeposits(System.Random random = null)
