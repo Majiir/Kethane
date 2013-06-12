@@ -254,11 +254,13 @@ namespace Kethane
 
         private void generateFromSeed()
         {
-            PlanetDeposits = FlightGlobals.Bodies.ToDictionary(b => b.name, b => generate(b, new System.Random(depositSeed ^ bodySeeds[b.name])));
+            PlanetDeposits = FlightGlobals.Bodies.ToDictionary(b => b.name, b => generate(b, depositSeed));
         }
 
-        private static List<KethaneDeposit> generate(CelestialBody CBody, System.Random random)
+        private static List<KethaneDeposit> generate(CelestialBody CBody, int seed)
         {
+            var random = new System.Random(depositSeed ^ bodySeeds[CBody.name]);
+
             var Deposits = new List<KethaneDeposit>();
 
             int DepositCount = (CBody.name == "Kerbin" ? 15 : 20) + (CBody.name == "Mun" ? 7 : -3);
