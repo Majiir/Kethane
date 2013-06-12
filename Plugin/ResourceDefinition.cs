@@ -15,10 +15,10 @@ namespace Kethane
         public ResourceDefinition(ConfigNode node)
         {
             Resource = node.GetValue("name");
-            MinQuantity = float.Parse(node.GetValue("minQuantity"));
-            MaxQuantity = float.Parse(node.GetValue("maxQuantity"));
+            MinQuantity = float.Parse(node.GetValue("MinQuantity"));
+            MaxQuantity = float.Parse(node.GetValue("MaxQuantity"));
             int seedModifier;
-            if (!int.TryParse(node.GetValue("seedModifier"), out seedModifier))
+            if (!int.TryParse(node.GetValue("SeedModifier"), out seedModifier))
             {
                 seedModifier = Resource.GetHashCode();
             }
