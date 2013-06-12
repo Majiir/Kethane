@@ -119,7 +119,7 @@ namespace Kethane
                 {
                     Vector2 Pos = new Vector2(random.Range(R, 360 - R), random.Range(R, 180 - R));
                     var Deposit = KethaneDeposit.Generate(Pos, R, random);
-                    if (depositFits(Deposit, Deposits))
+                    if (!Deposits.Any(d => d.Shape.Vertices.Any(v => Deposit.Shape.PointInPolygon(new Vector2(v.x, v.x)))) && !Deposit.Shape.Vertices.Any(v => Deposits.Any(d => d.Shape.PointInPolygon(new Vector2(v.x, v.y)))))
                     {
                         Deposits.Add(Deposit);
                         break;
@@ -128,11 +128,6 @@ namespace Kethane
             }
 
             return new KethaneDeposits(Deposits);
-        }
-
-        private static bool depositFits(KethaneDeposit deposit, IEnumerable<KethaneDeposit> Deposits)
-        {
-            return !Deposits.Any(d => d.Shape.Vertices.Any(v => deposit.Shape.PointInPolygon(new Vector2(v.x, v.y)))) && !deposit.Shape.Vertices.Any(v => Deposits.Any(d => d.Shape.PointInPolygon(new Vector2(v.x, v.y))));
         }
     }
 }
