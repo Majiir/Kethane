@@ -69,6 +69,24 @@ namespace Kethane
             IsDetecting = !IsDetecting;
         }
 
+        [KSPAction("Show Map")]
+        public void ShowMapAction(KSPActionParam param)
+        {
+            ShowMap();
+        }
+
+        [KSPAction("Hide Map")]
+        public void HideMapAction(KSPActionParam param)
+        {
+            HideMap();
+        }
+
+        [KSPAction("Toggle Map")]
+        public void ToggleMapAction(KSPActionParam param)
+        {
+            KethaneController.GetInstance(this.vessel).ShowDetectorWindow = !KethaneController.GetInstance(this.vessel).ShowDetectorWindow;
+        }
+
         [KSPEvent(guiActive = true, guiName = "Show Map", active = true)]
         public void ShowMap()
         {
