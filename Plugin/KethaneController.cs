@@ -148,7 +148,11 @@ namespace Kethane
             {
                 var bodyNode = new ConfigNode("Body");
                 bodyNode.AddValue("Name", body.Key);
-                bodyNode.AddValue("SeedModifier", bodySeeds[body.Key]);
+
+                if (bodySeeds[body.Key] != body.Key.GetHashCode())
+                {
+                    bodyNode.AddValue("SeedModifier", bodySeeds[body.Key]);
+                }
 
                 foreach (var deposit in body.Value.Deposits)
                 {
