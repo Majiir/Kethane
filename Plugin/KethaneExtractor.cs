@@ -82,10 +82,10 @@ namespace Kethane
 
         public override void OnFixedUpdate()
         {
-            var deposit = KethaneController.GetInstance(this.vessel).GetDepositUnder("Kethane");
-
-            if (deposit == null) { return; }
             if (animator.CurrentState != ExtractorState.Deployed) { return; }
+
+            var deposit = KethaneController.GetInstance(this.vessel).GetDepositUnder("Kethane");
+            if (deposit == null) { return; }
 
             if (animator.CanExtract)
             {
