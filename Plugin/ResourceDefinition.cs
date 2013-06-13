@@ -21,16 +21,16 @@ namespace Kethane
 
         public ResourceDefinition(ConfigNode node)
         {
-            Resource = node.GetValue("Resource");
-            MinRadius = Misc.ParseFloat(node.GetValue("MinRadius"), 0);
-            MaxRadius = Misc.ParseFloat(node.GetValue("MaxRadius"), 0);
-            MinQuantity = Misc.ParseFloat(node.GetValue("MinQuantity"), 0);
-            MaxQuantity = Misc.ParseFloat(node.GetValue("MaxQuantity"), 0);
-            MinVertices = Misc.ParseInt(node.GetValue("MinVertices"), 0);
-            MaxVertices = Misc.ParseInt(node.GetValue("MaxVertices"), 0);
-            RadiusVariance = Misc.ParseFloat(node.GetValue("RadiusVariance"), 0);
-            DepositCount = Misc.ParseInt(node.GetValue("DepositCount"), 0);
-            NumberOfTries = Misc.ParseInt(node.GetValue("NumberOfTries"), 0);
+            Resource = node.GetValue("Resource") ?? Resource;
+            MinRadius = Misc.ParseFloat(node.GetValue("MinRadius"), MinRadius);
+            MaxRadius = Misc.ParseFloat(node.GetValue("MaxRadius"), MaxRadius);
+            MinQuantity = Misc.ParseFloat(node.GetValue("MinQuantity"), MinQuantity);
+            MaxQuantity = Misc.ParseFloat(node.GetValue("MaxQuantity"), MaxQuantity);
+            MinVertices = Misc.ParseInt(node.GetValue("MinVertices"), MinVertices);
+            MaxVertices = Misc.ParseInt(node.GetValue("MaxVertices"), MaxVertices);
+            RadiusVariance = Misc.ParseFloat(node.GetValue("RadiusVariance"), RadiusVariance);
+            DepositCount = Misc.ParseInt(node.GetValue("DepositCount"), DepositCount);
+            NumberOfTries = Misc.ParseInt(node.GetValue("NumberOfTries"), NumberOfTries);
             SeedModifier = Misc.ParseInt(node.GetValue("SeedModifier"), Resource.GetHashCode());
         }
     }
