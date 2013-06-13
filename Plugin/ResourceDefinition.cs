@@ -19,9 +19,29 @@ namespace Kethane
         public int NumberOfTries { get; private set; }
         public int SeedModifier { get; private set; }
 
+        private Dictionary<string, ResourceDefinition> bodies = new Dictionary<string, ResourceDefinition>();
+
         public ResourceDefinition(ConfigNode node)
         {
-            Resource = node.GetValue("Resource") ?? Resource;
+            Resource = node.GetValue("Resource");
+            SeedModifier = Misc.ParseInt(node.GetValue("SeedModifier"), Resource.GetHashCode());
+            load(node);
+            foreach (var bodyNode in node.GetNodes("Body"))
+            {
+                var body = (ResourceDefinition)this.MemberwiseClone();
+                body.Resource = Resource;
+                body.load(bodyNode);
+                bodies[bodyNode.GetValue("name")] = body;
+            }
+        }
+
+        public ResourceDefinition ForBody(CelestialBody body)
+        {
+            return bodies.ContainsKey(body.name) ? bodies[body.name] : this;
+        }
+
+        private void load(ConfigNode node)
+        {
             MinRadius = Misc.ParseFloat(node.GetValue("MinRadius"), MinRadius);
             MaxRadius = Misc.ParseFloat(node.GetValue("MaxRadius"), MaxRadius);
             MinQuantity = Misc.ParseFloat(node.GetValue("MinQuantity"), MinQuantity);
@@ -31,7 +51,6 @@ namespace Kethane
             RadiusVariance = Misc.ParseFloat(node.GetValue("RadiusVariance"), RadiusVariance);
             DepositCount = Misc.ParseInt(node.GetValue("DepositCount"), DepositCount);
             NumberOfTries = Misc.ParseInt(node.GetValue("NumberOfTries"), NumberOfTries);
-            SeedModifier = Misc.ParseInt(node.GetValue("SeedModifier"), Resource.GetHashCode());
         }
     }
 }
