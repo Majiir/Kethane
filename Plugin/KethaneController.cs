@@ -241,7 +241,20 @@ namespace Kethane
 
             generateFromSeed();
 
-            foreach (var body in PlanetDeposits["Kethane"])
+            loadBodyDeposits(config, "Kethane", "Kethane");
+
+            foreach (var resourceNode in config.GetNodes("Resource"))
+            {
+                loadBodyDeposits(resourceNode, resourceNode.GetValue("Resource"));
+            }
+
+            timer.Stop();
+            Debug.LogWarning(String.Format("Kethane deposits loaded ({0}ms)", timer.ElapsedMilliseconds));
+        }
+
+        private static void loadBodyDeposits(ConfigNode config, string resourceName, string amountKey = "Quantity")
+        {
+            foreach (var body in PlanetDeposits[resourceName])
             {
                 var deposits = body.Value;
 
@@ -251,12 +264,9 @@ namespace Kethane
                 var depositNodes = bodyNode.GetNodes("Deposit");
                 for (int i = 0; i < Math.Min(deposits.Count, depositNodes.Length); i++)
                 {
-                    deposits[i].Kethane = float.Parse(depositNodes[i].GetValue("Kethane"));
+                    deposits[i].Kethane = float.Parse(depositNodes[i].GetValue(amountKey));
                 }
             }
-
-            timer.Stop();
-            Debug.LogWarning(String.Format("Kethane deposits loaded ({0}ms)", timer.ElapsedMilliseconds));
         }
 
         private void generateFromSeed()
