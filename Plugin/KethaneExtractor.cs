@@ -94,18 +94,18 @@ namespace Kethane
 
             foreach (var resourceRate in resourceRates)
             {
-            var deposit = KethaneController.GetInstance(this.vessel).GetDepositUnder(resourceRate.Key);
-            if (deposit == null) { continue; }
+                var deposit = KethaneController.GetInstance(this.vessel).GetDepositUnder(resourceRate.Key);
+                if (deposit == null) { continue; }
 
-            if (animator.CanExtract)
-            {
-                var energyRequest = this.PowerConsumption * TimeWarp.fixedDeltaTime;
-                var energy = this.part.RequestResource("ElectricCharge", energyRequest);
+                if (animator.CanExtract)
+                {
+                    var energyRequest = this.PowerConsumption * TimeWarp.fixedDeltaTime;
+                    var energy = this.part.RequestResource("ElectricCharge", energyRequest);
 
-                var amount = TimeWarp.fixedDeltaTime * resourceRate.Value * (energy / energyRequest);
-                amount = Math.Min(amount, deposit.Quantity);
-                deposit.Quantity += this.part.RequestResource(resourceRate.Key, -amount);
-            }
+                    var amount = TimeWarp.fixedDeltaTime * resourceRate.Value * (energy / energyRequest);
+                    amount = Math.Min(amount, deposit.Quantity);
+                    deposit.Quantity += this.part.RequestResource(resourceRate.Key, -amount);
+                }
             }
         }
 
