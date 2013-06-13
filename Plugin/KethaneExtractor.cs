@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using UnityEngine;
+using System.Collections.Generic;
 
 namespace Kethane
 {
@@ -8,8 +9,7 @@ namespace Kethane
     {
         private IExtractorAnimator animator;
 
-        [KSPField(isPersistant = false)]
-        public float ExtractionRate;
+        private Dictionary<string, float> resourceRates = new Dictionary<string, float>();
 
         [KSPField(isPersistant = false)]
         public float PowerConsumption;
@@ -21,6 +21,14 @@ namespace Kethane
         {
             this.part.force_activate();
             animator = part.Modules.OfType<IExtractorAnimator>().Single();
+        }
+
+        public override void OnLoad(ConfigNode node)
+        {
+            foreach (var resourceNode in node.GetNodes("Resource"))
+            {
+                resourceRates[resourceNode.GetValue("Name")] = float.Parse(resourceNode.GetValue("Rate"));
+            }
         }
 
         [KSPEvent(guiActive = true, guiName = "Deploy Drill", active = true)]
@@ -62,7 +70,7 @@ namespace Kethane
 
         public override string GetInfo()
         {
-            return String.Format("Extraction Rate: {0:F2}L/s\nPower Consumption: {1:F2}/s", ExtractionRate, PowerConsumption);
+            return String.Concat(resourceRates.Select(p => String.Format("{0} Rate: {1:F2}L/s\n", p.Key, p.Value)).ToArray()) + String.Format("Power Consumption: {0:F2}/s", PowerConsumption);
         }
 
         public override void OnUpdate()
@@ -84,17 +92,20 @@ namespace Kethane
         {
             if (animator.CurrentState != ExtractorState.Deployed) { return; }
 
-            var deposit = KethaneController.GetInstance(this.vessel).GetDepositUnder("Kethane");
-            if (deposit == null) { return; }
+            foreach (var resourceRate in resourceRates)
+            {
+            var deposit = KethaneController.GetInstance(this.vessel).GetDepositUnder(resourceRate.Key);
+            if (deposit == null) { continue; }
 
             if (animator.CanExtract)
             {
                 var energyRequest = this.PowerConsumption * TimeWarp.fixedDeltaTime;
                 var energy = this.part.RequestResource("ElectricCharge", energyRequest);
 
-                var amount = TimeWarp.fixedDeltaTime * ExtractionRate * (energy / energyRequest);
+                var amount = TimeWarp.fixedDeltaTime * resourceRate.Value * (energy / energyRequest);
                 amount = Math.Min(amount, deposit.Quantity);
-                deposit.Quantity += this.part.RequestResource("Kethane", -amount);
+                deposit.Quantity += this.part.RequestResource(resourceRate.Key, -amount);
+            }
             }
         }
 
