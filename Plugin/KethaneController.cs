@@ -177,25 +177,25 @@ namespace Kethane
                 var resourceNode = new ConfigNode("Resource");
                 resourceNode.AddValue("Resource", resource.Key);
 
-            foreach (var body in resource.Value)
-            {
-                var bodyNode = new ConfigNode("Body");
-                bodyNode.AddValue("Name", body.Key);
-
-                if (bodySeeds[body.Key] != body.Key.GetHashCode())
+                foreach (var body in resource.Value)
                 {
-                    bodyNode.AddValue("SeedModifier", bodySeeds[body.Key]);
-                }
+                    var bodyNode = new ConfigNode("Body");
+                    bodyNode.AddValue("Name", body.Key);
 
-                foreach (var deposit in body.Value)
-                {
-                    var depositNode = new ConfigNode("Deposit");
-                    depositNode.AddValue("Quantity", deposit.Kethane);
-                    bodyNode.AddNode(depositNode);
-                }
+                    if (bodySeeds[body.Key] != body.Key.GetHashCode())
+                    {
+                        bodyNode.AddValue("SeedModifier", bodySeeds[body.Key]);
+                    }
 
-                resourceNode.AddNode(bodyNode);
-            }
+                    foreach (var deposit in body.Value)
+                    {
+                        var depositNode = new ConfigNode("Deposit");
+                        depositNode.AddValue("Quantity", deposit.Kethane);
+                        bodyNode.AddNode(depositNode);
+                    }
+
+                    resourceNode.AddNode(bodyNode);
+                }
 
                 configNode.AddNode(resourceNode);
             }
