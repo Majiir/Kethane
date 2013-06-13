@@ -172,8 +172,12 @@ namespace Kethane
 
             var configNode = new ConfigNode();
             configNode.AddValue("Seed", depositSeed);
+            foreach (var resource in PlanetDeposits)
+            {
+                var resourceNode = new ConfigNode("Resource");
+                resourceNode.AddValue("Resource", resource.Key);
 
-            foreach (var body in PlanetDeposits["Kethane"])
+            foreach (var body in resource.Value)
             {
                 var bodyNode = new ConfigNode("Body");
                 bodyNode.AddValue("Name", body.Key);
@@ -186,11 +190,14 @@ namespace Kethane
                 foreach (var deposit in body.Value)
                 {
                     var depositNode = new ConfigNode("Deposit");
-                    depositNode.AddValue("Kethane", deposit.Kethane);
+                    depositNode.AddValue("Quantity", deposit.Kethane);
                     bodyNode.AddNode(depositNode);
                 }
 
-                configNode.AddNode(bodyNode);
+                resourceNode.AddNode(bodyNode);
+            }
+
+                configNode.AddNode(resourceNode);
             }
 
             configNode.Save(configFilePath);
