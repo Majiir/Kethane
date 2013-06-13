@@ -189,8 +189,7 @@ namespace Kethane
                 int seed;
                 if (!int.TryParse(n.GetValue("SeedModifier"), out seed))
                 {
-                    var oldSeed = depositSeed % n.GetValue("Name").GetHashCode();
-                    seed = depositSeed ^ oldSeed;
+                    seed = n.GetValue("Name").GetHashCode();
                 }
                 return seed;
             });
