@@ -56,39 +56,38 @@ namespace Kethane
         }
     }
 
-    internal class KethaneDeposit
+    internal class Deposit
     {
         public Polygon Shape;
 
-        public float Kethane { get; set; }
-        public float InitialKethaneAmount { get; set; }
+        public float Quantity { get; set; }
+        public float InitialQuantity { get; set; }
 
-        public KethaneDeposit(Polygon shape, float kethane, float initialKethane)
+        public Deposit(Polygon shape, float quantity, float initialQuantity)
         {
             Shape = shape;
-            Kethane = kethane;
-            InitialKethaneAmount = initialKethane;
+            Quantity = quantity;
+            InitialQuantity = initialQuantity;
         }
 
-        public static KethaneDeposit Generate(Vector2 Pos, float r, System.Random random, ResourceDefinition resource)
+        public static Deposit Generate(Vector2 Pos, float radius, System.Random random, ResourceDefinition resource)
         {
-            var InitialKethaneAmount = random.Range(resource.MinQuantity, resource.MaxQuantity);
-            var Kethane = InitialKethaneAmount;
+            var initialQuantity = random.Range(resource.MinQuantity, resource.MaxQuantity);
 
-            var Vertices = new List<Point>();
-            int VerticesCount = random.Next(resource.MinVertices, resource.MaxVertices);
-            for (int i = 0; i < VerticesCount; i++)
+            var vertices = new List<Point>();
+            int vertexCount = random.Next(resource.MinVertices, resource.MaxVertices);
+            for (int i = 0; i < vertexCount; i++)
             {
-                float RandomRadius = random.Range(resource.RadiusVariance * r, r);
-                float Angle = 2.0f * (float)Math.PI * ((float)i / (float)VerticesCount);
-                float x = Pos.x + RandomRadius * (float)Math.Cos(Angle);
-                float z = Pos.y - RandomRadius * (float)Math.Sin(Angle);
+                float randomRadius = random.Range(resource.RadiusVariance * radius, radius);
+                float angle = 2.0f * (float)Math.PI * ((float)i / (float)vertexCount);
+                float x = Pos.x + randomRadius * (float)Math.Cos(angle);
+                float z = Pos.y - randomRadius * (float)Math.Sin(angle);
 
-                Vertices.Add(new Point(x, z));
+                vertices.Add(new Point(x, z));
             }
-            var Shape = new Polygon(Vertices.ToArray());
+            var Shape = new Polygon(vertices.ToArray());
 
-            return new KethaneDeposit(Shape, Kethane, InitialKethaneAmount);
+            return new Deposit(Shape, initialQuantity, initialQuantity);
         }
     }
 }

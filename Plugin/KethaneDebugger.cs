@@ -65,9 +65,9 @@ namespace Kethane
                     }
                 }
 
-                List<KethaneDeposit> Deposits = KethaneController.PlanetDeposits["Kethane"][this.vessel.mainBody.name];
+                List<Deposit> Deposits = KethaneController.PlanetDeposits["Kethane"][this.vessel.mainBody.name];
 
-                foreach (KethaneDeposit KD in Deposits)
+                foreach (Deposit KD in Deposits)
                 {
                     for (int k = 0; k < KD.Shape.Vertices.Count - 1; k++)
                     {
@@ -121,7 +121,7 @@ namespace Kethane
             GUILayout.BeginHorizontal();
             GUILayout.Label("Deposit: ");
             var DepositUnder = controller.GetDepositUnder();
-            GUILayout.Label(DepositUnder == null ? "-" : DepositUnder.Kethane.ToString());
+            GUILayout.Label(DepositUnder == null ? "-" : DepositUnder.Quantity.ToString());
             GUILayout.EndHorizontal();
 
             GUILayout.EndVertical();

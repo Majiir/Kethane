@@ -74,7 +74,7 @@ namespace Kethane
             get { return controllers.Single(p => p.Value == this).Key.Target; }
         }
 
-        public static Dictionary<string, Dictionary<string, List<KethaneDeposit>>> PlanetDeposits;
+        public static Dictionary<string, Dictionary<string, List<Deposit>>> PlanetDeposits;
         private static Dictionary<string, int> bodySeeds;
 
         public static Dictionary<string, Texture2D> PlanetTextures = new Dictionary<string, Texture2D>();
@@ -140,7 +140,7 @@ namespace Kethane
                     int x = Misc.GetXOnMap(Misc.clampDegrees(Vessel.mainBody.GetLongitude(Vessel.transform.position)), planetTex.width);
                     int y = Misc.GetYOnMap(Vessel.mainBody.GetLatitude(Vessel.transform.position), planetTex.height);
                     if (deposit) {
-                        float ratio = GetDepositUnder().InitialKethaneAmount / resourceDefinitions["Kethane"].MaxQuantity;
+                        float ratio = GetDepositUnder().InitialQuantity / resourceDefinitions["Kethane"].MaxQuantity;
                         ratio = ratio * 0.8f + 0.2f;
                         planetTex.SetPixel(x, y, XKCDColors.DarkGrey * (1 - ratio) + XKCDColors.Green * ratio);
                     } else {
@@ -190,7 +190,7 @@ namespace Kethane
                     foreach (var deposit in body.Value)
                     {
                         var depositNode = new ConfigNode("Deposit");
-                        depositNode.AddValue("Quantity", deposit.Kethane);
+                        depositNode.AddValue("Quantity", deposit.Quantity);
                         bodyNode.AddNode(depositNode);
                     }
 
@@ -264,7 +264,7 @@ namespace Kethane
                 var depositNodes = bodyNode.GetNodes("Deposit");
                 for (int i = 0; i < Math.Min(deposits.Count, depositNodes.Length); i++)
                 {
-                    deposits[i].Kethane = float.Parse(depositNodes[i].GetValue(amountKey));
+                    deposits[i].Quantity = float.Parse(depositNodes[i].GetValue(amountKey));
                 }
             }
         }
@@ -274,11 +274,11 @@ namespace Kethane
             PlanetDeposits = resourceDefinitions.Values.ToDictionary(d => d.Resource, d => FlightGlobals.Bodies.ToDictionary(b => b.name, b => generate(b, depositSeed, d.ForBody(b))));
         }
 
-        private static List<KethaneDeposit> generate(CelestialBody CBody, int seed, ResourceDefinition resource)
+        private static List<Deposit> generate(CelestialBody body, int seed, ResourceDefinition resource)
         {
-            var random = new System.Random(depositSeed ^ bodySeeds[CBody.name] ^ resource.SeedModifier);
+            var random = new System.Random(depositSeed ^ bodySeeds[body.name] ^ resource.SeedModifier);
 
-            var Deposits = new List<KethaneDeposit>();
+            var deposits = new List<Deposit>();
 
             for (int i = 0; i < resource.DepositCount; i++)
             {
@@ -286,16 +286,16 @@ namespace Kethane
                 for (int j = 0; j < resource.NumberOfTries; j++)
                 {
                     Vector2 Pos = new Vector2(random.Range(R, 360 - R), random.Range(R, 180 - R));
-                    var Deposit = KethaneDeposit.Generate(Pos, R, random, resource);
-                    if (!Deposits.Any(d => d.Shape.Vertices.Any(v => Deposit.Shape.PointInPolygon(new Vector2(v.x, v.y)))) && !Deposit.Shape.Vertices.Any(v => Deposits.Any(d => d.Shape.PointInPolygon(new Vector2(v.x, v.y)))))
+                    var deposit = Deposit.Generate(Pos, R, random, resource);
+                    if (!deposits.Any(d => d.Shape.Vertices.Any(v => deposit.Shape.PointInPolygon(new Vector2(v.x, v.y)))) && !deposit.Shape.Vertices.Any(v => deposits.Any(d => d.Shape.PointInPolygon(new Vector2(v.x, v.y)))))
                     {
-                        Deposits.Add(Deposit);
+                        deposits.Add(deposit);
                         break;
                     }
                 }
             }
 
-            return Deposits;
+            return deposits;
         }
 
         public void GenerateKethaneDeposits(System.Random random = null)
@@ -312,28 +312,26 @@ namespace Kethane
             SetMaps();
         }
 
-        public KethaneDeposit GetDepositUnder()
+        public Deposit GetDepositUnder()
         {
             if (!PlanetDeposits["Kethane"].ContainsKey(Vessel.mainBody.name)) { return null; }
 
             double lon = Misc.clampDegrees(Vessel.mainBody.GetLongitude(Vessel.transform.position));
             double lat = Vessel.mainBody.GetLatitude(Vessel.transform.position);
 
-            double x = Math.Round(lon + 180d);
-            double y = Math.Round(90d - lat);
+            var x = (float)Math.Round(lon + 180d);
+            var y = (float)Math.Round(90d - lat);
 
-            Vector2 PointUnder = new Vector2((float)x, (float)y);
-
-            return GetDepositOver(PointUnder, Vessel.mainBody);
+            return GetDepositOver(new Vector2(x, y), Vessel.mainBody);
         }
 
-        public KethaneDeposit GetDepositOver(Vector2 Point, CelestialBody body)
+        public Deposit GetDepositOver(Vector2 point, CelestialBody body)
         {
-            foreach (KethaneDeposit KD in PlanetDeposits["Kethane"][body.name])
+            foreach (Deposit deposit in PlanetDeposits["Kethane"][body.name])
             {
-                if (KD.Shape.PointInPolygon(Point))
+                if (deposit.Shape.PointInPolygon(point))
                 {
-                    return KD;
+                    return deposit;
                 }
             }
             return null;

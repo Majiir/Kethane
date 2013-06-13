@@ -93,8 +93,8 @@ namespace Kethane
                 var energy = this.part.RequestResource("ElectricCharge", energyRequest);
 
                 var amount = TimeWarp.fixedDeltaTime * ExtractionRate * (energy / energyRequest);
-                amount = Math.Min(amount, deposit.Kethane);
-                deposit.Kethane += this.part.RequestResource("Kethane", -amount);
+                amount = Math.Min(amount, deposit.Quantity);
+                deposit.Quantity += this.part.RequestResource("Kethane", -amount);
             }
         }
 
