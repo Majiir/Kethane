@@ -263,15 +263,10 @@ namespace Kethane
 
             var Deposits = new List<KethaneDeposit>();
 
-            int DepositCount = (CBody.name == "Kerbin" ? 15 : 20) + (CBody.name == "Mun" ? 7 : -3);
-            int NumberOfTries = 30;
-            float MinRadius = (CBody.name == "Kerbin" ? 0.25f : 0.45f) * 360 * 0.045f;
-            float MaxRadius = 360 * 0.045f * (CBody.name == "Minmus" ? 0.8f : 1);
-
-            for (int i = 0; i < DepositCount; i++)
+            for (int i = 0; i < resource.DepositCount; i++)
             {
-                float R = random.Range(MinRadius, MaxRadius);
-                for (int j = 0; j < NumberOfTries; j++)
+                float R = random.Range(resource.MinRadius, resource.MaxRadius);
+                for (int j = 0; j < resource.NumberOfTries; j++)
                 {
                     Vector2 Pos = new Vector2(random.Range(R, 360 - R), random.Range(R, 180 - R));
                     var Deposit = KethaneDeposit.Generate(Pos, R, random, resource);

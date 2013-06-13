@@ -76,10 +76,10 @@ namespace Kethane
             var Kethane = InitialKethaneAmount;
 
             var Vertices = new List<Point>();
-            int VerticesCount = random.Next(20, 50);
+            int VerticesCount = random.Next(resource.MinVertices, resource.MaxVertices);
             for (int i = 0; i < VerticesCount; i++)
             {
-                float RandomRadius = random.Range(0.45f * r, r);
+                float RandomRadius = random.Range(resource.RadiusVariance * r, r);
                 float Angle = 2.0f * (float)Math.PI * ((float)i / (float)VerticesCount);
                 float x = Pos.x + RandomRadius * (float)Math.Cos(Angle);
                 float z = Pos.y - RandomRadius * (float)Math.Sin(Angle);
