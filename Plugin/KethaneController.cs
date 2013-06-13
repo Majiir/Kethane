@@ -140,7 +140,7 @@ namespace Kethane
                     int x = Misc.GetXOnMap(Misc.clampDegrees(Vessel.mainBody.GetLongitude(Vessel.transform.position)), planetTex.width);
                     int y = Misc.GetYOnMap(Vessel.mainBody.GetLatitude(Vessel.transform.position), planetTex.height);
                     if (deposit) {
-                        float ratio = GetDepositUnder().InitialQuantity / resourceDefinitions["Kethane"].MaxQuantity;
+                        float ratio = GetDepositUnder("Kethane").InitialQuantity / resourceDefinitions["Kethane"].MaxQuantity;
                         ratio = ratio * 0.8f + 0.2f;
                         planetTex.SetPixel(x, y, XKCDColors.DarkGrey * (1 - ratio) + XKCDColors.Green * ratio);
                     } else {
@@ -312,9 +312,9 @@ namespace Kethane
             SetMaps();
         }
 
-        public Deposit GetDepositUnder()
+        public Deposit GetDepositUnder(string resourceName)
         {
-            if (!PlanetDeposits["Kethane"].ContainsKey(Vessel.mainBody.name)) { return null; }
+            if (!PlanetDeposits[resourceName].ContainsKey(Vessel.mainBody.name)) { return null; }
 
             double lon = Misc.clampDegrees(Vessel.mainBody.GetLongitude(Vessel.transform.position));
             double lat = Vessel.mainBody.GetLatitude(Vessel.transform.position);
@@ -322,12 +322,12 @@ namespace Kethane
             var x = (float)Math.Round(lon + 180d);
             var y = (float)Math.Round(90d - lat);
 
-            return GetDepositOver(new Vector2(x, y), Vessel.mainBody);
+            return GetDepositOver(new Vector2(x, y), Vessel.mainBody, resourceName);
         }
 
-        public Deposit GetDepositOver(Vector2 point, CelestialBody body)
+        public Deposit GetDepositOver(Vector2 point, CelestialBody body, string resourceName)
         {
-            foreach (Deposit deposit in PlanetDeposits["Kethane"][body.name])
+            foreach (Deposit deposit in PlanetDeposits[resourceName][body.name])
             {
                 if (deposit.Shape.PointInPolygon(point))
                 {

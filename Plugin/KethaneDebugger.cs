@@ -112,7 +112,7 @@ namespace Kethane
             if (GUILayout.Button("GEN HERE", GUILayout.ExpandWidth(true)))
             {
                 var random = new System.Random();
-                while (controller.GetDepositUnder() == null)
+                while (controller.GetDepositUnder("Kethane") == null)
                 {
                     controller.GenerateKethaneDeposits(random);
                 }
@@ -120,7 +120,7 @@ namespace Kethane
 
             GUILayout.BeginHorizontal();
             GUILayout.Label("Deposit: ");
-            var DepositUnder = controller.GetDepositUnder();
+            var DepositUnder = controller.GetDepositUnder("Kethane");
             GUILayout.Label(DepositUnder == null ? "-" : DepositUnder.Quantity.ToString());
             GUILayout.EndHorizontal();
 
