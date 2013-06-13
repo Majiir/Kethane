@@ -194,6 +194,14 @@ namespace Kethane
                 return seed;
             });
 
+            foreach (var body in FlightGlobals.Bodies)
+            {
+                if (!bodySeeds.ContainsKey(body.name))
+                {
+                    bodySeeds[body.name] = body.name.GetHashCode();
+                }
+            }
+
             generateFromSeed();
 
             foreach (var body in PlanetDeposits)
