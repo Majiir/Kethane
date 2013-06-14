@@ -40,11 +40,19 @@ namespace Kethane
             LoadKethaneDeposits();
             SetMaps();
             RenderingManager.AddToPostDrawQueue(3, drawGui);
+
+            var config = KSP.IO.PluginConfiguration.CreateForType<KethaneController>();
+            config.load();
+            ScanningSound = config.GetValue<bool>("scanningSound", true);
         }
 
         private void CleanUp()
         {
             RenderingManager.RemoveFromPostDrawQueue(3, drawGui);
+
+            var config = KSP.IO.PluginConfiguration.CreateForType<KethaneController>();
+            config.SetValue("scanningSound", ScanningSound);
+            config.save();
         }
 
         public Vessel Vessel
@@ -265,7 +273,7 @@ namespace Kethane
 
         public bool ShowDetectorWindow;
 
-        public bool ScanningSound = true;
+        public static bool ScanningSound = true;
 
         public double LastLat, LastLon;
         public float LastQuantity;
