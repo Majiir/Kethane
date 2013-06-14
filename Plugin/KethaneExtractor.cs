@@ -91,7 +91,8 @@ namespace Kethane
             {
                 Events["DeployDrill"].active = retracted;
                 Events["RetractDrill"].active = deployed;
-                foreach (var window in GameObject.FindObjectsOfType(typeof(UIPartActionWindow)).OfType<UIPartActionWindow>().Where(w => w.part == part)) {
+                foreach (var window in GameObject.FindObjectsOfType(typeof(UIPartActionWindow)).OfType<UIPartActionWindow>().Where(w => w.part == part))
+                {
                     window.displayDirty = true;
                 }
             }

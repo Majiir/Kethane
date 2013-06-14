@@ -202,19 +202,19 @@ namespace Kethane
                     var detected = false;
                     foreach (var resource in resources)
                     {
-                    var DepositUnder = controller.GetDepositUnder(resource);
-                    if (DepositUnder != null && DepositUnder.Quantity >= 1.0f)
-                    {
-                        controller.DrawMap(true, resource);
-                        controller.LastLat = vessel.latitude;
-                        controller.LastLon = Misc.clampDegrees(vessel.longitude);
-                        controller.LastQuantity = DepositUnder.Quantity;
-                        detected = true;
-                    }
-                    else
-                    {
-                        controller.DrawMap(false, resource);
-                    }
+                        var DepositUnder = controller.GetDepositUnder(resource);
+                        if (DepositUnder != null && DepositUnder.Quantity >= 1.0f)
+                        {
+                            controller.DrawMap(true, resource);
+                            controller.LastLat = vessel.latitude;
+                            controller.LastLon = Misc.clampDegrees(vessel.longitude);
+                            controller.LastQuantity = DepositUnder.Quantity;
+                            detected = true;
+                        }
+                        else
+                        {
+                            controller.DrawMap(false, resource);
+                        }
                     }
                     TimerEcho = 0;
                     if (vessel == FlightGlobals.ActiveVessel && controller.ScanningSound)

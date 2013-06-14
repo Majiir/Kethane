@@ -101,21 +101,21 @@ namespace Kethane
 
                 foreach (var resourceName in resourceDefinitions.Keys)
                 {
-                if (!PlanetTextures.ContainsKey(body.name))
-                {
-                    PlanetTextures[resourceName].Add(body.name, new Texture2D(256, 128, TextureFormat.ARGB32, false));
-                }
-                if (KSP.IO.File.Exists<KethaneController>(getMapFilename(body, resourceName)))
-                {
-                    PlanetTextures[resourceName][body.name].LoadImage(KSP.IO.File.ReadAllBytes<KethaneController>(getMapFilename(body, resourceName)));
-                }
-                else
-                {
-                    for (int y = 0; y < PlanetTextures[resourceName][body.name].height; y++)
-                        for (int x = 0; x < PlanetTextures[resourceName][body.name].width; x++)
-                            PlanetTextures[resourceName][body.name].SetPixel(x, y, Color.black);
-                    PlanetTextures[resourceName][body.name].Apply();
-                }
+                    if (!PlanetTextures.ContainsKey(body.name))
+                    {
+                        PlanetTextures[resourceName].Add(body.name, new Texture2D(256, 128, TextureFormat.ARGB32, false));
+                    }
+                    if (KSP.IO.File.Exists<KethaneController>(getMapFilename(body, resourceName)))
+                    {
+                        PlanetTextures[resourceName][body.name].LoadImage(KSP.IO.File.ReadAllBytes<KethaneController>(getMapFilename(body, resourceName)));
+                    }
+                    else
+                    {
+                        for (int y = 0; y < PlanetTextures[resourceName][body.name].height; y++)
+                            for (int x = 0; x < PlanetTextures[resourceName][body.name].width; x++)
+                                PlanetTextures[resourceName][body.name].SetPixel(x, y, Color.black);
+                        PlanetTextures[resourceName][body.name].Apply();
+                    }
                 }
             }
             youAreHereMarker.LoadImage(KSP.IO.File.ReadAllBytes<KethaneController>("YouAreHereMarker.png"));
@@ -132,11 +132,11 @@ namespace Kethane
             {
                 foreach (var resourceName in resourceDefinitions.Keys)
                 {
-                if (PlanetTextures.ContainsKey(body.name))
-                {
-                    var pbytes = PlanetTextures[resourceName][body.name].EncodeToPNG();
-                    KSP.IO.File.WriteAllBytes<KethaneController>(pbytes, getMapFilename(body, resourceName), null);
-                }
+                    if (PlanetTextures.ContainsKey(body.name))
+                    {
+                        var pbytes = PlanetTextures[resourceName][body.name].EncodeToPNG();
+                        KSP.IO.File.WriteAllBytes<KethaneController>(pbytes, getMapFilename(body, resourceName), null);
+                    }
                 }
             }
         }
@@ -151,11 +151,14 @@ namespace Kethane
                 {
                     int x = Misc.GetXOnMap(Misc.clampDegrees(Vessel.mainBody.GetLongitude(Vessel.transform.position)), planetTex.width);
                     int y = Misc.GetYOnMap(Vessel.mainBody.GetLatitude(Vessel.transform.position), planetTex.height);
-                    if (deposit) {
+                    if (deposit)
+                    {
                         float ratio = GetDepositUnder(resourceName).InitialQuantity / resourceDefinitions[resourceName].MaxQuantity;
                         ratio = ratio * 0.8f + 0.2f;
                         planetTex.SetPixel(x, y, XKCDColors.DarkGrey * (1 - ratio) + XKCDColors.Green * ratio);
-                    } else {
+                    }
+                    else
+                    {
                         planetTex.SetPixel(x, y, XKCDColors.DarkGrey);
                     }
                 }
