@@ -102,7 +102,11 @@ namespace Kethane
 
                 foreach (var resourceName in resourceDefinitions.Keys)
                 {
-                    if (!PlanetTextures.ContainsKey(body.name))
+                    if (!PlanetTextures.ContainsKey(resourceName))
+                    {
+                        PlanetTextures[resourceName] = new Dictionary<string, Texture2D>();
+                    }
+                    if (!PlanetTextures[resourceName].ContainsKey(body.name))
                     {
                         PlanetTextures[resourceName].Add(body.name, new Texture2D(256, 128, TextureFormat.ARGB32, false));
                     }
@@ -133,7 +137,7 @@ namespace Kethane
             {
                 foreach (var resourceName in resourceDefinitions.Keys)
                 {
-                    if (PlanetTextures.ContainsKey(body.name))
+                    if (PlanetTextures.ContainsKey(resourceName) && PlanetTextures[resourceName].ContainsKey(body.name))
                     {
                         var pbytes = PlanetTextures[resourceName][body.name].EncodeToPNG();
                         KSP.IO.File.WriteAllBytes<KethaneController>(pbytes, getMapFilename(body, resourceName), null);
@@ -144,7 +148,7 @@ namespace Kethane
 
         public void DrawMap(bool deposit, string resourceName)
         {
-            if (Vessel.mainBody != null && PlanetTextures.ContainsKey(Vessel.mainBody.name))
+            if (Vessel.mainBody != null && PlanetTextures.ContainsKey(resourceName) && PlanetTextures[resourceName].ContainsKey(Vessel.mainBody.name))
             {
                 Texture2D planetTex = PlanetTextures[resourceName][Vessel.mainBody.name];
 
@@ -384,7 +388,7 @@ namespace Kethane
             #region Detector
             GUILayout.BeginVertical();
 
-            if (Vessel.mainBody != null && KethaneController.PlanetTextures.ContainsKey(Vessel.mainBody.name))
+            if (Vessel.mainBody != null && KethaneController.PlanetTextures.ContainsKey(selectedResource) && KethaneController.PlanetTextures[selectedResource].ContainsKey(Vessel.mainBody.name))
             {
                 Texture2D planetTex = KethaneController.PlanetTextures[selectedResource][Vessel.mainBody.name];
                 GUILayout.Box(planetTex);
