@@ -89,7 +89,7 @@ namespace Kethane
 
         public override string GetInfo()
         {
-            return String.Format("Maximum Altitude: {0:N0}m\nPower Consumption: {1:F2}/s\nScanning Period: {2:F2}s\nDetects: ", DetectingHeight, PowerConsumption, DetectingPeriod, String.Join(", ", resources.ToArray()));
+            return String.Format("Maximum Altitude: {0:N0}m\nPower Consumption: {1:F2}/s\nScanning Period: {2:F2}s\nDetects: {3}", DetectingHeight, PowerConsumption, DetectingPeriod, String.Join(", ", resources.ToArray()));
         }
 
         public override void OnStart(PartModule.StartState state)
