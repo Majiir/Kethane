@@ -159,8 +159,7 @@ namespace Kethane
                     if (deposit)
                     {
                         float ratio = GetDepositUnder(resourceName).InitialQuantity / resourceDefinitions[resourceName].MaxQuantity;
-                        ratio = ratio * 0.8f + 0.2f;
-                        planetTex.SetPixel(x, y, XKCDColors.DarkGrey * (1 - ratio) + XKCDColors.Green * ratio);
+                        planetTex.SetPixel(x, y, resourceDefinitions[resourceName].ColorEmpty * (1 - ratio) + resourceDefinitions[resourceName].ColorFull * ratio);
                     }
                     else
                     {

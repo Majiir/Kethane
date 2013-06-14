@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using UnityEngine;
 
 namespace Kethane
 {
@@ -18,6 +19,8 @@ namespace Kethane
         public int DepositCount { get; private set; }
         public int NumberOfTries { get; private set; }
         public int SeedModifier { get; private set; }
+        public Color ColorFull { get; private set; }
+        public Color ColorEmpty { get; private set; }
 
         private Dictionary<string, ResourceDefinition> bodies = new Dictionary<string, ResourceDefinition>();
 
@@ -51,6 +54,8 @@ namespace Kethane
             RadiusVariance = Misc.ParseFloat(node.GetValue("RadiusVariance"), RadiusVariance);
             DepositCount = Misc.ParseInt(node.GetValue("DepositCount"), DepositCount);
             NumberOfTries = Misc.ParseInt(node.GetValue("NumberOfTries"), NumberOfTries);
+            ColorFull = ConfigNode.ParseColor(node.GetValue("ColorFull") ?? String.Empty);
+            ColorEmpty = ConfigNode.ParseColor(node.GetValue("ColorEmpty") ?? String.Empty);
         }
     }
 }
