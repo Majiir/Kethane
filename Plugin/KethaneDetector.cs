@@ -188,10 +188,10 @@ namespace Kethane
                 TimerEcho += Time.deltaTime * (1 + Math.Log(TimeWarp.CurrentRate)) * this.powerRatio * KethaneDetector.detectorVariance.Range(0.99f, 1.01f);
 
                 var TimerThreshold = this.DetectingPeriod + Altitude * 0.000005d; // 0,5s delay at 100km
-                var DepositUnder = controller.GetDepositUnder("Kethane");
 
                 if (TimerEcho >= TimerThreshold)
                 {
+                    var DepositUnder = controller.GetDepositUnder("Kethane");
                     if (DepositUnder != null && DepositUnder.Quantity >= 1.0f)
                     {
                         controller.DrawMap(true, "Kethane");
