@@ -217,7 +217,7 @@ namespace Kethane
                         }
                     }
                     TimerEcho = 0;
-                    if (vessel == FlightGlobals.ActiveVessel && controller.ScanningSound)
+                    if (vessel == FlightGlobals.ActiveVessel && KethaneController.ScanningSound)
                     {
                         (detected ? PingDeposit : PingEmpty).Play();
                     }
