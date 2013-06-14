@@ -191,6 +191,7 @@ namespace Kethane
 
                 if (TimerEcho >= TimerThreshold)
                 {
+                    var detected = false;
                     var DepositUnder = controller.GetDepositUnder("Kethane");
                     if (DepositUnder != null && DepositUnder.Quantity >= 1.0f)
                     {
@@ -198,16 +199,17 @@ namespace Kethane
                         controller.LastLat = vessel.latitude;
                         controller.LastLon = Misc.clampDegrees(vessel.longitude);
                         controller.LastQuantity = DepositUnder.Quantity;
-                        if (vessel == FlightGlobals.ActiveVessel && controller.ScanningSound)
-                            PingDeposit.Play();
+                        detected = true;
                     }
                     else
                     {
                         controller.DrawMap(false, "Kethane");
-                        if (vessel == FlightGlobals.ActiveVessel && controller.ScanningSound)
-                            PingEmpty.Play();
                     }
                     TimerEcho = 0;
+                    if (vessel == FlightGlobals.ActiveVessel && controller.ScanningSound)
+                    {
+                        (detected ? PingDeposit : PingEmpty).Play();
+                    }
                 }
             }
             else
