@@ -18,6 +18,9 @@ namespace Kethane
         [KSPField(isPersistant = false)]
         public string TailTransform;
 
+        [KSPField]
+        public string State;
+
         private AnimationState[] deployStates;
         private AnimationState[] drillStates;
 
@@ -26,11 +29,6 @@ namespace Kethane
 
         private GameObject gasParticles;
         private GameObject sparkParticles;
-
-        public KethaneDrillAnimator()
-        {
-            CurrentState = ExtractorState.Retracted;
-        }
 
         public override void OnStart(PartModule.StartState state)
         {
@@ -137,7 +135,25 @@ namespace Kethane
             #endregion
         }
 
-        public ExtractorState CurrentState { get; private set; }
+        public ExtractorState CurrentState
+        {
+            get
+            {
+                try
+                {
+                    return (ExtractorState)Enum.Parse(typeof(ExtractorState), State);
+                }
+                catch
+                {
+                    CurrentState = ExtractorState.Retracted;
+                    return CurrentState;
+                }
+            }
+            private set
+            {
+                State = Enum.GetName(typeof(ExtractorState), value);
+            }
+        }
 
         public void Deploy()
         {
