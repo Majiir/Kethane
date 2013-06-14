@@ -316,7 +316,7 @@ namespace Kethane
         {
             var body = Vessel.mainBody;
 
-            if (!PlanetDeposits[resourceName].ContainsKey(body.name)) { return null; }
+            if (resourceName == null || body.name == null || !PlanetDeposits.ContainsKey(resourceName) || !PlanetDeposits[resourceName].ContainsKey(body.name)) { return null; }
 
             double lon = Misc.clampDegrees(body.GetLongitude(Vessel.transform.position));
             double lat = body.GetLatitude(Vessel.transform.position);
