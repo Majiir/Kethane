@@ -77,7 +77,7 @@ namespace Kethane
         public static Dictionary<string, Dictionary<string, List<Deposit>>> PlanetDeposits;
         private static Dictionary<string, int> bodySeeds;
 
-        public static Dictionary<string, Texture2D> PlanetTextures = new Dictionary<string, Texture2D>();
+        public static Dictionary<string, Dictionary<string, Texture2D>> PlanetTextures = new Dictionary<string, Dictionary<string, Texture2D>>();
 
         public static SortedDictionary<String, ResourceDefinition> resourceDefinitions = null;
 
@@ -93,20 +93,29 @@ namespace Kethane
             if (FlightGlobals.fetch == null) { return; }
             foreach (CelestialBody body in FlightGlobals.Bodies)
             {
+                var legacyPath = String.Format("map_{0}_{1}.png", depositSeed, body.name);
+                if (KSP.IO.File.Exists<KethaneController>(legacyPath))
+                {
+                    KSP.IO.File.WriteAllBytes<KethaneController>(KSP.IO.File.ReadAllBytes<KethaneController>(legacyPath), getMapFilename(body, "Kethane"));
+                }
+
+                foreach (var resourceName in resourceDefinitions.Keys)
+                {
                 if (!PlanetTextures.ContainsKey(body.name))
                 {
-                    PlanetTextures.Add(body.name, new Texture2D(256, 128, TextureFormat.ARGB32, false));
+                    PlanetTextures[resourceName].Add(body.name, new Texture2D(256, 128, TextureFormat.ARGB32, false));
                 }
-                if (KSP.IO.File.Exists<KethaneController>(getMapFilename(body)))
+                if (KSP.IO.File.Exists<KethaneController>(getMapFilename(body, resourceName)))
                 {
-                    PlanetTextures[body.name].LoadImage(KSP.IO.File.ReadAllBytes<KethaneController>(getMapFilename(body)));
+                    PlanetTextures[resourceName][body.name].LoadImage(KSP.IO.File.ReadAllBytes<KethaneController>(getMapFilename(body, resourceName)));
                 }
                 else
                 {
-                    for (int y = 0; y < PlanetTextures[body.name].height; y++)
-                        for (int x = 0; x < PlanetTextures[body.name].width; x++)
-                            PlanetTextures[body.name].SetPixel(x, y, Color.black);
-                    PlanetTextures[body.name].Apply();
+                    for (int y = 0; y < PlanetTextures[resourceName][body.name].height; y++)
+                        for (int x = 0; x < PlanetTextures[resourceName][body.name].width; x++)
+                            PlanetTextures[resourceName][body.name].SetPixel(x, y, Color.black);
+                    PlanetTextures[resourceName][body.name].Apply();
+                }
                 }
             }
             youAreHereMarker.LoadImage(KSP.IO.File.ReadAllBytes<KethaneController>("YouAreHereMarker.png"));
@@ -121,26 +130,29 @@ namespace Kethane
 
             foreach (CelestialBody body in FlightGlobals.Bodies)
             {
+                foreach (var resourceName in resourceDefinitions.Keys)
+                {
                 if (PlanetTextures.ContainsKey(body.name))
                 {
-                    var pbytes = PlanetTextures[body.name].EncodeToPNG();
-                    KSP.IO.File.WriteAllBytes<KethaneController>(pbytes, getMapFilename(body), null);
+                    var pbytes = PlanetTextures[resourceName][body.name].EncodeToPNG();
+                    KSP.IO.File.WriteAllBytes<KethaneController>(pbytes, getMapFilename(body, resourceName), null);
+                }
                 }
             }
         }
 
-        public void DrawMap(bool deposit)
+        public void DrawMap(bool deposit, string resourceName)
         {
             if (Vessel.mainBody != null && PlanetTextures.ContainsKey(Vessel.mainBody.name))
             {
-                Texture2D planetTex = PlanetTextures[Vessel.mainBody.name];
+                Texture2D planetTex = PlanetTextures[resourceName][Vessel.mainBody.name];
 
                 if (this.Vessel != null)
                 {
                     int x = Misc.GetXOnMap(Misc.clampDegrees(Vessel.mainBody.GetLongitude(Vessel.transform.position)), planetTex.width);
                     int y = Misc.GetYOnMap(Vessel.mainBody.GetLatitude(Vessel.transform.position), planetTex.height);
                     if (deposit) {
-                        float ratio = GetDepositUnder("Kethane").InitialQuantity / resourceDefinitions["Kethane"].MaxQuantity;
+                        float ratio = GetDepositUnder(resourceName).InitialQuantity / resourceDefinitions[resourceName].MaxQuantity;
                         ratio = ratio * 0.8f + 0.2f;
                         planetTex.SetPixel(x, y, XKCDColors.DarkGrey * (1 - ratio) + XKCDColors.Green * ratio);
                     } else {
@@ -152,9 +164,9 @@ namespace Kethane
             }
         }
 
-        private string getMapFilename(CelestialBody body)
+        private string getMapFilename(CelestialBody body, string resourceName)
         {
-            return String.Format("map_{0}_{1}.png", depositSeed, body.name);
+            return String.Format("map_{0}_{1}_{2}.png", resourceName, depositSeed, body.name);
         }
 
         private string configFilePath
@@ -370,7 +382,7 @@ namespace Kethane
 
             if (Vessel.mainBody != null && KethaneController.PlanetTextures.ContainsKey(Vessel.mainBody.name))
             {
-                Texture2D planetTex = KethaneController.PlanetTextures[Vessel.mainBody.name];
+                Texture2D planetTex = KethaneController.PlanetTextures[selectedResource][Vessel.mainBody.name];
                 GUILayout.Box(planetTex);
                 Rect Last = UnityEngine.GUILayoutUtility.GetLastRect();
 

@@ -194,7 +194,7 @@ namespace Kethane
                 {
                     if (DepositUnder != null && DepositUnder.Quantity >= 1.0f)
                     {
-                        controller.DrawMap(true);
+                        controller.DrawMap(true, "Kethane");
                         controller.LastLat = vessel.latitude;
                         controller.LastLon = Misc.clampDegrees(vessel.longitude);
                         controller.LastQuantity = DepositUnder.Quantity;
@@ -203,7 +203,7 @@ namespace Kethane
                     }
                     else
                     {
-                        controller.DrawMap(false);
+                        controller.DrawMap(false, "Kethane");
                         if (vessel == FlightGlobals.ActiveVessel && controller.ScanningSound)
                             PingEmpty.Play();
                     }
