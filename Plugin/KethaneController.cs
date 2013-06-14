@@ -287,8 +287,13 @@ namespace Kethane
             { return; }
             if (!Vessel.Parts.SelectMany(p => p.Modules.OfType<KethaneDetector>()).Any()) { return; }
 
-            GUI.skin = null;
-            GUI.skin = (GUISkin)GameObject.Instantiate(GUI.skin);
+            if (defaultSkin == null)
+            {
+                GUI.skin = null;
+                defaultSkin = (GUISkin)GameObject.Instantiate(GUI.skin);
+            }
+
+            GUI.skin = defaultSkin;
             GUI.backgroundColor = XKCDColors.Green;
 
             if (ShowDetectorWindow)
@@ -296,6 +301,8 @@ namespace Kethane
                 DetectorWindowPosition = GUILayout.Window(12358, DetectorWindowPosition, DetectorWindowGUI, "Kethane Detector");
             }
         }
+
+        private static GUISkin defaultSkin = null;
 
         private void DetectorWindowGUI(int windowID)
         {
