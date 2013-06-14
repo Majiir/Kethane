@@ -172,6 +172,7 @@ namespace Kethane
 
         private void LoadKethaneDeposits()
         {
+            if (PlanetDeposits != null) { return; }
             if (FlightGlobals.fetch == null) { return; }
 
             var timer = System.Diagnostics.Stopwatch.StartNew();
