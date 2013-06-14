@@ -94,9 +94,10 @@ namespace Kethane
             foreach (CelestialBody body in FlightGlobals.Bodies)
             {
                 var legacyPath = String.Format("map_{0}_{1}.png", depositSeed, body.name);
-                if (KSP.IO.File.Exists<KethaneController>(legacyPath))
+                if (KSP.IO.File.Exists<KethaneController>(legacyPath) && !KSP.IO.File.Exists<KethaneController>(getMapFilename(body, "Kethane")))
                 {
                     KSP.IO.File.WriteAllBytes<KethaneController>(KSP.IO.File.ReadAllBytes<KethaneController>(legacyPath), getMapFilename(body, "Kethane"));
+                    KSP.IO.File.Delete<KethaneController>(legacyPath);
                 }
 
                 foreach (var resourceName in resourceDefinitions.Keys)
