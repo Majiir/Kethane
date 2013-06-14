@@ -32,6 +32,8 @@ namespace Kethane
         [KSPField]
         public bool IsDetecting;
 
+        private List<string> resources;
+
         private double TimerEcho;
         private static System.Random detectorVariance = new System.Random();
 
@@ -87,7 +89,7 @@ namespace Kethane
 
         public override string GetInfo()
         {
-            return String.Format("Maximum Altitude: {0:N0}m\nPower Consumption: {1:F2}/s\nScanning Period: {2:F2}s", DetectingHeight, PowerConsumption, DetectingPeriod);
+            return String.Format("Maximum Altitude: {0:N0}m\nPower Consumption: {1:F2}/s\nScanning Period: {2:F2}s\nDetects: ", DetectingHeight, PowerConsumption, DetectingPeriod, String.Join(", ", resources.ToArray()));
         }
 
         public override void OnStart(PartModule.StartState state)
@@ -113,6 +115,12 @@ namespace Kethane
                 PingDeposit.Stop();
             }
             #endregion
+        }
+
+        public override void OnLoad(ConfigNode node)
+        {
+            if (part.partInfo != null) { node = GameDatabase.Instance.GetConfigs("PART").Where(c => part.partInfo.name == c.name.Replace('_', '.')).Single().config.GetNodes("MODULE").Where(n => n.GetValue("name") == moduleName).Single(); }
+            resources = node.GetNodes("Resource").Select(n => n.GetValue("Name")).ToList();
         }
 
         public override void OnUpdate()
@@ -192,10 +200,12 @@ namespace Kethane
                 if (TimerEcho >= TimerThreshold)
                 {
                     var detected = false;
-                    var DepositUnder = controller.GetDepositUnder("Kethane");
+                    foreach (var resource in resources)
+                    {
+                    var DepositUnder = controller.GetDepositUnder(resource);
                     if (DepositUnder != null && DepositUnder.Quantity >= 1.0f)
                     {
-                        controller.DrawMap(true, "Kethane");
+                        controller.DrawMap(true, resource);
                         controller.LastLat = vessel.latitude;
                         controller.LastLon = Misc.clampDegrees(vessel.longitude);
                         controller.LastQuantity = DepositUnder.Quantity;
@@ -203,7 +213,8 @@ namespace Kethane
                     }
                     else
                     {
-                        controller.DrawMap(false, "Kethane");
+                        controller.DrawMap(false, resource);
+                    }
                     }
                     TimerEcho = 0;
                     if (vessel == FlightGlobals.ActiveVessel && controller.ScanningSound)
