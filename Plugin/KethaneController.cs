@@ -254,6 +254,7 @@ namespace Kethane
 
         private static void loadBodyDeposits(ConfigNode config, string resourceName, string amountKey = "Quantity")
         {
+            if (!PlanetDeposits.ContainsKey(resourceName)) { return; }
             foreach (var body in PlanetDeposits[resourceName])
             {
                 var deposits = body.Value;
