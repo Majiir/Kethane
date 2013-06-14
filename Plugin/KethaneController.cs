@@ -389,6 +389,12 @@ namespace Kethane
                 defaultSkin = (GUISkin)GameObject.Instantiate(GUI.skin);
             }
 
+            if (centeredStyle == null)
+            {
+                centeredStyle = new GUIStyle(GUI.skin.GetStyle("Label"));
+                centeredStyle.alignment = TextAnchor.MiddleCenter;
+            }
+
             GUI.skin = defaultSkin;
             GUI.backgroundColor = XKCDColors.Green;
 
@@ -399,6 +405,7 @@ namespace Kethane
         }
 
         private static GUISkin defaultSkin = null;
+        private static GUIStyle centeredStyle = null;
 
         private string selectedResource = "Kethane";
 
@@ -426,8 +433,6 @@ namespace Kethane
                 }
                 GUI.enabled = true;
 
-                var centeredStyle = new GUIStyle(GUI.skin.GetStyle("Label"));
-                centeredStyle.alignment = TextAnchor.MiddleCenter;
                 GUILayout.Label(selectedResource, centeredStyle, GUILayout.ExpandWidth(true));
 
                 GUI.enabled = resourceDefinitions.Last().Key != selectedResource;
