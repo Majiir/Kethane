@@ -25,6 +25,7 @@ namespace Kethane
 
         public override void OnLoad(ConfigNode node)
         {
+            if (part.partInfo != null) { node = GameDatabase.Instance.GetConfigs("PART").Where(c => part.partInfo.name == c.name.Replace('_', '.')).Single().config.GetNodes("MODULE").Where(n => n.GetValue("name") == moduleName).Single(); }
             foreach (var resourceNode in node.GetNodes("Resource"))
             {
                 resourceRates[resourceNode.GetValue("Name")] = float.Parse(resourceNode.GetValue("Rate"));
