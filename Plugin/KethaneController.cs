@@ -20,7 +20,7 @@ namespace Kethane
                 if (v == null)
                 {
                     controllers.Remove(wr);
-                    RenderingManager.RemoveFromPostDrawQueue(3, kvp.Value.drawGui);
+                    kvp.Value.CleanUp();
                 }
                 else if (v == vessel)
                 {
@@ -40,6 +40,11 @@ namespace Kethane
             LoadKethaneDeposits();
             SetMaps();
             RenderingManager.AddToPostDrawQueue(3, drawGui);
+        }
+
+        private void CleanUp()
+        {
+            RenderingManager.RemoveFromPostDrawQueue(3, drawGui);
         }
 
         public Vessel Vessel
