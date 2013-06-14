@@ -46,7 +46,7 @@ namespace Kethane
         private static void loadResourceDefinitions()
         {
             if (resourceDefinitions != null) { return; }
-            resourceDefinitions = new Dictionary<String, ResourceDefinition>();
+            resourceDefinitions = new SortedDictionary<String, ResourceDefinition>();
             foreach (var definitionNode in GameDatabase.Instance.GetConfigNodes("KethaneResource"))
             {
                 try
@@ -79,7 +79,7 @@ namespace Kethane
 
         public static Dictionary<string, Texture2D> PlanetTextures = new Dictionary<string, Texture2D>();
 
-        public static Dictionary<String, ResourceDefinition> resourceDefinitions = null;
+        public static SortedDictionary<String, ResourceDefinition> resourceDefinitions = null;
 
         private static long lastSaveFrame = -1;
         private static long lastMapsSaveFrame = -1;
@@ -361,6 +361,8 @@ namespace Kethane
             }
         }
 
+        private string selectedResource = "Kethane";
+
         private void DetectorWindowGUI(int windowID)
         {
             #region Detector
@@ -375,6 +377,28 @@ namespace Kethane
                 int x = Misc.GetXOnMap(Misc.clampDegrees(Vessel.mainBody.GetLongitude(Vessel.transform.position)), planetTex.width);
                 int y = Misc.GetYOnMap(Vessel.mainBody.GetLatitude(Vessel.transform.position), planetTex.height);
                 GUI.DrawTexture(new Rect(((Last.xMin + Last.xMax) / 2) - (planetTex.width / 2) + x - (youAreHereMarker.width / 2), ((Last.yMin + Last.yMax) / 2) + (planetTex.height / 2) - y - (youAreHereMarker.height / 2), 7, 7), youAreHereMarker);
+
+                GUILayout.BeginHorizontal();
+
+                GUI.enabled = resourceDefinitions.First().Key != selectedResource;
+                if (GUILayout.Button("<", GUILayout.ExpandWidth(false)))
+                {
+                    selectedResource = resourceDefinitions.Last(p => p.Key.CompareTo(selectedResource) < 0).Key;
+                }
+                GUI.enabled = true;
+
+                var centeredStyle = new GUIStyle(GUI.skin.GetStyle("Label"));
+                centeredStyle.alignment = TextAnchor.MiddleCenter;
+                GUILayout.Label(selectedResource, centeredStyle, GUILayout.ExpandWidth(true));
+
+                GUI.enabled = resourceDefinitions.Last().Key != selectedResource;
+                if (GUILayout.Button(">", GUILayout.ExpandWidth(false)))
+                {
+                    selectedResource = resourceDefinitions.First(p => p.Key.CompareTo(selectedResource) > 0).Key;
+                }
+                GUI.enabled = true;
+
+                GUILayout.EndHorizontal();
 
                 float xVar = ((Last.xMin + Last.xMax) / 2) - (planetTex.width / 2) + DetectorWindowPosition.x;
                 float yVar = ((Last.yMin + Last.yMax) / 2) - (planetTex.height / 2) + DetectorWindowPosition.y;
