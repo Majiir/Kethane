@@ -314,22 +314,19 @@ namespace Kethane
 
         public Deposit GetDepositUnder(string resourceName)
         {
-            if (!PlanetDeposits[resourceName].ContainsKey(Vessel.mainBody.name)) { return null; }
+            var body = Vessel.mainBody;
 
-            double lon = Misc.clampDegrees(Vessel.mainBody.GetLongitude(Vessel.transform.position));
-            double lat = Vessel.mainBody.GetLatitude(Vessel.transform.position);
+            if (!PlanetDeposits[resourceName].ContainsKey(body.name)) { return null; }
+
+            double lon = Misc.clampDegrees(body.GetLongitude(Vessel.transform.position));
+            double lat = body.GetLatitude(Vessel.transform.position);
 
             var x = (float)Math.Round(lon + 180d);
             var y = (float)Math.Round(90d - lat);
 
-            return GetDepositOver(new Vector2(x, y), Vessel.mainBody, resourceName);
-        }
-
-        public Deposit GetDepositOver(Vector2 point, CelestialBody body, string resourceName)
-        {
             foreach (Deposit deposit in PlanetDeposits[resourceName][body.name])
             {
-                if (deposit.Shape.PointInPolygon(point))
+                if (deposit.Shape.PointInPolygon(new Vector2(x, y)))
                 {
                     return deposit;
                 }
