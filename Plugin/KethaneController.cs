@@ -273,11 +273,13 @@ namespace Kethane
             { return; }
             if (!Vessel.Parts.SelectMany(p => p.Modules.OfType<KethaneDetector>()).Any()) { return; }
 
-            GUI.skin = HighLogic.Skin;
+            GUI.skin = null;
+            GUI.skin = (GUISkin)GameObject.Instantiate(GUI.skin);
+            GUI.backgroundColor = XKCDColors.Green;
 
             if (ShowDetectorWindow)
             {
-                DetectorWindowPosition = GUILayout.Window(12358, DetectorWindowPosition, DetectorWindowGUI, "Detecting", GUILayout.MinWidth(300), GUILayout.MaxWidth(300), GUILayout.MinHeight(20));
+                DetectorWindowPosition = GUILayout.Window(12358, DetectorWindowPosition, DetectorWindowGUI, "Kethane Detector");
             }
         }
 
@@ -308,7 +310,6 @@ namespace Kethane
                     inbound = false;
 
                 GUILayout.Label(String.Format(inbound ? "Mouse coordinates: {0:0.0}, {1:0.0}" : "Mouse coordinates: -", Misc.GetLatOnMap(yVar, planetTex.height), Misc.GetLonOnMap(xVar, planetTex.width)));
-
             }
 
             GUILayout.Label(String.Format("Last deposit: {0:0.000}, {1:0.000} ({2:F0}L)", LastLat, LastLon, LastQuantity));
