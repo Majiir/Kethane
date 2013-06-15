@@ -1,7 +1,7 @@
 ﻿
 namespace Kethane
 {
-    public class KethaneDrillAnimatorLanded : PartModule, IExtractorAnimator
+    public class KethaneExtractorAnimatorLanded : PartModule, IExtractorAnimator
     {
         public ExtractorState CurrentState { get; private set; }
         public void Deploy() { CurrentState = ExtractorState.Deployed; }
