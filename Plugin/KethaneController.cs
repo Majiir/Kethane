@@ -396,12 +396,15 @@ namespace Kethane
             }
 
             GUI.skin = defaultSkin;
+            var oldBackground = GUI.backgroundColor;
             GUI.backgroundColor = XKCDColors.Green;
 
             if (ShowDetectorWindow)
             {
                 DetectorWindowPosition = GUILayout.Window(12358, DetectorWindowPosition, DetectorWindowGUI, "Kethane Detector");
             }
+
+            GUI.backgroundColor = oldBackground;
         }
 
         private static GUISkin defaultSkin = null;

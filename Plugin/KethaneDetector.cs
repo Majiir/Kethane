@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 
 namespace Kethane
@@ -16,18 +14,6 @@ namespace Kethane
 
         [KSPField(isPersistant = false)]
         public float PowerConsumption;
-
-        [KSPField(isPersistant = false)]
-        public string BaseTransform;
-
-        [KSPField(isPersistant = false)]
-        public string PartTransform;
-
-        [KSPField(isPersistant = false)]
-        public string HeadingTransform;
-
-        [KSPField(isPersistant = false)]
-        public string ElevationTransform;
 
         [KSPField]
         public bool IsDetecting;
@@ -147,41 +133,11 @@ namespace Kethane
                 Status = "Out Of Range";
             }
 
-            CelestialBody body = this.vessel.mainBody;
-            if (body == null)
-                return;
-
-            var BaseT = this.part.transform.FindChild("model");
-
-            if (!String.IsNullOrEmpty(PartTransform))
+            foreach (var animator in part.Modules.OfType<IDetectorAnimator>())
             {
-                BaseT = BaseT.FindChild(PartTransform);
+                animator.IsDetecting = IsDetecting;
+                animator.PowerRatio = powerRatio;
             }
-
-            BaseT = BaseT.FindChild(BaseTransform);
-
-            Vector3 bodyCoords = BaseT.InverseTransformPoint(body.transform.position);
-            Vector2 pos = Misc.CartesianToPolar(bodyCoords);
-
-            var alpha = (float)Misc.NormalizeAngle(pos.x + 90);
-            var beta = (float)Misc.NormalizeAngle(pos.y);
-
-            Transform RotH = BaseT.FindChild(HeadingTransform);
-            Transform RotV = RotH.FindChild(ElevationTransform);
-
-            if (Math.Abs(RotH.localEulerAngles.y - beta) > 90)
-            {
-                beta += 180;
-                alpha = 360 - alpha;
-            }
-
-            var speed = Time.deltaTime * this.powerRatio * 60;
-
-            RotH.localRotation = Quaternion.RotateTowards(RotH.localRotation, Quaternion.AngleAxis(beta, new Vector3(0, 1, 0)), speed);
-            RotV.localRotation = Quaternion.RotateTowards(RotV.localRotation, Quaternion.AngleAxis(alpha, new Vector3(1, 0, 0)), speed);
-
-            if (float.IsNaN(RotH.localRotation.w)) { RotH.localRotation = Quaternion.identity; }
-            if (float.IsNaN(RotV.localRotation.w)) { RotV.localRotation = Quaternion.identity; }
         }
 
         public override void OnFixedUpdate()
