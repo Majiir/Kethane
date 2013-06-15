@@ -102,21 +102,19 @@ namespace Kethane
         public override void OnFixedUpdate()
         {
             if (animator.CurrentState != ExtractorState.Deployed) { return; }
+            if (!animator.CanExtract) { return; }
 
             foreach (var resource in resources)
             {
                 var deposit = KethaneController.GetInstance(this.vessel).GetDepositUnder(resource.Name);
                 if (deposit == null) { continue; }
 
-                if (animator.CanExtract)
-                {
                     var energyRequest = this.PowerConsumption * TimeWarp.fixedDeltaTime;
                     var energy = this.part.RequestResource("ElectricCharge", energyRequest);
 
                     var amount = TimeWarp.fixedDeltaTime * resource.Rate * (energy / energyRequest);
                     amount = Math.Min(amount, deposit.Quantity);
                     deposit.Quantity += this.part.RequestResource(resource.Name, -amount);
-                }
             }
         }
 
