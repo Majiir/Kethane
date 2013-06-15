@@ -112,9 +112,9 @@ namespace Kethane
                 var deposit = KethaneController.GetInstance(this.vessel).GetDepositUnder(resource.Name);
                 if (deposit == null) { continue; }
 
-                    var amount = TimeWarp.fixedDeltaTime * resource.Rate * energyRatio;
-                    amount = Math.Min(amount, deposit.Quantity);
-                    deposit.Quantity += this.part.RequestResource(resource.Name, -amount);
+                var amount = TimeWarp.fixedDeltaTime * resource.Rate * energyRatio;
+                amount = Math.Min(amount, deposit.Quantity);
+                deposit.Quantity += this.part.RequestResource(resource.Name, -amount);
             }
         }
 
