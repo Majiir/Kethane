@@ -53,7 +53,7 @@
     <Compile Include="KethaneDetectorAnimator.cs" />
     <Compile Include="KethaneDrillAnimator.cs" />
     <Compile Include="KethaneDrillAnimatorLegacy.cs" />
-    <Compile Include="KethaneDrillAnimatorNull.cs" />
+    <Compile Include="KethaneDrillAnimatorLanded.cs" />
     <Compile Include="KethaneKerbalBlender.cs" />
     <Compile Include="KethaneController.cs" />
     <Compile Include="KethaneConverter.cs" />
