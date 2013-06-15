@@ -104,15 +104,15 @@ namespace Kethane
             if (animator.CurrentState != ExtractorState.Deployed) { return; }
             if (!animator.CanExtract) { return; }
 
+            var energyRequest = this.PowerConsumption * TimeWarp.fixedDeltaTime;
+            var energyRatio = this.part.RequestResource("ElectricCharge", energyRequest) / energyRequest;
+
             foreach (var resource in resources)
             {
                 var deposit = KethaneController.GetInstance(this.vessel).GetDepositUnder(resource.Name);
                 if (deposit == null) { continue; }
 
-                    var energyRequest = this.PowerConsumption * TimeWarp.fixedDeltaTime;
-                    var energy = this.part.RequestResource("ElectricCharge", energyRequest);
-
-                    var amount = TimeWarp.fixedDeltaTime * resource.Rate * (energy / energyRequest);
+                    var amount = TimeWarp.fixedDeltaTime * resource.Rate * energyRatio;
                     amount = Math.Min(amount, deposit.Quantity);
                     deposit.Quantity += this.part.RequestResource(resource.Name, -amount);
             }
