@@ -65,7 +65,11 @@ namespace Kethane
                 try
                 {
                     var definition = new ResourceDefinition(definitionNode);
-                    if (!resourceDefinitions.ContainsKey(definition.Resource))
+                    if (!PartResourceLibrary.Instance.resourceDefinitions.Contains(definition.Resource))
+                    {
+                        Debug.LogWarning(String.Format("[Kethane] {0} is an unknown resource, ignoring", definition.Resource));
+                    }
+                    else if (!resourceDefinitions.ContainsKey(definition.Resource))
                     {
                         resourceDefinitions[definition.Resource] = definition;
                     }
