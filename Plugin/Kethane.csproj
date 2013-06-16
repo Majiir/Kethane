@@ -60,6 +60,8 @@
     <Compile Include="KethaneDebugger.cs" />
     <Compile Include="KethaneDetector.cs" />
     <Compile Include="KethaneExtractor.cs" />
+    <Compile Include="KethaneParticleEmitter.cs" />
+    <Compile Include="KethaneParticleDynamics.cs" />
     <Compile Include="KethaneWetMassIndicator.cs" />
     <Compile Include="Misc.cs" />
     <Compile Include="OrthogonalIntake.cs" />
