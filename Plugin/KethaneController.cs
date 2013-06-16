@@ -429,7 +429,7 @@ namespace Kethane
                 GUILayout.BeginHorizontal();
 
                 GUI.enabled = resourceDefinitions.First().Key != SelectedResource;
-                if (GUILayout.Button("<", GUILayout.ExpandWidth(false)))
+                if (GUILayout.Button("◀", GUILayout.ExpandWidth(false)))
                 {
                     SelectedResource = resourceDefinitions.Last(p => p.Key.CompareTo(SelectedResource) < 0).Key;
                 }
@@ -438,7 +438,7 @@ namespace Kethane
                 GUILayout.Label(SelectedResource, centeredStyle, GUILayout.ExpandWidth(true));
 
                 GUI.enabled = resourceDefinitions.Last().Key != SelectedResource;
-                if (GUILayout.Button(">", GUILayout.ExpandWidth(false)))
+                if (GUILayout.Button("▶", GUILayout.ExpandWidth(false)))
                 {
                     SelectedResource = resourceDefinitions.First(p => p.Key.CompareTo(SelectedResource) > 0).Key;
                 }
