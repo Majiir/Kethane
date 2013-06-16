@@ -257,21 +257,14 @@ namespace Kethane
                 return;
             }
 
-            bodySeeds = config.GetNodes("Body").ToDictionary(n => n.GetValue("Name"), n =>
+            bodySeeds = FlightGlobals.Bodies.ToDictionary(b => b.name, b => b.name.GetHashCode());
+
+            foreach (var node in config.GetNodes("Body").Concat(config.GetNodes("Resource").Where(r => r.GetValue("Resource") == "Kethane").SelectMany(r => r.GetNodes("Body"))))
             {
                 int seed;
-                if (!int.TryParse(n.GetValue("SeedModifier"), out seed))
+                if (int.TryParse(node.GetValue("SeedModifier"), out seed))
                 {
-                    seed = n.GetValue("Name").GetHashCode();
-                }
-                return seed;
-            });
-
-            foreach (var body in FlightGlobals.Bodies)
-            {
-                if (!bodySeeds.ContainsKey(body.name))
-                {
-                    bodySeeds[body.name] = body.name.GetHashCode();
+                    bodySeeds[node.GetValue("Name")] = seed;
                 }
             }
 
