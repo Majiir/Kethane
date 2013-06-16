@@ -50,10 +50,6 @@ namespace Kethane
         private void CleanUp()
         {
             RenderingManager.RemoveFromPostDrawQueue(3, drawGui);
-
-            var config = KSP.IO.PluginConfiguration.CreateForType<KethaneController>();
-            config.SetValue("scanningSound", ScanningSound);
-            config.save();
         }
 
         private static void loadResourceDefinitions()
@@ -240,6 +236,10 @@ namespace Kethane
 
             timer.Stop();
             Debug.LogWarning(String.Format("Kethane deposits saved ({0}ms)", timer.ElapsedMilliseconds));
+
+            var config = KSP.IO.PluginConfiguration.CreateForType<KethaneController>();
+            config.SetValue("scanningSound", ScanningSound);
+            config.save();
         }
 
         private void LoadKethaneDeposits()
