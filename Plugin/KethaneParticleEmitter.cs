@@ -238,6 +238,11 @@ namespace Kethane
             get { return obj.transform; }
         }
 
+        public int ParticleCount
+        {
+            get { return emitter.particleCount; }
+        }
+
         [KSPField(isPersistant = false)]
         public String Label;
 

@@ -133,22 +133,12 @@ namespace Kethane
                 sparkParticles.Emit = hit;
                 if (hit)
                 {
-                    sparkParticles.Force = Quaternion.FromToRotation(Vector3.forward, Vector3.up) * sparkParticles.EmitterTransform.InverseTransformDirection(FlightGlobals.getGeeForceAtPosition(headTransform.position));
                     gasParticles.EmitterPosition = headTransform.InverseTransformPoint(hitInfo.point);
                 }
 
                 if (CurrentState == ExtractorState.Deployed)
                 {
                     gasParticles.Emit = hit && KethaneController.GetInstance(this.vessel).GetDepositUnder("Kethane") != null;
-                    if (gasParticles.Emit)
-                    {
-                        var pressure = FlightGlobals.getStaticPressure(headTransform.position);
-                        gasParticles.Force = Quaternion.FromToRotation(Vector3.forward, Vector3.up) * gasParticles.EmitterTransform.InverseTransformDirection(FlightGlobals.getGeeForceAtPosition(headTransform.position)) * (float)pressure * -0.4f;
-                        gasParticles.MaxEnergy = 10f + 10f * (float)pressure;
-                        gasParticles.SizeGrow = 0.25f + (float)Math.Exp(-2.7f * pressure);
-                        gasParticles.RandomForce = Vector3.one * 8 * (float)pressure;
-                        gasParticles.Damping = (float)Math.Exp(-2.3f * pressure);
-                    }
                 }
                 else
                 {
