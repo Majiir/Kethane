@@ -27,8 +27,8 @@ namespace Kethane
         private Transform headTransform;
         private Transform tailTransform;
 
-        private GameObject gasParticles;
-        private GameObject sparkParticles;
+        private KethaneParticleEmitter gasParticles;
+        private KethaneParticleEmitter sparkParticles;
 
         public override void OnStart(PartModule.StartState state)
         {
@@ -47,92 +47,16 @@ namespace Kethane
             if (state == StartState.Editor) { return; }
             if (FlightGlobals.fetch == null) { return; }
 
-            #region Gas particles
+            gasParticles = part.Modules.OfType<KethaneParticleEmitter>().First(e => e.Label == "gas");
+            gasParticles.Setup();
+            gasParticles.EmitterTransform.parent = headTransform;
+            gasParticles.EmitterTransform.localRotation = Quaternion.identity;
 
-            gasParticles = new GameObject();
-            gasParticles.transform.parent = headTransform;
-            gasParticles.transform.localPosition = Vector3.zero;
-            gasParticles.transform.localRotation = Quaternion.identity;
-
-            var gasEmitter = (ParticleEmitter)gasParticles.AddComponent("EllipsoidParticleEmitter");
-            var gasRenderer = (ParticleRenderer)gasParticles.AddComponent<ParticleRenderer>();
-            var gasAnimator = (ParticleAnimator)gasParticles.AddComponent<ParticleAnimator>();
-
-            gasEmitter.emit = false;
-            gasEmitter.useWorldSpace = true;
-            gasEmitter.localVelocity = Vector3.up * 6;
-            gasEmitter.rndVelocity = Vector3.one * 5;
-            gasEmitter.minEmission = 0;
-            gasEmitter.maxEmission = 90;
-            gasEmitter.minEnergy = 1f;
-            gasEmitter.minSize = 1.5f;
-            gasEmitter.maxSize = 2.5f;
-
-            gasEmitter.rndRotation = true;
-            gasEmitter.angularVelocity = 5;
-            gasEmitter.rndAngularVelocity = 15;
-
-            var gasMaterial = new Material(Shader.Find("Particles/Additive"));
-            gasMaterial.mainTexture = new Texture2D(512, 512);
-            ((Texture2D)gasMaterial.mainTexture).LoadImage(KSP.IO.File.ReadAllBytes<KethaneController>("smoke.jpg"));
-
-            gasRenderer.materials = new Material[] { gasMaterial };
-            gasAnimator.doesAnimateColor = true;
-            gasAnimator.colorAnimation = new Color[] {
-                new Color(0.02f, 0.025f, 0.02f),
-                new Color(0.015f, 0.018f, 0.015f),
-                new Color(0.004f, 0.0045f, 0.004f),
-                new Color(0.001f, 0.0011f, 0.001f),
-                new Color(0.0f, 0.0f, 0.0f),
-            };
-
-            #endregion
-
-            #region Spark particles
-
-            sparkParticles = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            sparkParticles.transform.parent = gasParticles.transform;
-            sparkParticles.transform.localPosition = Vector3.zero;
-            sparkParticles.transform.localRotation = Quaternion.identity;
-            sparkParticles.transform.localScale = new Vector3(1, 0, 1) * 0.275f;
-            sparkParticles.renderer.material.shader = Shader.Find("Transparent/Diffuse");
-            sparkParticles.renderer.material.color = new Color(0, 0, 0, 0);
-            sparkParticles.collider.enabled = false;
-
-            var sparkEmitter = (ParticleEmitter)sparkParticles.AddComponent("MeshParticleEmitter");
-            var sparkRenderer = (ParticleRenderer)sparkParticles.AddComponent<ParticleRenderer>();
-            var sparkAnimator = (ParticleAnimator)sparkParticles.AddComponent<ParticleAnimator>();
-
-            sparkEmitter.emit = false;
-            sparkEmitter.useWorldSpace = true;
-            sparkEmitter.localVelocity = Vector3.up * 7f;
-            sparkEmitter.rndVelocity = Vector3.one * 1.5f + Vector3.up * 2f;
-            sparkEmitter.minEmission = 5000;
-            sparkEmitter.maxEmission = 10000;
-            sparkEmitter.minEnergy = 0.1f;
-            sparkEmitter.maxEnergy = 0.3f;
-            sparkEmitter.minSize = 0.01f;
-            sparkEmitter.maxSize = 0.02f;
-
-            sparkRenderer.lengthScale = 1f;
-            sparkRenderer.velocityScale = 0.08f;
-            sparkRenderer.particleRenderMode = ParticleRenderMode.Stretch;
-
-            var sparkMaterial = new Material(Shader.Find("Particles/Additive"));
-            sparkMaterial.mainTexture = new Texture2D(250, 250);
-            ((Texture2D)sparkMaterial.mainTexture).LoadImage(KSP.IO.File.ReadAllBytes<KethaneController>("mote.png"));
-
-            sparkRenderer.materials = new Material[] { sparkMaterial };
-            sparkAnimator.doesAnimateColor = true;
-            sparkAnimator.colorAnimation = new Color[] {
-                Color.white * 0.8f,
-                Color.white * 0.8f,
-                Color.white * 0.8f,
-                XKCDColors.BurntOrange * 0.6f + Color.white * 0.2f,
-                Color.black,
-            };
-
-            #endregion
+            sparkParticles = part.Modules.OfType<KethaneParticleEmitter>().First(e => e.Label == "sparks");
+            sparkParticles.Setup();
+            sparkParticles.EmitterTransform.parent = gasParticles.EmitterTransform;
+            sparkParticles.EmitterTransform.localPosition = Vector3.zero;
+            sparkParticles.EmitterTransform.localRotation = Quaternion.identity;
         }
 
         public ExtractorState CurrentState
@@ -201,42 +125,39 @@ namespace Kethane
                 CurrentState = ExtractorState.Retracted;
             }
 
-            var gasEmitter = gasParticles.GetComponent<ParticleEmitter>();
-
             if (CurrentState != ExtractorState.Retracted)
             {
                 RaycastHit hitInfo;
                 var hit = raycastGround(out hitInfo);
 
-                sparkParticles.renderer.enabled = sparkParticles.GetComponent<ParticleEmitter>().emit = hit;
+                sparkParticles.Emit = hit;
                 if (hit)
                 {
-                    sparkParticles.GetComponent<ParticleAnimator>().force = Quaternion.FromToRotation(Vector3.forward, Vector3.up) * gasParticles.transform.InverseTransformDirection(FlightGlobals.getGeeForceAtPosition(headTransform.position));
-                    gasParticles.transform.position = hitInfo.point;
+                    sparkParticles.Force = Quaternion.FromToRotation(Vector3.forward, Vector3.up) * sparkParticles.EmitterTransform.InverseTransformDirection(FlightGlobals.getGeeForceAtPosition(headTransform.position));
+                    gasParticles.EmitterPosition = headTransform.InverseTransformPoint(hitInfo.point);
                 }
 
                 if (CurrentState == ExtractorState.Deployed)
                 {
-                    gasEmitter.emit = hit && KethaneController.GetInstance(this.vessel).GetDepositUnder("Kethane") != null;
-                    if (gasEmitter.emit)
+                    gasParticles.Emit = hit && KethaneController.GetInstance(this.vessel).GetDepositUnder("Kethane") != null;
+                    if (gasParticles.Emit)
                     {
-                        var gasAnimator = gasParticles.GetComponent<ParticleAnimator>();
                         var pressure = FlightGlobals.getStaticPressure(headTransform.position);
-                        gasAnimator.force = Quaternion.FromToRotation(Vector3.forward, Vector3.up) * gasParticles.transform.InverseTransformDirection(FlightGlobals.getGeeForceAtPosition(headTransform.position)) * (float)pressure * -0.4f;
-                        gasEmitter.maxEnergy = 10f + 10f * (float)pressure;
-                        gasAnimator.sizeGrow = 0.25f + (float)Math.Exp(-2.7f * pressure);
-                        gasAnimator.rndForce = Vector3.one * 8 * (float)pressure;
-                        gasAnimator.damping = (float)Math.Exp(-2.3f * pressure);
+                        gasParticles.Force = Quaternion.FromToRotation(Vector3.forward, Vector3.up) * gasParticles.EmitterTransform.InverseTransformDirection(FlightGlobals.getGeeForceAtPosition(headTransform.position)) * (float)pressure * -0.4f;
+                        gasParticles.MaxEnergy = 10f + 10f * (float)pressure;
+                        gasParticles.SizeGrow = 0.25f + (float)Math.Exp(-2.7f * pressure);
+                        gasParticles.RandomForce = Vector3.one * 8 * (float)pressure;
+                        gasParticles.Damping = (float)Math.Exp(-2.3f * pressure);
                     }
                 }
                 else
                 {
-                    gasEmitter.emit = false;
+                    gasParticles.Emit = false;
                 }
             }
             else
             {
-                sparkParticles.renderer.enabled = sparkParticles.GetComponent<ParticleEmitter>().emit = gasEmitter.emit = false;
+                sparkParticles.Emit = gasParticles.Emit = false;
             }
         }
 
