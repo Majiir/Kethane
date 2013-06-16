@@ -117,5 +117,25 @@ namespace Kethane
         {
             return (float)(random.NextDouble() * (max - min) + min);
         }
+
+        public static float ParseFloat(string value, float defaultValue)
+        {
+            float result;
+            if (!float.TryParse(value, out result))
+            {
+                result = defaultValue;
+            }
+            return result;
+        }
+
+        public static int ParseInt(string value, int defaultValue)
+        {
+            int result;
+            if (!int.TryParse(value, out result))
+            {
+                result = defaultValue;
+            }
+            return result;
+        }
     }
 }

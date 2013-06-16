@@ -305,7 +305,7 @@ namespace Kethane
 
         public override void OnFixedUpdate()
         {
-            var DepositUnder = KethaneController.GetInstance(this.vessel).GetDepositUnder();
+            var DepositUnder = KethaneController.GetInstance(this.vessel).GetDepositUnder("Kethane");
 
             if (this.vessel != null && DepositUnder != null && this.DrillDeploymentState == DeployState.Deployed)
             {

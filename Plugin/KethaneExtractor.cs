@@ -1,15 +1,27 @@
 ﻿using System;
 using System.Linq;
 using UnityEngine;
+using System.Collections.Generic;
 
 namespace Kethane
 {
     public class KethaneExtractor : PartModule
     {
+        public class Resource
+        {
+            public string Name { get; private set; }
+            public float Rate { get; private set; }
+
+            public Resource(ConfigNode node)
+            {
+                Name = node.GetValue("Name");
+                Rate = float.Parse(node.GetValue("Rate"));
+            }
+        }
+
         private IExtractorAnimator animator;
 
-        [KSPField(isPersistant = false)]
-        public float ExtractionRate;
+        private List<Resource> resources;
 
         [KSPField(isPersistant = false)]
         public float PowerConsumption;
@@ -21,6 +33,12 @@ namespace Kethane
         {
             this.part.force_activate();
             animator = part.Modules.OfType<IExtractorAnimator>().Single();
+        }
+
+        public override void OnLoad(ConfigNode node)
+        {
+            if (part.partInfo != null) { node = GameDatabase.Instance.GetConfigs("PART").Where(c => part.partInfo.name == c.name.Replace('_', '.')).Single().config.GetNodes("MODULE").Where(n => n.GetValue("name") == moduleName).Single(); }
+            resources = node.GetNodes("Resource").Select(n => new Resource(n)).ToList();
         }
 
         [KSPEvent(guiActive = true, guiName = "Deploy Drill", active = true)]
@@ -62,7 +80,7 @@ namespace Kethane
 
         public override string GetInfo()
         {
-            return String.Format("Extraction Rate: {0:F2}L/s\nPower Consumption: {1:F2}/s", ExtractionRate, PowerConsumption);
+            return String.Concat(resources.Select(r => String.Format("{0} Rate: {1:F2}L/s\n", r.Name, r.Rate)).ToArray()) + String.Format("Power Consumption: {0:F2}/s", PowerConsumption);
         }
 
         public override void OnUpdate()
@@ -73,7 +91,8 @@ namespace Kethane
             {
                 Events["DeployDrill"].active = retracted;
                 Events["RetractDrill"].active = deployed;
-                foreach (var window in GameObject.FindObjectsOfType(typeof(UIPartActionWindow)).OfType<UIPartActionWindow>().Where(w => w.part == part)) {
+                foreach (var window in GameObject.FindObjectsOfType(typeof(UIPartActionWindow)).OfType<UIPartActionWindow>().Where(w => w.part == part))
+                {
                     window.displayDirty = true;
                 }
             }
@@ -82,19 +101,20 @@ namespace Kethane
 
         public override void OnFixedUpdate()
         {
-            var deposit = KethaneController.GetInstance(this.vessel).GetDepositUnder();
-
-            if (deposit == null) { return; }
             if (animator.CurrentState != ExtractorState.Deployed) { return; }
+            if (!animator.CanExtract) { return; }
 
-            if (animator.CanExtract)
+            var energyRequest = this.PowerConsumption * TimeWarp.fixedDeltaTime;
+            var energyRatio = this.part.RequestResource("ElectricCharge", energyRequest) / energyRequest;
+
+            foreach (var resource in resources)
             {
-                var energyRequest = this.PowerConsumption * TimeWarp.fixedDeltaTime;
-                var energy = this.part.RequestResource("ElectricCharge", energyRequest);
+                var deposit = KethaneController.GetInstance(this.vessel).GetDepositUnder(resource.Name);
+                if (deposit == null) { continue; }
 
-                var amount = TimeWarp.fixedDeltaTime * ExtractionRate * (energy / energyRequest);
-                amount = Math.Min(amount, deposit.Kethane);
-                deposit.Kethane += this.part.RequestResource("Kethane", -amount);
+                var amount = TimeWarp.fixedDeltaTime * resource.Rate * energyRatio;
+                amount = Math.Min(amount, deposit.Quantity);
+                deposit.Quantity += this.part.RequestResource(resource.Name, -amount);
             }
         }
 

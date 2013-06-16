@@ -217,7 +217,7 @@ namespace Kethane
 
                 if (CurrentState == ExtractorState.Deployed)
                 {
-                    gasEmitter.emit = hit && KethaneController.GetInstance(this.vessel).GetDepositUnder() != null;
+                    gasEmitter.emit = hit && KethaneController.GetInstance(this.vessel).GetDepositUnder("Kethane") != null;
                     if (gasEmitter.emit)
                     {
                         var gasAnimator = gasParticles.GetComponent<ParticleAnimator>();
