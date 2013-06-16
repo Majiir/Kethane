@@ -42,6 +42,8 @@ namespace Kethane
             SetMaps();
             RenderingManager.AddToPostDrawQueue(3, drawGui);
 
+            SelectedResource = "Kethane";
+
             var config = KSP.IO.PluginConfiguration.CreateForType<KethaneController>();
             config.load();
             ScanningSound = config.GetValue<bool>("scanningSound", true);
@@ -407,16 +409,16 @@ namespace Kethane
         private static GUISkin defaultSkin = null;
         private static GUIStyle centeredStyle = null;
 
-        private string selectedResource = "Kethane";
+        public string SelectedResource { get; private set; }
 
         private void DetectorWindowGUI(int windowID)
         {
             #region Detector
             GUILayout.BeginVertical();
 
-            if (Vessel.mainBody != null && KethaneController.PlanetTextures.ContainsKey(selectedResource) && KethaneController.PlanetTextures[selectedResource].ContainsKey(Vessel.mainBody.name))
+            if (Vessel.mainBody != null && KethaneController.PlanetTextures.ContainsKey(SelectedResource) && KethaneController.PlanetTextures[SelectedResource].ContainsKey(Vessel.mainBody.name))
             {
-                Texture2D planetTex = KethaneController.PlanetTextures[selectedResource][Vessel.mainBody.name];
+                Texture2D planetTex = KethaneController.PlanetTextures[SelectedResource][Vessel.mainBody.name];
                 GUILayout.Box(planetTex);
                 Rect Last = UnityEngine.GUILayoutUtility.GetLastRect();
 
@@ -426,19 +428,19 @@ namespace Kethane
 
                 GUILayout.BeginHorizontal();
 
-                GUI.enabled = resourceDefinitions.First().Key != selectedResource;
+                GUI.enabled = resourceDefinitions.First().Key != SelectedResource;
                 if (GUILayout.Button("<", GUILayout.ExpandWidth(false)))
                 {
-                    selectedResource = resourceDefinitions.Last(p => p.Key.CompareTo(selectedResource) < 0).Key;
+                    SelectedResource = resourceDefinitions.Last(p => p.Key.CompareTo(SelectedResource) < 0).Key;
                 }
                 GUI.enabled = true;
 
-                GUILayout.Label(selectedResource, centeredStyle, GUILayout.ExpandWidth(true));
+                GUILayout.Label(SelectedResource, centeredStyle, GUILayout.ExpandWidth(true));
 
-                GUI.enabled = resourceDefinitions.Last().Key != selectedResource;
+                GUI.enabled = resourceDefinitions.Last().Key != SelectedResource;
                 if (GUILayout.Button(">", GUILayout.ExpandWidth(false)))
                 {
-                    selectedResource = resourceDefinitions.First(p => p.Key.CompareTo(selectedResource) > 0).Key;
+                    SelectedResource = resourceDefinitions.First(p => p.Key.CompareTo(SelectedResource) > 0).Key;
                 }
                 GUI.enabled = true;
 
