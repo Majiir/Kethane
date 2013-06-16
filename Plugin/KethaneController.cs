@@ -218,7 +218,7 @@ namespace Kethane
                     var bodyNode = new ConfigNode("Body");
                     bodyNode.AddValue("Name", body.Key);
 
-                    if (bodySeeds[body.Key] != body.Key.GetHashCode())
+                    if (bodySeeds[body.Key] != body.Key.GetHashCode() && resource.Key == "Kethane")
                     {
                         bodyNode.AddValue("SeedModifier", bodySeeds[body.Key]);
                     }
@@ -313,7 +313,7 @@ namespace Kethane
 
         private static List<Deposit> generate(CelestialBody body, int seed, ResourceDefinition resource)
         {
-            var random = new System.Random(depositSeed ^ bodySeeds[body.name] ^ resource.SeedModifier);
+            var random = new System.Random(depositSeed ^ (resource.Resource == "Kethane" ? bodySeeds[body.name] : 0) ^ resource.SeedModifier);
 
             var deposits = new List<Deposit>();
 
