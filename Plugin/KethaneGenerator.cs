@@ -108,7 +108,7 @@ namespace Kethane
             var kethaneDemand = demand * KethaneRate * TimeWarp.fixedDeltaTime / (1 + fanSpeed.Average * pressure * pressureEfficiencyFactor);
 
             var kethaneDrawn = (float)part.RequestResource("Kethane", kethaneDemand);
-            output.Update(TimeWarp.fixedDeltaTime, demand * kethaneDrawn / kethaneDemand);
+            output.Update(TimeWarp.fixedDeltaTime, kethaneDemand > 0 ? demand * kethaneDrawn / kethaneDemand : 0);
 
             part.RequestResource("XenonGas", -kethaneDrawn * XenonMassRatio * PartResourceLibrary.Instance.GetDefinition("Kethane").density / PartResourceLibrary.Instance.GetDefinition("XenonGas").density);
 
