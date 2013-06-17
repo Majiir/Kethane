@@ -26,7 +26,7 @@ namespace Kethane
         [KSPField(isPersistant = false)]
         public float HeatProduction;
 
-        [KSPField]
+        [KSPField(isPersistant = true)]
         public bool IsEnabled;
 
         [KSPEvent(guiActive = true, guiName = "Activate Converter", active = true)]

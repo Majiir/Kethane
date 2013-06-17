@@ -11,7 +11,7 @@ namespace Kethane
 
         private Transform BaseTransform, Cyl1Transform, Cyl2Transform, Cyl3Transform;
 
-        [KSPField]
+        [KSPField(isPersistant = true)]
         private bool ArmWantToGoDown = false;
 
         private const int EffectsNumber = 4;

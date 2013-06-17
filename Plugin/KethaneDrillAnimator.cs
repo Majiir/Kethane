@@ -18,7 +18,7 @@ namespace Kethane
         [KSPField(isPersistant = false)]
         public string TailTransform;
 
-        [KSPField]
+        [KSPField(isPersistant = true)]
         public string State;
 
         private AnimationState[] deployStates;

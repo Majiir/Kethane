@@ -16,7 +16,7 @@ namespace Kethane
         [KSPField(isPersistant = false)]
         public float PowerConsumption;
 
-        [KSPField]
+        [KSPField(isPersistant = true)]
         public bool IsDetecting;
 
         private List<string> resources;
