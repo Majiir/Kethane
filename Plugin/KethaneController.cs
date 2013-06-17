@@ -409,7 +409,7 @@ namespace Kethane
         private static GUISkin defaultSkin = null;
         private static GUIStyle centeredStyle = null;
 
-        public string SelectedResource { get; private set; }
+        public static string SelectedResource { get; private set; }
 
         private void DetectorWindowGUI(int windowID)
         {

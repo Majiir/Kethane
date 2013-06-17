@@ -65,7 +65,7 @@ namespace Kethane
                     }
                 }
 
-                List<Deposit> Deposits = KethaneController.PlanetDeposits[KethaneController.GetInstance(this.vessel).SelectedResource][this.vessel.mainBody.name];
+                List<Deposit> Deposits = KethaneController.PlanetDeposits[KethaneController.SelectedResource][this.vessel.mainBody.name];
 
                 foreach (Deposit KD in Deposits)
                 {
