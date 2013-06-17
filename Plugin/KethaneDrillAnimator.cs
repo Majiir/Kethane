@@ -38,6 +38,17 @@ namespace Kethane
             headTransform = this.part.FindModelTransform(HeadTransform);
             tailTransform = this.part.FindModelTransform(TailTransform);
 
+            if (CurrentState == ExtractorState.Deploying) { CurrentState = ExtractorState.Retracted; }
+            else if (CurrentState == ExtractorState.Retracting) { CurrentState = ExtractorState.Deployed; }
+
+            if (CurrentState == ExtractorState.Deployed)
+            {
+                foreach (var deployState in deployStates)
+                {
+                    deployState.normalizedTime = 1;
+                }
+            }
+
             foreach (var drillState in drillStates)
             {
                 drillState.enabled = false;
