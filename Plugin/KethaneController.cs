@@ -94,7 +94,16 @@ namespace Kethane
 
         public static Dictionary<string, Dictionary<string, Texture2D>> PlanetTextures = new Dictionary<string, Dictionary<string, Texture2D>>();
 
-        public static SortedDictionary<String, ResourceDefinition> resourceDefinitions = null;
+        private static SortedDictionary<String, ResourceDefinition> resourceDefinitions = null;
+
+        public static ResourceDefinition[] ResourceDefinitions
+        {
+            get
+            {
+                loadResourceDefinitions();
+                return resourceDefinitions.Values.ToArray();
+            }
+        }
 
         private static long lastSaveFrame = -1;
         private static long lastMapsSaveFrame = -1;

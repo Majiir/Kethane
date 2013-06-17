@@ -108,6 +108,10 @@ namespace Kethane
         {
             if (part.partInfo != null) { node = GameDatabase.Instance.GetConfigs("PART").Where(c => part.partInfo.name == c.name.Replace('_', '.')).Single().config.GetNodes("MODULE").Where(n => n.GetValue("name") == moduleName).Single(); }
             resources = node.GetNodes("Resource").Select(n => n.GetValue("Name")).ToList();
+            if (resources.Count == 0)
+            {
+                resources = KethaneController.ResourceDefinitions.Select(r => r.Resource).ToList();
+            }
         }
 
         public override void OnUpdate()
