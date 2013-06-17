@@ -20,7 +20,7 @@ namespace Kethane
                 if (v == null)
                 {
                     controllers.Remove(wr);
-                    RenderingManager.RemoveFromPostDrawQueue(3, kvp.Value.drawGui);
+                    kvp.Value.CleanUp();
                 }
                 else if (v == vessel)
                 {
@@ -37,9 +37,51 @@ namespace Kethane
 
         private KethaneController()
         {
+            loadResourceDefinitions();
             LoadKethaneDeposits();
             SetMaps();
             RenderingManager.AddToPostDrawQueue(3, drawGui);
+
+            SelectedResource = "Kethane";
+
+            var config = KSP.IO.PluginConfiguration.CreateForType<KethaneController>();
+            config.load();
+            ScanningSound = config.GetValue<bool>("scanningSound", true);
+        }
+
+        private void CleanUp()
+        {
+            RenderingManager.RemoveFromPostDrawQueue(3, drawGui);
+        }
+
+        private static void loadResourceDefinitions()
+        {
+            if (resourceDefinitions != null) { return; }
+            resourceDefinitions = new SortedDictionary<String, ResourceDefinition>();
+            foreach (var definitionNode in GameDatabase.Instance.GetConfigNodes("KethaneResource"))
+            {
+                try
+                {
+                    var definition = new ResourceDefinition(definitionNode);
+                    if (!PartResourceLibrary.Instance.resourceDefinitions.Contains(definition.Resource))
+                    {
+                        Debug.LogWarning(String.Format("[Kethane] {0} is an unknown resource, ignoring", definition.Resource));
+                    }
+                    else if (!resourceDefinitions.ContainsKey(definition.Resource))
+                    {
+                        resourceDefinitions[definition.Resource] = definition;
+                    }
+                    else
+                    {
+                        Debug.LogWarning(String.Format("[Kethane] Duplicate definition for {0}, ignoring", definition.Resource));
+                    }
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError(String.Format("[Kethane] Error loading resource definition:\n\n{0}", e));
+                }
+            }
+            Debug.Log(String.Format("[Kethane] Loaded {0} resource definitions", resourceDefinitions.Count));
         }
 
         public Vessel Vessel
@@ -47,10 +89,21 @@ namespace Kethane
             get { return controllers.Single(p => p.Value == this).Key.Target; }
         }
 
-        public static Dictionary<string, KethaneDeposits> PlanetDeposits;
+        public static Dictionary<string, Dictionary<string, List<Deposit>>> PlanetDeposits;
         private static Dictionary<string, int> bodySeeds;
 
-        public static Dictionary<string, Texture2D> PlanetTextures = new Dictionary<string, Texture2D>();
+        public static Dictionary<string, Dictionary<string, Texture2D>> PlanetTextures = new Dictionary<string, Dictionary<string, Texture2D>>();
+
+        private static SortedDictionary<String, ResourceDefinition> resourceDefinitions = null;
+
+        public static ResourceDefinition[] ResourceDefinitions
+        {
+            get
+            {
+                loadResourceDefinitions();
+                return resourceDefinitions.Values.ToArray();
+            }
+        }
 
         private static long lastSaveFrame = -1;
         private static long lastMapsSaveFrame = -1;
@@ -64,20 +117,34 @@ namespace Kethane
             if (FlightGlobals.fetch == null) { return; }
             foreach (CelestialBody body in FlightGlobals.Bodies)
             {
-                if (!PlanetTextures.ContainsKey(body.name))
+                var legacyPath = String.Format("map_{0}_{1}.png", depositSeed, body.name);
+                if (KSP.IO.File.Exists<KethaneController>(legacyPath) && !KSP.IO.File.Exists<KethaneController>(getMapFilename(body, "Kethane")))
                 {
-                    PlanetTextures.Add(body.name, new Texture2D(256, 128, TextureFormat.ARGB32, false));
+                    KSP.IO.File.WriteAllBytes<KethaneController>(KSP.IO.File.ReadAllBytes<KethaneController>(legacyPath), getMapFilename(body, "Kethane"));
+                    KSP.IO.File.Delete<KethaneController>(legacyPath);
                 }
-                if (KSP.IO.File.Exists<KethaneController>(getMapFilename(body)))
+
+                foreach (var resourceName in resourceDefinitions.Keys)
                 {
-                    PlanetTextures[body.name].LoadImage(KSP.IO.File.ReadAllBytes<KethaneController>(getMapFilename(body)));
-                }
-                else
-                {
-                    for (int y = 0; y < PlanetTextures[body.name].height; y++)
-                        for (int x = 0; x < PlanetTextures[body.name].width; x++)
-                            PlanetTextures[body.name].SetPixel(x, y, Color.black);
-                    PlanetTextures[body.name].Apply();
+                    if (!PlanetTextures.ContainsKey(resourceName))
+                    {
+                        PlanetTextures[resourceName] = new Dictionary<string, Texture2D>();
+                    }
+                    if (!PlanetTextures[resourceName].ContainsKey(body.name))
+                    {
+                        PlanetTextures[resourceName].Add(body.name, new Texture2D(256, 128, TextureFormat.ARGB32, false));
+                    }
+                    if (KSP.IO.File.Exists<KethaneController>(getMapFilename(body, resourceName)))
+                    {
+                        PlanetTextures[resourceName][body.name].LoadImage(KSP.IO.File.ReadAllBytes<KethaneController>(getMapFilename(body, resourceName)));
+                    }
+                    else
+                    {
+                        for (int y = 0; y < PlanetTextures[resourceName][body.name].height; y++)
+                            for (int x = 0; x < PlanetTextures[resourceName][body.name].width; x++)
+                                PlanetTextures[resourceName][body.name].SetPixel(x, y, Color.black);
+                        PlanetTextures[resourceName][body.name].Apply();
+                    }
                 }
             }
             youAreHereMarker.LoadImage(KSP.IO.File.ReadAllBytes<KethaneController>("YouAreHereMarker.png"));
@@ -92,29 +159,34 @@ namespace Kethane
 
             foreach (CelestialBody body in FlightGlobals.Bodies)
             {
-                if (PlanetTextures.ContainsKey(body.name))
+                foreach (var resourceName in resourceDefinitions.Keys)
                 {
-                    var pbytes = PlanetTextures[body.name].EncodeToPNG();
-                    KSP.IO.File.WriteAllBytes<KethaneController>(pbytes, getMapFilename(body), null);
+                    if (PlanetTextures.ContainsKey(resourceName) && PlanetTextures[resourceName].ContainsKey(body.name))
+                    {
+                        var pbytes = PlanetTextures[resourceName][body.name].EncodeToPNG();
+                        KSP.IO.File.WriteAllBytes<KethaneController>(pbytes, getMapFilename(body, resourceName), null);
+                    }
                 }
             }
         }
 
-        public void DrawMap(bool deposit)
+        public void DrawMap(bool deposit, string resourceName)
         {
-            if (Vessel.mainBody != null && PlanetTextures.ContainsKey(Vessel.mainBody.name))
+            if (Vessel.mainBody != null && PlanetTextures.ContainsKey(resourceName) && PlanetTextures[resourceName].ContainsKey(Vessel.mainBody.name))
             {
-                Texture2D planetTex = PlanetTextures[Vessel.mainBody.name];
+                Texture2D planetTex = PlanetTextures[resourceName][Vessel.mainBody.name];
 
                 if (this.Vessel != null)
                 {
                     int x = Misc.GetXOnMap(Misc.clampDegrees(Vessel.mainBody.GetLongitude(Vessel.transform.position)), planetTex.width);
                     int y = Misc.GetYOnMap(Vessel.mainBody.GetLatitude(Vessel.transform.position), planetTex.height);
-                    if (deposit) {
-                        float ratio = GetDepositUnder().InitialKethaneAmount / KethaneDeposit.MaximumKethane;
-                        ratio = ratio * 0.8f + 0.2f;
-                        planetTex.SetPixel(x, y, XKCDColors.DarkGrey * (1 - ratio) + XKCDColors.Green * ratio);
-                    } else {
+                    if (deposit)
+                    {
+                        float ratio = GetDepositUnder(resourceName).InitialQuantity / resourceDefinitions[resourceName].MaxQuantity;
+                        planetTex.SetPixel(x, y, resourceDefinitions[resourceName].ColorEmpty * (1 - ratio) + resourceDefinitions[resourceName].ColorFull * ratio);
+                    }
+                    else
+                    {
                         planetTex.SetPixel(x, y, XKCDColors.DarkGrey);
                     }
                 }
@@ -123,9 +195,9 @@ namespace Kethane
             }
         }
 
-        private string getMapFilename(CelestialBody body)
+        private string getMapFilename(CelestialBody body, string resourceName)
         {
-            return String.Format("map_{0}_{1}.png", depositSeed, body.name);
+            return String.Format("map_{0}_{1}_{2}.png", resourceName, depositSeed, body.name);
         }
 
         private string configFilePath
@@ -143,31 +215,47 @@ namespace Kethane
 
             var configNode = new ConfigNode();
             configNode.AddValue("Seed", depositSeed);
-
-            foreach (var body in PlanetDeposits)
+            foreach (var resource in PlanetDeposits)
             {
-                var bodyNode = new ConfigNode("Body");
-                bodyNode.AddValue("Name", body.Key);
-                bodyNode.AddValue("SeedModifier", bodySeeds[body.Key]);
+                var resourceNode = new ConfigNode("Resource");
+                resourceNode.AddValue("Resource", resource.Key);
 
-                foreach (var deposit in body.Value.Deposits)
+                foreach (var body in resource.Value)
                 {
-                    var depositNode = new ConfigNode("Deposit");
-                    depositNode.AddValue("Kethane", deposit.Kethane);
-                    bodyNode.AddNode(depositNode);
+                    var bodyNode = new ConfigNode("Body");
+                    bodyNode.AddValue("Name", body.Key);
+
+                    if (bodySeeds[body.Key] != body.Key.GetHashCode() && resource.Key == "Kethane")
+                    {
+                        bodyNode.AddValue("SeedModifier", bodySeeds[body.Key]);
+                    }
+
+                    foreach (var deposit in body.Value)
+                    {
+                        var depositNode = new ConfigNode("Deposit");
+                        depositNode.AddValue("Quantity", deposit.Quantity);
+                        bodyNode.AddNode(depositNode);
+                    }
+
+                    resourceNode.AddNode(bodyNode);
                 }
 
-                configNode.AddNode(bodyNode);
+                configNode.AddNode(resourceNode);
             }
 
             configNode.Save(configFilePath);
 
             timer.Stop();
             Debug.LogWarning(String.Format("Kethane deposits saved ({0}ms)", timer.ElapsedMilliseconds));
+
+            var config = KSP.IO.PluginConfiguration.CreateForType<KethaneController>();
+            config.SetValue("scanningSound", ScanningSound);
+            config.save();
         }
 
         private void LoadKethaneDeposits()
         {
+            if (PlanetDeposits != null) { return; }
             if (FlightGlobals.fetch == null) { return; }
 
             var timer = System.Diagnostics.Stopwatch.StartNew();
@@ -180,22 +268,36 @@ namespace Kethane
                 return;
             }
 
-            bodySeeds = config.GetNodes("Body").ToDictionary(n => n.GetValue("Name"), n =>
+            bodySeeds = FlightGlobals.Bodies.ToDictionary(b => b.name, b => b.name.GetHashCode());
+
+            foreach (var node in config.GetNodes("Body").Concat(config.GetNodes("Resource").Where(r => r.GetValue("Resource") == "Kethane").SelectMany(r => r.GetNodes("Body"))))
             {
                 int seed;
-                if (!int.TryParse(n.GetValue("SeedModifier"), out seed))
+                if (int.TryParse(node.GetValue("SeedModifier"), out seed))
                 {
-                    var oldSeed = depositSeed % n.GetValue("Name").GetHashCode();
-                    seed = depositSeed ^ oldSeed;
+                    bodySeeds[node.GetValue("Name")] = seed;
                 }
-                return seed;
-            });
+            }
 
             generateFromSeed();
 
-            foreach (var body in PlanetDeposits)
+            loadBodyDeposits(config, "Kethane", "Kethane");
+
+            foreach (var resourceNode in config.GetNodes("Resource"))
             {
-                var deposits = body.Value.Deposits;
+                loadBodyDeposits(resourceNode, resourceNode.GetValue("Resource"));
+            }
+
+            timer.Stop();
+            Debug.LogWarning(String.Format("Kethane deposits loaded ({0}ms)", timer.ElapsedMilliseconds));
+        }
+
+        private static void loadBodyDeposits(ConfigNode config, string resourceName, string amountKey = "Quantity")
+        {
+            if (!PlanetDeposits.ContainsKey(resourceName)) { return; }
+            foreach (var body in PlanetDeposits[resourceName])
+            {
+                var deposits = body.Value;
 
                 var bodyNode = config.GetNodes("Body").Where(b => b.GetValue("Name") == body.Key).SingleOrDefault();
                 if (bodyNode == null) { continue; }
@@ -203,17 +305,38 @@ namespace Kethane
                 var depositNodes = bodyNode.GetNodes("Deposit");
                 for (int i = 0; i < Math.Min(deposits.Count, depositNodes.Length); i++)
                 {
-                    deposits[i].Kethane = float.Parse(depositNodes[i].GetValue("Kethane"));
+                    deposits[i].Quantity = float.Parse(depositNodes[i].GetValue(amountKey));
                 }
             }
-
-            timer.Stop();
-            Debug.LogWarning(String.Format("Kethane deposits loaded ({0}ms)", timer.ElapsedMilliseconds));
         }
 
         private void generateFromSeed()
         {
-            PlanetDeposits = FlightGlobals.Bodies.ToDictionary(b => b.name, b => KethaneDeposits.Generate(b, new System.Random(depositSeed ^ bodySeeds[b.name])));
+            PlanetDeposits = resourceDefinitions.Values.ToDictionary(d => d.Resource, d => FlightGlobals.Bodies.ToDictionary(b => b.name, b => generate(b, depositSeed, d.ForBody(b))));
+        }
+
+        private static List<Deposit> generate(CelestialBody body, int seed, ResourceDefinition resource)
+        {
+            var random = new System.Random(depositSeed ^ (resource.Resource == "Kethane" ? bodySeeds[body.name] : 0) ^ resource.SeedModifier);
+
+            var deposits = new List<Deposit>();
+
+            for (int i = 0; i < resource.DepositCount; i++)
+            {
+                float R = random.Range(resource.MinRadius, resource.MaxRadius);
+                for (int j = 0; j < resource.NumberOfTries; j++)
+                {
+                    Vector2 Pos = new Vector2(random.Range(R, 360 - R), random.Range(R, 180 - R));
+                    var deposit = Deposit.Generate(Pos, R, random, resource);
+                    if (!deposits.Any(d => d.Shape.Vertices.Any(v => deposit.Shape.PointInPolygon(new Vector2(v.x, v.y)))) && !deposit.Shape.Vertices.Any(v => deposits.Any(d => d.Shape.PointInPolygon(new Vector2(v.x, v.y)))))
+                    {
+                        deposits.Add(deposit);
+                        break;
+                    }
+                }
+            }
+
+            return deposits;
         }
 
         public void GenerateKethaneDeposits(System.Random random = null)
@@ -230,25 +353,31 @@ namespace Kethane
             SetMaps();
         }
 
-        public KethaneDeposit GetDepositUnder()
+        public Deposit GetDepositUnder(string resourceName)
         {
-            if (!PlanetDeposits.ContainsKey(Vessel.mainBody.name)) { return null; }
-            KethaneDeposits Deposits = KethaneController.PlanetDeposits[Vessel.mainBody.name];
+            var body = Vessel.mainBody;
 
-            double lon = Misc.clampDegrees(Vessel.mainBody.GetLongitude(Vessel.transform.position));
-            double lat = Vessel.mainBody.GetLatitude(Vessel.transform.position);
+            if (resourceName == null || body.name == null || !PlanetDeposits.ContainsKey(resourceName) || !PlanetDeposits[resourceName].ContainsKey(body.name)) { return null; }
 
-            double x = Math.Round(lon + 180d);
-            double y = Math.Round(90d - lat);
+            double lon = Misc.clampDegrees(body.GetLongitude(Vessel.transform.position));
+            double lat = body.GetLatitude(Vessel.transform.position);
 
-            Vector2 PointUnder = new Vector2((float)x, (float)y);
+            var x = (float)Math.Round(lon + 180d);
+            var y = (float)Math.Round(90d - lat);
 
-            return Deposits.GetDepositOver(PointUnder);
+            foreach (Deposit deposit in PlanetDeposits[resourceName][body.name])
+            {
+                if (deposit.Shape.PointInPolygon(new Vector2(x, y)))
+                {
+                    return deposit;
+                }
+            }
+            return null;
         }
 
         public bool ShowDetectorWindow;
 
-        public bool ScanningSound = true;
+        public static bool ScanningSound = true;
 
         public double LastLat, LastLon;
         public float LastQuantity;
@@ -262,28 +391,69 @@ namespace Kethane
             { return; }
             if (!Vessel.Parts.SelectMany(p => p.Modules.OfType<KethaneDetector>()).Any()) { return; }
 
-            GUI.skin = HighLogic.Skin;
+            if (defaultSkin == null)
+            {
+                GUI.skin = null;
+                defaultSkin = (GUISkin)GameObject.Instantiate(GUI.skin);
+            }
+
+            if (centeredStyle == null)
+            {
+                centeredStyle = new GUIStyle(GUI.skin.GetStyle("Label"));
+                centeredStyle.alignment = TextAnchor.MiddleCenter;
+            }
+
+            GUI.skin = defaultSkin;
+            var oldBackground = GUI.backgroundColor;
+            GUI.backgroundColor = XKCDColors.Green;
 
             if (ShowDetectorWindow)
             {
-                DetectorWindowPosition = GUILayout.Window(12358, DetectorWindowPosition, DetectorWindowGUI, "Detecting", GUILayout.MinWidth(300), GUILayout.MaxWidth(300), GUILayout.MinHeight(20));
+                DetectorWindowPosition = GUILayout.Window(12358, DetectorWindowPosition, DetectorWindowGUI, "Kethane Detector");
             }
+
+            GUI.backgroundColor = oldBackground;
         }
+
+        private static GUISkin defaultSkin = null;
+        private static GUIStyle centeredStyle = null;
+
+        public static string SelectedResource { get; private set; }
 
         private void DetectorWindowGUI(int windowID)
         {
             #region Detector
             GUILayout.BeginVertical();
 
-            if (Vessel.mainBody != null && KethaneController.PlanetTextures.ContainsKey(Vessel.mainBody.name))
+            if (Vessel.mainBody != null && KethaneController.PlanetTextures.ContainsKey(SelectedResource) && KethaneController.PlanetTextures[SelectedResource].ContainsKey(Vessel.mainBody.name))
             {
-                Texture2D planetTex = KethaneController.PlanetTextures[Vessel.mainBody.name];
+                Texture2D planetTex = KethaneController.PlanetTextures[SelectedResource][Vessel.mainBody.name];
                 GUILayout.Box(planetTex);
                 Rect Last = UnityEngine.GUILayoutUtility.GetLastRect();
 
                 int x = Misc.GetXOnMap(Misc.clampDegrees(Vessel.mainBody.GetLongitude(Vessel.transform.position)), planetTex.width);
                 int y = Misc.GetYOnMap(Vessel.mainBody.GetLatitude(Vessel.transform.position), planetTex.height);
                 GUI.DrawTexture(new Rect(((Last.xMin + Last.xMax) / 2) - (planetTex.width / 2) + x - (youAreHereMarker.width / 2), ((Last.yMin + Last.yMax) / 2) + (planetTex.height / 2) - y - (youAreHereMarker.height / 2), 7, 7), youAreHereMarker);
+
+                GUILayout.BeginHorizontal();
+
+                GUI.enabled = resourceDefinitions.First().Key != SelectedResource;
+                if (GUILayout.Button("◀", GUILayout.ExpandWidth(false)))
+                {
+                    SelectedResource = resourceDefinitions.Last(p => p.Key.CompareTo(SelectedResource) < 0).Key;
+                }
+                GUI.enabled = true;
+
+                GUILayout.Label(SelectedResource, centeredStyle, GUILayout.ExpandWidth(true));
+
+                GUI.enabled = resourceDefinitions.Last().Key != SelectedResource;
+                if (GUILayout.Button("▶", GUILayout.ExpandWidth(false)))
+                {
+                    SelectedResource = resourceDefinitions.First(p => p.Key.CompareTo(SelectedResource) > 0).Key;
+                }
+                GUI.enabled = true;
+
+                GUILayout.EndHorizontal();
 
                 float xVar = ((Last.xMin + Last.xMax) / 2) - (planetTex.width / 2) + DetectorWindowPosition.x;
                 float yVar = ((Last.yMin + Last.yMax) / 2) - (planetTex.height / 2) + DetectorWindowPosition.y;
@@ -297,7 +467,6 @@ namespace Kethane
                     inbound = false;
 
                 GUILayout.Label(String.Format(inbound ? "Mouse coordinates: {0:0.0}, {1:0.0}" : "Mouse coordinates: -", Misc.GetLatOnMap(yVar, planetTex.height), Misc.GetLonOnMap(xVar, planetTex.width)));
-
             }
 
             GUILayout.Label(String.Format("Last deposit: {0:0.000}, {1:0.000} ({2:F0}L)", LastLat, LastLon, LastQuantity));

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 
 namespace Kethane
@@ -17,20 +16,10 @@ namespace Kethane
         [KSPField(isPersistant = false)]
         public float PowerConsumption;
 
-        [KSPField(isPersistant = false)]
-        public string BaseTransform;
-
-        [KSPField(isPersistant = false)]
-        public string PartTransform;
-
-        [KSPField(isPersistant = false)]
-        public string HeadingTransform;
-
-        [KSPField(isPersistant = false)]
-        public string ElevationTransform;
-
-        [KSPField]
+        [KSPField(isPersistant = true)]
         public bool IsDetecting;
+
+        private List<string> resources;
 
         private double TimerEcho;
         private static System.Random detectorVariance = new System.Random();
@@ -87,7 +76,7 @@ namespace Kethane
 
         public override string GetInfo()
         {
-            return String.Format("Maximum Altitude: {0:N0}m\nPower Consumption: {1:F2}/s\nScanning Period: {2:F2}s", DetectingHeight, PowerConsumption, DetectingPeriod);
+            return String.Format("Maximum Altitude: {0:N0}m\nPower Consumption: {1:F2}/s\nScanning Period: {2:F2}s\nDetects: {3}", DetectingHeight, PowerConsumption, DetectingPeriod, String.Join(", ", resources.ToArray()));
         }
 
         public override void OnStart(PartModule.StartState state)
@@ -115,6 +104,16 @@ namespace Kethane
             #endregion
         }
 
+        public override void OnLoad(ConfigNode node)
+        {
+            if (part.partInfo != null) { node = GameDatabase.Instance.GetConfigs("PART").Where(c => part.partInfo.name == c.name.Replace('_', '.')).Single().config.GetNodes("MODULE").Where(n => n.GetValue("name") == moduleName).Single(); }
+            resources = node.GetNodes("Resource").Select(n => n.GetValue("Name")).ToList();
+            if (resources.Count == 0)
+            {
+                resources = KethaneController.ResourceDefinitions.Select(r => r.Resource).ToList();
+            }
+        }
+
         public override void OnUpdate()
         {
             Events["EnableDetection"].active = !IsDetecting;
@@ -139,41 +138,11 @@ namespace Kethane
                 Status = "Out Of Range";
             }
 
-            CelestialBody body = this.vessel.mainBody;
-            if (body == null)
-                return;
-
-            var BaseT = this.part.transform.FindChild("model");
-
-            if (!String.IsNullOrEmpty(PartTransform))
+            foreach (var animator in part.Modules.OfType<IDetectorAnimator>())
             {
-                BaseT = BaseT.FindChild(PartTransform);
+                animator.IsDetecting = IsDetecting;
+                animator.PowerRatio = powerRatio;
             }
-
-            BaseT = BaseT.FindChild(BaseTransform);
-
-            Vector3 bodyCoords = BaseT.InverseTransformPoint(body.transform.position);
-            Vector2 pos = Misc.CartesianToPolar(bodyCoords);
-
-            var alpha = (float)Misc.NormalizeAngle(pos.x + 90);
-            var beta = (float)Misc.NormalizeAngle(pos.y);
-
-            Transform RotH = BaseT.FindChild(HeadingTransform);
-            Transform RotV = RotH.FindChild(ElevationTransform);
-
-            if (Math.Abs(RotH.localEulerAngles.y - beta) > 90)
-            {
-                beta += 180;
-                alpha = 360 - alpha;
-            }
-
-            var speed = Time.deltaTime * this.powerRatio * 60;
-
-            RotH.localRotation = Quaternion.RotateTowards(RotH.localRotation, Quaternion.AngleAxis(beta, new Vector3(0, 1, 0)), speed);
-            RotV.localRotation = Quaternion.RotateTowards(RotV.localRotation, Quaternion.AngleAxis(alpha, new Vector3(1, 0, 0)), speed);
-
-            if (float.IsNaN(RotH.localRotation.w)) { RotH.localRotation = Quaternion.identity; }
-            if (float.IsNaN(RotV.localRotation.w)) { RotV.localRotation = Quaternion.identity; }
         }
 
         public override void OnFixedUpdate()
@@ -188,26 +157,31 @@ namespace Kethane
                 TimerEcho += Time.deltaTime * (1 + Math.Log(TimeWarp.CurrentRate)) * this.powerRatio * KethaneDetector.detectorVariance.Range(0.99f, 1.01f);
 
                 var TimerThreshold = this.DetectingPeriod + Altitude * 0.000005d; // 0,5s delay at 100km
-                var DepositUnder = controller.GetDepositUnder();
 
                 if (TimerEcho >= TimerThreshold)
                 {
-                    if (DepositUnder != null && DepositUnder.Kethane >= 1.0f)
+                    var detected = false;
+                    foreach (var resource in resources)
                     {
-                        controller.DrawMap(true);
-                        controller.LastLat = vessel.latitude;
-                        controller.LastLon = Misc.clampDegrees(vessel.longitude);
-                        controller.LastQuantity = DepositUnder.Kethane;
-                        if (vessel == FlightGlobals.ActiveVessel && controller.ScanningSound)
-                            PingDeposit.Play();
-                    }
-                    else
-                    {
-                        controller.DrawMap(false);
-                        if (vessel == FlightGlobals.ActiveVessel && controller.ScanningSound)
-                            PingEmpty.Play();
+                        var DepositUnder = controller.GetDepositUnder(resource);
+                        if (DepositUnder != null && DepositUnder.Quantity >= 1.0f)
+                        {
+                            controller.DrawMap(true, resource);
+                            controller.LastLat = vessel.latitude;
+                            controller.LastLon = Misc.clampDegrees(vessel.longitude);
+                            controller.LastQuantity = DepositUnder.Quantity;
+                            detected = true;
+                        }
+                        else
+                        {
+                            controller.DrawMap(false, resource);
+                        }
                     }
                     TimerEcho = 0;
+                    if (vessel == FlightGlobals.ActiveVessel && KethaneController.ScanningSound)
+                    {
+                        (detected ? PingDeposit : PingEmpty).Play();
+                    }
                 }
             }
             else
