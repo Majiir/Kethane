@@ -7,5 +7,10 @@ namespace Kethane
         public void Deploy() { CurrentState = ExtractorState.Deployed; }
         public void Retract() { CurrentState = ExtractorState.Retracted; }
         public bool CanExtract { get { return vessel.LandedOrSplashed; } }
+
+        public KethaneExtractorAnimatorLanded()
+        {
+            CurrentState = ExtractorState.Retracted;
+        }
     }
 }
