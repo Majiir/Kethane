@@ -54,6 +54,7 @@
     <Compile Include="KethaneDrillAnimator.cs" />
     <Compile Include="KethaneDrillAnimatorLegacy.cs" />
     <Compile Include="KethaneExtractorAnimatorLanded.cs" />
+    <Compile Include="KethaneGenerator.cs" />
     <Compile Include="KethaneKerbalBlender.cs" />
     <Compile Include="KethaneController.cs" />
     <Compile Include="KethaneConverter.cs" />
