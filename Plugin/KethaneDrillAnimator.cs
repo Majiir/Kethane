@@ -118,10 +118,12 @@ namespace Kethane
 
         public override void OnUpdate()
         {
-            var deployState = deployStates.First();
-            deployState.normalizedTime = Mathf.Clamp01(deployState.normalizedTime);
+            foreach (var deployState in deployStates)
+            {
+                deployState.normalizedTime = Mathf.Clamp01(deployState.normalizedTime);
+            }
 
-            if (CurrentState == ExtractorState.Deploying && deployState.normalizedTime == 1)
+            if (CurrentState == ExtractorState.Deploying && deployStates.All(s => s.normalizedTime == 1))
             {
                 CurrentState = ExtractorState.Deployed;
                 foreach (var state in drillStates)
@@ -131,7 +133,7 @@ namespace Kethane
                     state.speed = 1;
                 }
             }
-            else if (CurrentState == ExtractorState.Retracting && deployState.normalizedTime == 0)
+            else if (CurrentState == ExtractorState.Retracting && deployStates.All(s => s.normalizedTime == 0))
             {
                 CurrentState = ExtractorState.Retracted;
             }
