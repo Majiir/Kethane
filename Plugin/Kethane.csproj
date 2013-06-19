@@ -47,6 +47,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Deposit.cs" />
+    <Compile Include="GeodesicGrid.cs" />
     <Compile Include="HeatSinkAnimator.cs" />
     <Compile Include="IDetectorAnimator.cs" />
     <Compile Include="IExtractorAnimator.cs" />
