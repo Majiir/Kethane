@@ -175,6 +175,7 @@ namespace Kethane
             if (Vessel.mainBody != null && PlanetTextures.ContainsKey(resourceName) && PlanetTextures[resourceName].ContainsKey(Vessel.mainBody.name))
             {
                 Texture2D planetTex = PlanetTextures[resourceName][Vessel.mainBody.name];
+                var definition = resourceDefinitions[resourceName].ForBody(Vessel.mainBody);
 
                 if (this.Vessel != null)
                 {
@@ -182,8 +183,8 @@ namespace Kethane
                     int y = Misc.GetYOnMap(Vessel.mainBody.GetLatitude(Vessel.transform.position), planetTex.height);
                     if (deposit)
                     {
-                        float ratio = GetDepositUnder(resourceName).InitialQuantity / resourceDefinitions[resourceName].MaxQuantity;
-                        planetTex.SetPixel(x, y, resourceDefinitions[resourceName].ColorEmpty * (1 - ratio) + resourceDefinitions[resourceName].ColorFull * ratio);
+                        float ratio = GetDepositUnder(resourceName).InitialQuantity / definition.MaxQuantity;
+                        planetTex.SetPixel(x, y, definition.ColorEmpty * (1 - ratio) + definition.ColorFull * ratio);
                     }
                     else
                     {
