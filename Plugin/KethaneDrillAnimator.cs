@@ -27,8 +27,7 @@ namespace Kethane
         private Transform headTransform;
         private Transform tailTransform;
 
-        private KethaneParticleEmitter gasParticles;
-        private KethaneParticleEmitter sparkParticles;
+        private KethaneParticleEmitter[] emitters;
 
         public override void OnStart(PartModule.StartState state)
         {
@@ -58,16 +57,13 @@ namespace Kethane
             if (state == StartState.Editor) { return; }
             if (FlightGlobals.fetch == null) { return; }
 
-            gasParticles = part.Modules.OfType<KethaneParticleEmitter>().First(e => e.Label == "gas");
-            gasParticles.Setup();
-            gasParticles.EmitterTransform.parent = headTransform;
-            gasParticles.EmitterTransform.localRotation = Quaternion.identity;
+            emitters = part.Modules.OfType<KethaneParticleEmitter>().ToArray();
 
-            sparkParticles = part.Modules.OfType<KethaneParticleEmitter>().First(e => e.Label == "sparks");
-            sparkParticles.Setup();
-            sparkParticles.EmitterTransform.parent = gasParticles.EmitterTransform;
-            sparkParticles.EmitterTransform.localPosition = Vector3.zero;
-            sparkParticles.EmitterTransform.localRotation = Quaternion.identity;
+            foreach (var emitter in emitters) {
+                emitter.Setup();
+                emitter.EmitterTransform.parent = headTransform;
+                emitter.EmitterTransform.localRotation = Quaternion.identity;
+            }
         }
 
         public ExtractorState CurrentState
@@ -118,10 +114,12 @@ namespace Kethane
 
         public override void OnUpdate()
         {
-            var deployState = deployStates.First();
-            deployState.normalizedTime = Mathf.Clamp01(deployState.normalizedTime);
+            foreach (var deployState in deployStates)
+            {
+                deployState.normalizedTime = Mathf.Clamp01(deployState.normalizedTime);
+            }
 
-            if (CurrentState == ExtractorState.Deploying && deployState.normalizedTime == 1)
+            if (CurrentState == ExtractorState.Deploying && deployStates.All(s => s.normalizedTime == 1))
             {
                 CurrentState = ExtractorState.Deployed;
                 foreach (var state in drillStates)
@@ -131,7 +129,7 @@ namespace Kethane
                     state.speed = 1;
                 }
             }
-            else if (CurrentState == ExtractorState.Retracting && deployState.normalizedTime == 0)
+            else if (CurrentState == ExtractorState.Retracting && deployStates.All(s => s.normalizedTime == 0))
             {
                 CurrentState = ExtractorState.Retracted;
             }
@@ -141,24 +139,36 @@ namespace Kethane
                 RaycastHit hitInfo;
                 var hit = raycastGround(out hitInfo);
 
-                sparkParticles.Emit = hit;
+                foreach (var emitter in emitters.Where(e => e.Label != "gas"))
+                {
+                    emitter.Emit = hit;
+                }
                 if (hit)
                 {
-                    gasParticles.EmitterPosition = headTransform.InverseTransformPoint(hitInfo.point);
+                    foreach (var emitter in emitters)
+                    {
+                        emitter.EmitterPosition = headTransform.InverseTransformPoint(hitInfo.point);
+                    }
                 }
 
-                if (CurrentState == ExtractorState.Deployed)
+                foreach (var emitter in emitters.Where(e => e.Label == "gas"))
                 {
-                    gasParticles.Emit = hit && KethaneController.GetInstance(this.vessel).GetDepositUnder("Kethane") != null;
-                }
-                else
-                {
-                    gasParticles.Emit = false;
+                    if (CurrentState == ExtractorState.Deployed)
+                    {
+                        emitter.Emit = hit && KethaneController.GetInstance(this.vessel).GetDepositUnder("Kethane") != null;
+                    }
+                    else
+                    {
+                        emitter.Emit = false;
+                    }
                 }
             }
             else
             {
-                sparkParticles.Emit = gasParticles.Emit = false;
+                foreach (var emitter in emitters)
+                {
+                    emitter.Emit = false;
+                }
             }
         }
 

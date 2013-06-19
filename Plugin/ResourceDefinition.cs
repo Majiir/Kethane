@@ -28,6 +28,9 @@ namespace Kethane
         {
             Resource = node.GetValue("Resource");
             SeedModifier = Misc.ParseInt(node.GetValue("SeedModifier"), Resource.GetHashCode());
+
+            ColorFull = ColorEmpty = Color.white;
+
             load(node);
             foreach (var bodyNode in node.GetNodes("Body"))
             {
@@ -54,8 +57,10 @@ namespace Kethane
             RadiusVariance = Misc.ParseFloat(node.GetValue("RadiusVariance"), RadiusVariance);
             DepositCount = Misc.ParseInt(node.GetValue("DepositCount"), DepositCount);
             NumberOfTries = Misc.ParseInt(node.GetValue("NumberOfTries"), NumberOfTries);
-            ColorFull = ConfigNode.ParseColor(node.GetValue("ColorFull") ?? String.Empty);
-            ColorEmpty = ConfigNode.ParseColor(node.GetValue("ColorEmpty") ?? String.Empty);
+            var colorFull = node.GetValue("ColorFull");
+            ColorFull = colorFull != null ? ConfigNode.ParseColor(colorFull) : ColorFull;
+            var colorEmpty = node.GetValue("ColorEmpty");
+            ColorEmpty = colorEmpty != null ? ConfigNode.ParseColor(colorEmpty) : ColorEmpty;
         }
     }
 }

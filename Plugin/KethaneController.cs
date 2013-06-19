@@ -108,6 +108,8 @@ namespace Kethane
         private static long lastSaveFrame = -1;
         private static long lastMapsSaveFrame = -1;
 
+        private static string lastGameLoaded;
+
         private static Texture2D youAreHereMarker = new Texture2D(0, 0);
 
         private static int depositSeed;
@@ -175,6 +177,7 @@ namespace Kethane
             if (Vessel.mainBody != null && PlanetTextures.ContainsKey(resourceName) && PlanetTextures[resourceName].ContainsKey(Vessel.mainBody.name))
             {
                 Texture2D planetTex = PlanetTextures[resourceName][Vessel.mainBody.name];
+                var definition = resourceDefinitions[resourceName].ForBody(Vessel.mainBody);
 
                 if (this.Vessel != null)
                 {
@@ -182,8 +185,8 @@ namespace Kethane
                     int y = Misc.GetYOnMap(Vessel.mainBody.GetLatitude(Vessel.transform.position), planetTex.height);
                     if (deposit)
                     {
-                        float ratio = GetDepositUnder(resourceName).InitialQuantity / resourceDefinitions[resourceName].MaxQuantity;
-                        planetTex.SetPixel(x, y, resourceDefinitions[resourceName].ColorEmpty * (1 - ratio) + resourceDefinitions[resourceName].ColorFull * ratio);
+                        float ratio = GetDepositUnder(resourceName).InitialQuantity / definition.MaxQuantity;
+                        planetTex.SetPixel(x, y, definition.ColorEmpty * (1 - ratio) + definition.ColorFull * ratio);
                     }
                     else
                     {
@@ -255,7 +258,7 @@ namespace Kethane
 
         private void LoadKethaneDeposits()
         {
-            if (PlanetDeposits != null) { return; }
+            if (PlanetDeposits != null && lastGameLoaded == HighLogic.SaveFolder) { return; }
             if (FlightGlobals.fetch == null) { return; }
 
             var timer = System.Diagnostics.Stopwatch.StartNew();
@@ -290,6 +293,8 @@ namespace Kethane
 
             timer.Stop();
             Debug.LogWarning(String.Format("Kethane deposits loaded ({0}ms)", timer.ElapsedMilliseconds));
+
+            lastGameLoaded = HighLogic.SaveFolder;
         }
 
         private static void loadBodyDeposits(ConfigNode config, string resourceName, string amountKey = "Quantity")
