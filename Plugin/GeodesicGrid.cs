@@ -183,6 +183,32 @@ namespace Kethane
                 Z = z;
             }
 
+            /// <summary>
+            /// Constructs a cell with the same hash code as the given parameter.
+            /// </summary>
+            public Cell(int i, GeodesicGrid grid)
+            {
+                if (i < 0 || i >= grid.Count) { throw new ArgumentOutOfRangeException(); }
+
+                if (i == 0)
+                {
+                    this = new Cell(0, -1, 0, grid);
+                }
+                else if (i == grid.Count - 1)
+                {
+                    this = new Cell(0, 2 * grid.n - 1, grid.n, grid);
+                }
+                else
+                {
+                    i -= 1;
+                    var x = i / (grid.n * grid.n * 2);
+                    i -= grid.n * grid.n * 2 * x;
+                    var y = i / grid.n;
+                    var z = i - grid.n * y;
+                    this = new Cell(x, y, z, grid);
+                }
+            }
+
             public bool IsNorth
             {
                 get { return (Y == -1) && (Z == 0); }
