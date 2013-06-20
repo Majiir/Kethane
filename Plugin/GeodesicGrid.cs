@@ -309,6 +309,15 @@ namespace Kethane
                 return new Cell(X, 2 * Y - parent.Y, 2 * Z - parent.Z, grid);
             }
 
+            /// <summary>
+            /// Gets the distance to this cell's recursion parents, or if this cell is a pentagon, the distance to a neighboring pentagon.
+            /// </summary>
+            private int getParentDistance()
+            {
+                var s = Y + 1 | Z | grid.n;
+                return s & -s;
+            }
+
             #endregion
 
             #region Standard overrides
