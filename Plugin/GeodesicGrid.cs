@@ -280,18 +280,18 @@ namespace Kethane
                     return new Vector3d(Math.Cos(lat) * Math.Cos(lon), Math.Sin(lat), Math.Cos(lat) * Math.Sin(lon));
                 }
 
-                var first = getFirstParent(this);
-                var second = getSecondParent(this, first);
+                var first = getFirstParent();
+                var second = getSecondParent(first);
 
                 return (first.GetPosition(cache) + second.GetPosition(cache)).normalized;
             }
 
-            private Cell getFirstParent(Cell cell)
+            private Cell getFirstParent()
             {
                 int n = grid.n;
 
-                int y = cell.Y;
-                int z = cell.Z;
+                int y = Y;
+                int z = Z;
 
                 y = (2 * n) - (y + 1);
 
@@ -301,12 +301,12 @@ namespace Kethane
                 y -= y % s;
                 z -= z % s;
 
-                return new Cell(cell.X, (2 * n) - (y + 1), z, grid);
+                return new Cell(X, (2 * n) - (y + 1), z, grid);
             }
 
-            private Cell getSecondParent(Cell cell, Cell parent)
+            private Cell getSecondParent(Cell parent)
             {
-                return new Cell(cell.X, 2 * cell.Y - parent.Y, 2 * cell.Z - parent.Z, grid);
+                return new Cell(X, 2 * Y - parent.Y, 2 * Z - parent.Z, grid);
             }
 
             #endregion
