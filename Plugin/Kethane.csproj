@@ -65,6 +65,7 @@
     <Compile Include="KethaneParticleEmitter.cs" />
     <Compile Include="KethaneParticleDynamics.cs" />
     <Compile Include="KethaneWetMassIndicator.cs" />
+    <Compile Include="MapOverlay.cs" />
     <Compile Include="Misc.cs" />
     <Compile Include="OrthogonalIntake.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
