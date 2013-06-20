@@ -8,6 +8,7 @@ namespace Kethane
     [KSPAddon(KSPAddon.Startup.EveryScene, false)]
     internal class MapOverlay : MonoBehaviour
     {
+        private CelestialBody body;
         private GeodesicGrid grid;
         private Dictionary<GeodesicGrid.Cell, Vector3d> cache = new Dictionary<GeodesicGrid.Cell, Vector3d>();
         private Mesh mesh;
@@ -24,6 +25,49 @@ namespace Kethane
         public void Start()
         {
             setUpMesh();
+            gameObject.layer = 10;
+            ScaledSpace.AddScaledSpaceTransform(gameObject.transform);
+        }
+
+        public void Update()
+        {
+            if (!MapView.MapIsEnabled)
+            {
+                gameObject.renderer.enabled = false;
+                return;
+            }
+
+            gameObject.renderer.enabled = true;
+
+            var target = MapView.fetch.mapCamera.target;
+
+            var newBody = getTargetBody(target);
+            if (newBody != body)
+            {
+                body = newBody;
+                gameObject.transform.localScale = Vector3.one * (float)(1.025 * body.Radius / ScaledSpace.ScaleFactor);
+            }
+
+            gameObject.transform.position = ScaledSpace.LocalToScaledSpace(body.position);
+            gameObject.transform.rotation = body.rotation;
+        }
+
+        private static CelestialBody getTargetBody(MapObject target)
+        {
+            if (target.type == MapObject.MapObjectType.CELESTIALBODY)
+            {
+                return target.celestialBody;
+            }
+            else if (target.type == MapObject.MapObjectType.MANEUVERNODE)
+            {
+                return target.maneuverNode.patch.referenceBody;
+            }
+            else if (target.type == MapObject.MapObjectType.VESSEL)
+            {
+                return target.vessel.mainBody;
+            }
+
+            return null;
         }
 
         private void setUpMesh()
