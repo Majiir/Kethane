@@ -12,6 +12,8 @@ namespace Kethane
         private GeodesicGrid grid;
         private Dictionary<GeodesicGrid.Cell, Vector3d> cache = new Dictionary<GeodesicGrid.Cell, Vector3d>();
         private Mesh mesh;
+        private GUISkin skin;
+        private GeodesicGrid.Cell? hoverCell;
 
         public void Awake()
         {
@@ -50,6 +52,57 @@ namespace Kethane
 
             gameObject.transform.position = ScaledSpace.LocalToScaledSpace(body.position);
             gameObject.transform.rotation = body.rotation;
+
+            var ray = MapView.MapCamera.camera.ScreenPointToRay(Input.mousePosition);
+            RaycastHit hitInfo;
+            if (Physics.Raycast(ray, out hitInfo, (ray.origin - gameObject.transform.position).magnitude * 2, 1 << 10) && (hitInfo.transform == gameObject.transform))
+            {
+                var hitVertex = triangleToVertexBase(hitInfo.triangleIndex);
+                var sum = Enumerable.Range(hitVertex, 6).Select(c => mesh.vertices[c]).Aggregate((a, b) => a + b);
+                hoverCell = grid.NearestCell(sum, cache);
+            }
+            else
+            {
+                hoverCell = null;
+            }
+        }
+
+        public void OnGUI()
+        {
+            if (skin == null)
+            {
+                GUI.skin = null;
+                skin = (GUISkin)GameObject.Instantiate(GUI.skin);
+
+                var window = skin.window;
+                window.padding = new RectOffset(6, 6, 20, 6);
+                window.fontSize = 10;
+                skin.window = window;
+
+                var label = skin.label;
+                label.margin = new RectOffset(1, 1, 1, 1);
+                label.padding = new RectOffset(1, 1, 1, 1);
+                label.fontSize = 10;
+                skin.label = label;
+            }
+
+            GUI.skin = skin;
+
+            if (hoverCell != null)
+            {
+                var mouse = Event.current.mousePosition;
+                var position = new Rect(mouse.x + 16, mouse.y + 4, 130, 55);
+                GUILayout.Window(12359, position, mouseWindow, "Deposit");
+            }
+        }
+
+        private void mouseWindow(int windowId)
+        {
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("Cell: ");
+            GUILayout.FlexibleSpace();
+            GUILayout.Label(hoverCell.ToString());
+            GUILayout.EndHorizontal();
         }
 
         private static CelestialBody getTargetBody(MapObject target)
@@ -68,6 +121,18 @@ namespace Kethane
             }
 
             return null;
+        }
+
+        private int triangleToVertexBase(int triangle)
+        {
+            if (triangle < 60)
+            {
+                return (triangle / 5) * 6;
+            }
+            else
+            {
+                return (triangle / 4) * 6 - 18;
+            }
         }
 
         private void setUpMesh()
