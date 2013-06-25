@@ -110,7 +110,7 @@ namespace Kethane
 
         private static string lastGameLoaded;
 
-        private static Texture2D youAreHereMarker = new Texture2D(0, 0);
+        private static Texture2D youAreHereMarker;
 
         private static int depositSeed;
 
@@ -149,7 +149,7 @@ namespace Kethane
                     }
                 }
             }
-            youAreHereMarker.LoadImage(KSP.IO.File.ReadAllBytes<KethaneController>("YouAreHereMarker.png"));
+            youAreHereMarker = GameDatabase.Instance.GetTexture("Kethane/YouAreHereMarker", false);
         }
 
         public void SaveAllMaps()
