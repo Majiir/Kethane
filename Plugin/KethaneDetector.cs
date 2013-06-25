@@ -85,14 +85,14 @@ namespace Kethane
             this.part.force_activate();
 
             PingEmpty = gameObject.AddComponent<AudioSource>();
-                PingEmpty.clip = GameDatabase.Instance.GetAudioClip("Kethane/Sounds/echo_empty");
-                PingEmpty.volume = 1;
-                PingEmpty.Stop();
+            PingEmpty.clip = GameDatabase.Instance.GetAudioClip("Kethane/Sounds/echo_empty");
+            PingEmpty.volume = 1;
+            PingEmpty.Stop();
 
             PingDeposit = gameObject.AddComponent<AudioSource>();
-                PingDeposit.clip = GameDatabase.Instance.GetAudioClip("Kethane/Sounds/echo_deposit");
-                PingDeposit.volume = 1;
-                PingDeposit.Stop();
+            PingDeposit.clip = GameDatabase.Instance.GetAudioClip("Kethane/Sounds/echo_deposit");
+            PingDeposit.volume = 1;
+            PingDeposit.Stop();
         }
 
         public override void OnLoad(ConfigNode node)
