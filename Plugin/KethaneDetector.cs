@@ -83,25 +83,16 @@ namespace Kethane
         {
             if (state == StartState.Editor) { return; }
             this.part.force_activate();
-            #region Sound effects
+
             PingEmpty = gameObject.AddComponent<AudioSource>();
-            WWW wwwE = new WWW("file://" + KSPUtil.ApplicationRootPath.Replace("\\", "/") + "GameData/Kethane/Plugins/PluginData/MMI_Kethane/sounds/echo_empty.wav");
-            if ((PingEmpty != null) && (wwwE != null))
-            {
-                PingEmpty.clip = wwwE.GetAudioClip(false);
+                PingEmpty.clip = GameDatabase.Instance.GetAudioClip("Kethane/Sounds/echo_empty");
                 PingEmpty.volume = 1;
                 PingEmpty.Stop();
-            }
 
             PingDeposit = gameObject.AddComponent<AudioSource>();
-            WWW wwwD = new WWW("file://" + KSPUtil.ApplicationRootPath.Replace("\\", "/") + "GameData/Kethane/Plugins/PluginData/MMI_Kethane/sounds/echo_deposit.wav");
-            if ((PingDeposit != null) && (wwwD != null))
-            {
-                PingDeposit.clip = wwwD.GetAudioClip(false);
+                PingDeposit.clip = GameDatabase.Instance.GetAudioClip("Kethane/Sounds/echo_deposit");
                 PingDeposit.volume = 1;
                 PingDeposit.Stop();
-            }
-            #endregion
         }
 
         public override void OnLoad(ConfigNode node)
