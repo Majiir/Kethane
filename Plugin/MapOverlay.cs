@@ -140,12 +140,9 @@ namespace Kethane
             grid = new GeodesicGrid(5);
             var vertices = new List<UnityEngine.Vector3>();
             var triangles = new List<int>();
-            var uv = new List<Vector2>();
 
             foreach (var cell in grid.Pentagons.Concat(grid.Where(c => !c.IsPentagon)))
             {
-                uv.AddRange(Enumerable.Repeat(new Vector2(0.25f, 0.25f), 6));
-
                 var neighbors = cell.Neighbors.ToArray();
 
                 for (var i = 0; i < neighbors.Length; i++)
@@ -181,15 +178,14 @@ namespace Kethane
             mesh.vertices = vertices.ToArray();
             mesh.triangles = triangles.ToArray();
             mesh.normals = mesh.vertices;
-            mesh.uv = uv.ToArray();
+            mesh.colors32 = Enumerable.Repeat(new Color32(0, 0, 0, 255), vertices.Count).ToArray();
             mesh.Optimize();
 
             renderer.enabled = false;
             renderer.castShadows = false;
             renderer.receiveShadows = false;
 
-            var material = new Material(Shader.Find("KSP/Alpha/Unlit Transparent"));
-            material.mainTexture = GameDatabase.Instance.GetTexture("Kethane/hex", false);
+            var material = new Material(KSP.IO.File.ReadAllText<MapOverlay>("AlphaUnlitVertexColored.txt"));
 
             var color = Color.white;
             color.a = 0.25f;
