@@ -50,9 +50,6 @@ namespace Kethane
                 gameObject.transform.localScale = Vector3.one * (float)(1.025 * body.Radius / ScaledSpace.ScaleFactor);
             }
 
-            gameObject.transform.position = ScaledSpace.LocalToScaledSpace(body.position);
-            gameObject.transform.rotation = body.rotation;
-
             var ray = MapView.MapCamera.camera.ScreenPointToRay(Input.mousePosition);
             RaycastHit hitInfo;
             if (Physics.Raycast(ray, out hitInfo, (ray.origin - gameObject.transform.position).magnitude * 2, 1 << 10) && (hitInfo.transform == gameObject.transform))
@@ -65,6 +62,9 @@ namespace Kethane
             {
                 hoverCell = null;
             }
+
+            gameObject.transform.position = ScaledSpace.LocalToScaledSpace(body.position);
+            gameObject.transform.rotation = body.rotation;
         }
 
         public void OnGUI()
