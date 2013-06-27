@@ -323,7 +323,6 @@ namespace Kethane
 
         private void DetectorWindowGUI(int windowID)
         {
-            #region Detector
             GUILayout.BeginVertical();
 
             GUILayout.BeginHorizontal();
@@ -349,8 +348,8 @@ namespace Kethane
             ScanningSound = GUILayout.Toggle(ScanningSound, "Detection sound");
 
             GUILayout.EndVertical();
+
             GUI.DragWindow(new Rect(0, 0, 300, 60));
-            #endregion
         }
     }
 }
