@@ -9,6 +9,7 @@ namespace Kethane
     internal class MapOverlay : MonoBehaviour
     {
         private CelestialBody body;
+        private Dictionary<CelestialBody, double> bodyRadii = new Dictionary<CelestialBody, double>();
         private GeodesicGrid grid;
         private Dictionary<GeodesicGrid.Cell, Vector3d> cache = new Dictionary<GeodesicGrid.Cell, Vector3d>();
         private Mesh mesh;
@@ -29,6 +30,17 @@ namespace Kethane
             setUpMesh();
             gameObject.layer = 10;
             ScaledSpace.AddScaledSpaceTransform(gameObject.transform);
+
+            var node = ConfigNode.Load(KSPUtil.ApplicationRootPath + "GameData/Kethane/Grid.cfg");
+            if (node == null) { return; }
+            foreach (var body in FlightGlobals.Bodies)
+            {
+                double result;
+                if (double.TryParse(node.GetValue(body.name), out result))
+                {
+                    bodyRadii[body] = result;
+                }
+            }
         }
 
         public void Update()
@@ -47,7 +59,8 @@ namespace Kethane
             if (newBody != body)
             {
                 body = newBody;
-                gameObject.transform.localScale = Vector3.one * (float)(1.025 * body.Radius / ScaledSpace.ScaleFactor);
+                var radius = bodyRadii.ContainsKey(body) ? bodyRadii[body] : 1.025;
+                gameObject.transform.localScale = Vector3.one * (float)(radius * body.Radius / ScaledSpace.ScaleFactor);
             }
 
             var ray = MapView.MapCamera.camera.ScreenPointToRay(Input.mousePosition);
