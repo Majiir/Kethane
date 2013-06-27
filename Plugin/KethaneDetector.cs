@@ -157,9 +157,6 @@ namespace Kethane
                         var DepositUnder = controller.GetDepositUnder(resource);
                         if (DepositUnder != null && DepositUnder.Quantity >= 1.0f)
                         {
-                            controller.LastLat = vessel.latitude;
-                            controller.LastLon = Misc.clampDegrees(vessel.longitude);
-                            controller.LastQuantity = DepositUnder.Quantity;
                             detected = true;
                         }
                     }

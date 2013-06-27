@@ -288,9 +288,6 @@ namespace Kethane
 
         public static bool ScanningSound = true;
 
-        public double LastLat, LastLon;
-        public float LastQuantity;
-
         private Rect DetectorWindowPosition = new Rect(Screen.width * 0.20f, 250, 10, 10);
 
         private void drawGui()
@@ -354,7 +351,6 @@ namespace Kethane
 
                 GUILayout.EndHorizontal();
 
-            GUILayout.Label(String.Format("Last deposit: {0:0.000}, {1:0.000} ({2:F0}L)", LastLat, LastLon, LastQuantity));
             ScanningSound = GUILayout.Toggle(ScanningSound, "Detection sound");
 
             GUILayout.EndVertical();
