@@ -50,11 +50,6 @@ namespace Kethane
 
         private Rect DetectorWindowPosition = new Rect(Screen.width * 0.20f, 250, 10, 10);
 
-        private static string getConfigFilePath()
-        {
-            return KSPUtil.ApplicationRootPath + "saves/" + HighLogic.SaveFolder + "/kethane.cfg";
-        }
-
         public static ResourceDefinition[] ResourceDefinitions
         {
             get
@@ -208,6 +203,11 @@ namespace Kethane
             lastGameLoaded = HighLogic.SaveFolder;
         }
 
+        private static string getConfigFilePath()
+        {
+            return KSPUtil.ApplicationRootPath + "saves/" + HighLogic.SaveFolder + "/kethane.cfg";
+        }
+
         private static void loadBodyDeposits(ConfigNode config, string resourceName, string amountKey = "Quantity")
         {
             if (!PlanetDeposits.ContainsKey(resourceName)) { return; }
@@ -287,14 +287,14 @@ namespace Kethane
                     return deposit;
                 }
             }
+
             return null;
         }
 
         private void drawGui()
         {
             if (FlightGlobals.fetch == null) { return; }
-            if (FlightGlobals.ActiveVessel != Vessel)
-            { return; }
+            if (FlightGlobals.ActiveVessel != Vessel) { return; }
             if (!Vessel.Parts.SelectMany(p => p.Modules.OfType<KethaneDetector>()).Any()) { return; }
 
             if (defaultSkin == null)
