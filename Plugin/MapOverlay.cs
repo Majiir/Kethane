@@ -16,6 +16,9 @@ namespace Kethane
         private GUISkin skin;
         private GeodesicGrid.Cell? hoverCell;
 
+        private static readonly Color32 colorEmpty = new Color32(128, 128, 128, 255);
+        private static readonly Color32 colorUnknown = new Color32(0, 0, 0, 255);
+
         public static GeodesicGrid.Cell GetCellUnder(CelestialBody body, Vector3 worldPosition)
         {
             return grid.NearestCell(body.transform.InverseTransformPoint(worldPosition));
@@ -191,7 +194,7 @@ namespace Kethane
             mesh.vertices = vertices.ToArray();
             mesh.triangles = triangles.ToArray();
             mesh.normals = mesh.vertices;
-            mesh.colors32 = Enumerable.Repeat(new Color32(0, 0, 0, 255), vertices.Count).ToArray();
+            mesh.colors32 = Enumerable.Repeat(colorUnknown, vertices.Count).ToArray();
             mesh.Optimize();
 
             renderer.enabled = false;
