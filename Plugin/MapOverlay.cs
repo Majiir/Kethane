@@ -145,14 +145,8 @@ namespace Kethane
 
         private int triangleToVertexBase(int triangle)
         {
-            if (triangle < 60)
-            {
-                return (triangle / 5) * 6;
-            }
-            else
-            {
-                return (triangle / 4) * 6 - 18;
-            }
+            var i = mesh.triangles[triangle * 3];
+            return i - i % 6;
         }
 
         private void setUpMesh()
@@ -160,7 +154,7 @@ namespace Kethane
             var vertices = new List<UnityEngine.Vector3>();
             var triangles = new List<int>();
 
-            foreach (var cell in grid.Pentagons.Concat(grid.Where(c => !c.IsPentagon)))
+            foreach (var cell in grid)
             {
                 var neighbors = cell.Neighbors.ToArray();
 
