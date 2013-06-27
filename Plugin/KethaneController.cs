@@ -331,25 +331,25 @@ namespace Kethane
             #region Detector
             GUILayout.BeginVertical();
 
-                GUILayout.BeginHorizontal();
+            GUILayout.BeginHorizontal();
 
-                GUI.enabled = resourceDefinitions.First().Key != SelectedResource;
-                if (GUILayout.Button("◀", GUILayout.ExpandWidth(false)))
-                {
-                    SelectedResource = resourceDefinitions.Last(p => p.Key.CompareTo(SelectedResource) < 0).Key;
-                }
-                GUI.enabled = true;
+            GUI.enabled = resourceDefinitions.First().Key != SelectedResource;
+            if (GUILayout.Button("◀", GUILayout.ExpandWidth(false)))
+            {
+                SelectedResource = resourceDefinitions.Last(p => p.Key.CompareTo(SelectedResource) < 0).Key;
+            }
+            GUI.enabled = true;
 
-                GUILayout.Label(SelectedResource, centeredStyle, GUILayout.ExpandWidth(true));
+            GUILayout.Label(SelectedResource, centeredStyle, GUILayout.ExpandWidth(true));
 
-                GUI.enabled = resourceDefinitions.Last().Key != SelectedResource;
-                if (GUILayout.Button("▶", GUILayout.ExpandWidth(false)))
-                {
-                    SelectedResource = resourceDefinitions.First(p => p.Key.CompareTo(SelectedResource) > 0).Key;
-                }
-                GUI.enabled = true;
+            GUI.enabled = resourceDefinitions.Last().Key != SelectedResource;
+            if (GUILayout.Button("▶", GUILayout.ExpandWidth(false)))
+            {
+                SelectedResource = resourceDefinitions.First(p => p.Key.CompareTo(SelectedResource) > 0).Key;
+            }
+            GUI.enabled = true;
 
-                GUILayout.EndHorizontal();
+            GUILayout.EndHorizontal();
 
             ScanningSound = GUILayout.Toggle(ScanningSound, "Detection sound");
 
