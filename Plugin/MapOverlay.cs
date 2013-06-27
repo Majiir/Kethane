@@ -8,15 +8,18 @@ namespace Kethane
     [KSPAddon(KSPAddon.Startup.EveryScene, false)]
     internal class MapOverlay : MonoBehaviour
     {
+        private static GeodesicGrid grid;
+
         private CelestialBody body;
         private Dictionary<CelestialBody, double> bodyRadii = new Dictionary<CelestialBody, double>();
-        private GeodesicGrid grid;
         private Mesh mesh;
         private GUISkin skin;
         private GeodesicGrid.Cell? hoverCell;
 
         public void Awake()
         {
+            if (grid == null) { grid = new GeodesicGrid(5); }
+
             var scene = HighLogic.LoadedScene;
             if (scene != GameScenes.FLIGHT && scene != GameScenes.TRACKSTATION)
             {
@@ -149,7 +152,6 @@ namespace Kethane
 
         private void setUpMesh()
         {
-            grid = new GeodesicGrid(5);
             var vertices = new List<UnityEngine.Vector3>();
             var triangles = new List<int>();
 
