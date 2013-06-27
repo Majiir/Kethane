@@ -50,9 +50,9 @@ namespace Kethane
 
         private Rect DetectorWindowPosition = new Rect(Screen.width * 0.20f, 250, 10, 10);
 
-        private static string configFilePath
+        private static string getConfigFilePath()
         {
-            get { return KSPUtil.ApplicationRootPath + "saves/" + HighLogic.SaveFolder + "/kethane.cfg"; }
+            return KSPUtil.ApplicationRootPath + "saves/" + HighLogic.SaveFolder + "/kethane.cfg";
         }
 
         public static ResourceDefinition[] ResourceDefinitions
@@ -157,7 +157,7 @@ namespace Kethane
                 configNode.AddNode(resourceNode);
             }
 
-            configNode.Save(configFilePath);
+            configNode.Save(getConfigFilePath());
 
             timer.Stop();
             Debug.LogWarning(String.Format("Kethane deposits saved ({0}ms)", timer.ElapsedMilliseconds));
@@ -174,7 +174,7 @@ namespace Kethane
 
             var timer = System.Diagnostics.Stopwatch.StartNew();
 
-            var config = ConfigNode.Load(configFilePath);
+            var config = ConfigNode.Load(getConfigFilePath());
 
             if ((config == null) || !int.TryParse(config.GetValue("Seed"), out depositSeed))
             {
