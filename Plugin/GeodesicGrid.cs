@@ -8,7 +8,8 @@ namespace Kethane
     {
         private readonly int n;
 
-        private Dictionary<Cell, Vector3d> cache = new Dictionary<Cell, Vector3d>();
+        private Vector3d[] cache;
+        private System.Collections.BitArray cacheSet;
 
         /// <summary>
         /// Creates a new geodesic grid with the given number of triangle subdivisions.
@@ -17,6 +18,8 @@ namespace Kethane
         public GeodesicGrid(int subdivisions)
         {
             this.n = 1 << subdivisions;
+            this.cache = new Vector3d[Count];
+            this.cacheSet = new System.Collections.BitArray(Count);
         }
 
         /// <summary>
@@ -283,9 +286,11 @@ namespace Kethane
             /// <returns>Position of this Cell as a unit vector.</returns>
             public Vector3d GetPosition()
             {
-                if (grid.cache.ContainsKey(this)) { return grid.cache[this]; }
+                var hashCode = this.GetHashCode();
+                if (grid.cacheSet[hashCode]) { return grid.cache[hashCode]; }
                 var point = getPosition();
-                grid.cache[this] = point;
+                grid.cache[hashCode] = point;
+                grid.cacheSet[hashCode] = true;
                 return point;
             }
 
