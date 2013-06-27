@@ -8,8 +8,7 @@ namespace Kethane
     {
         private readonly int n;
 
-        private Vector3d[] cache;
-        private System.Collections.BitArray cacheSet;
+        private Cell.Dictionary<Vector3d> cache;
 
         /// <summary>
         /// Creates a new geodesic grid with the given number of triangle subdivisions.
@@ -18,8 +17,7 @@ namespace Kethane
         public GeodesicGrid(int subdivisions)
         {
             this.n = 1 << subdivisions;
-            this.cache = new Vector3d[Count];
-            this.cacheSet = new System.Collections.BitArray(Count);
+            this.cache = new Cell.Dictionary<Vector3d>(this);
         }
 
         /// <summary>
@@ -286,11 +284,9 @@ namespace Kethane
             /// <returns>Position of this Cell as a unit vector.</returns>
             public Vector3d GetPosition()
             {
-                var hashCode = this.GetHashCode();
-                if (grid.cacheSet[hashCode]) { return grid.cache[hashCode]; }
+                if (grid.cache.ContainsKey(this)) { return grid.cache[this]; }
                 var point = getPosition();
-                grid.cache[hashCode] = point;
-                grid.cacheSet[hashCode] = true;
+                grid.cache[this] = point;
                 return point;
             }
 
@@ -386,6 +382,47 @@ namespace Kethane
             public static bool operator ==(Cell a, Cell b) { return a.Equals(b); }
 
             public static bool operator !=(Cell a, Cell b) { return !(a == b); }
+
+            #endregion
+
+            #region Dictionary
+
+            public class Dictionary<T>
+            {
+                private T[] values;
+                private System.Collections.BitArray set;
+
+                public Dictionary(GeodesicGrid grid)
+                {
+                    values = new T[grid.Count];
+                    set = new System.Collections.BitArray(values.Length);
+                }
+
+                public T this[GeodesicGrid.Cell cell]
+                {
+                    get
+                    {
+                        var hash = cell.GetHashCode();
+                        if (cell.grid.Count > values.Length) { throw new ArgumentException(); }
+                        if (!set[hash]) { throw new KeyNotFoundException(); }
+                        return values[hash];
+                    }
+                    set
+                    {
+                        var hash = cell.GetHashCode();
+                        if (cell.grid.Count > values.Length) { throw new ArgumentException(); }
+                        values[hash] = value;
+                        set[hash] = true;
+                    }
+                }
+
+                public bool ContainsKey(GeodesicGrid.Cell cell)
+                {
+                    var hash = cell.GetHashCode();
+                    if (cell.grid.Count > values.Length) { throw new ArgumentException(); }
+                    return set[hash];
+                }
+            }
 
             #endregion
         }
