@@ -46,7 +46,7 @@ namespace Kethane
         private static long lastSaveFrame = -1;
         private static SortedDictionary<String, ResourceDefinition> resourceDefinitions = null;
 
-        public bool ShowDetectorWindow;
+        public bool ShowDetectorWindow { get; set; }
 
         private Rect DetectorWindowPosition = new Rect(Screen.width * 0.20f, 250, 10, 10);
 
