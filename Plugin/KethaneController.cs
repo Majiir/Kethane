@@ -114,7 +114,7 @@ namespace Kethane
 
         private static int depositSeed;
 
-        private void SetMaps()
+        private static void SetMaps()
         {
             if (FlightGlobals.fetch == null) { return; }
             foreach (CelestialBody body in FlightGlobals.Bodies)
@@ -152,7 +152,7 @@ namespace Kethane
             youAreHereMarker = GameDatabase.Instance.GetTexture("Kethane/YouAreHereMarker", false);
         }
 
-        public void SaveAllMaps()
+        public static void SaveAllMaps()
         {
             if (FlightGlobals.fetch == null) { return; }
 
@@ -198,17 +198,17 @@ namespace Kethane
             }
         }
 
-        private string getMapFilename(CelestialBody body, string resourceName)
+        private static string getMapFilename(CelestialBody body, string resourceName)
         {
             return String.Format("map_{0}_{1}_{2}.png", resourceName, depositSeed, body.name);
         }
 
-        private string configFilePath
+        private static string configFilePath
         {
             get { return KSPUtil.ApplicationRootPath + "saves/" + HighLogic.SaveFolder + "/kethane.cfg"; }
         }
 
-        public void SaveKethaneDeposits()
+        public static void SaveKethaneDeposits()
         {
             if (PlanetDeposits == null) { return; }
             if (lastSaveFrame == Time.frameCount) { return; }
@@ -256,7 +256,7 @@ namespace Kethane
             config.save();
         }
 
-        private void LoadKethaneDeposits()
+        private static void LoadKethaneDeposits()
         {
             if (PlanetDeposits != null && lastGameLoaded == HighLogic.SaveFolder) { return; }
             if (FlightGlobals.fetch == null) { return; }
@@ -315,7 +315,7 @@ namespace Kethane
             }
         }
 
-        private void generateFromSeed()
+        private static void generateFromSeed()
         {
             PlanetDeposits = resourceDefinitions.Values.ToDictionary(d => d.Resource, d => FlightGlobals.Bodies.ToDictionary(b => b.name, b => generate(b, depositSeed, d.ForBody(b))));
         }
@@ -344,7 +344,7 @@ namespace Kethane
             return deposits;
         }
 
-        public void GenerateKethaneDeposits(System.Random random = null)
+        public static void GenerateKethaneDeposits(System.Random random = null)
         {
             if (FlightGlobals.fetch == null) { return; }
 
