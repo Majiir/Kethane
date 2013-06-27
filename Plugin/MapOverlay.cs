@@ -16,6 +16,11 @@ namespace Kethane
         private GUISkin skin;
         private GeodesicGrid.Cell? hoverCell;
 
+        public static GeodesicGrid.Cell GetCellUnder(CelestialBody body, Vector3 worldPosition)
+        {
+            return grid.NearestCell(body.transform.InverseTransformPoint(worldPosition));
+        }
+
         public void Awake()
         {
             if (grid == null) { grid = new GeodesicGrid(5); }

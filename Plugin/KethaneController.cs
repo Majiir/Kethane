@@ -270,15 +270,19 @@ namespace Kethane
 
         public Deposit GetDepositUnder(string resourceName)
         {
-            var body = Vessel.mainBody;
+            return GetCellDeposit(resourceName, Vessel.mainBody, MapOverlay.GetCellUnder(Vessel.mainBody, Vessel.transform.position));
+        }
 
-            if (resourceName == null || body.name == null || !PlanetDeposits.ContainsKey(resourceName) || !PlanetDeposits[resourceName].ContainsKey(body.name)) { return null; }
+        public static Deposit GetCellDeposit(string resourceName, CelestialBody body, GeodesicGrid.Cell cell)
+        {
+            if (resourceName == null || body == null || !PlanetDeposits.ContainsKey(resourceName) || !PlanetDeposits[resourceName].ContainsKey(body.name)) { return null; }
 
-            double lon = Misc.clampDegrees(body.GetLongitude(Vessel.transform.position));
-            double lat = body.GetLatitude(Vessel.transform.position);
+            var pos = cell.GetPosition();
+            var lat = (float)(Math.Atan2(pos.y, Math.Sqrt(pos.x * pos.x + pos.z * pos.z)) * 180 / Math.PI);
+            var lon = (float)(Math.Atan2(pos.z, pos.x) * 180 / Math.PI);
 
-            var x = (float)Math.Round(lon + 180d);
-            var y = (float)Math.Round(90d - lat);
+            var x = lon + 180f;
+            var y = 90f - lat;
 
             foreach (Deposit deposit in PlanetDeposits[resourceName][body.name])
             {
