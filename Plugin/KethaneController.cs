@@ -39,7 +39,6 @@ namespace Kethane
         {
             loadResourceDefinitions();
             LoadKethaneDeposits();
-            SetMaps();
             RenderingManager.AddToPostDrawQueue(3, drawGui);
 
             SelectedResource = "Kethane";
@@ -92,8 +91,6 @@ namespace Kethane
         public static Dictionary<string, Dictionary<string, List<Deposit>>> PlanetDeposits;
         private static Dictionary<string, int> bodySeeds;
 
-        public static Dictionary<string, Dictionary<string, Texture2D>> PlanetTextures = new Dictionary<string, Dictionary<string, Texture2D>>();
-
         private static SortedDictionary<String, ResourceDefinition> resourceDefinitions = null;
 
         public static ResourceDefinition[] ResourceDefinitions
@@ -106,102 +103,10 @@ namespace Kethane
         }
 
         private static long lastSaveFrame = -1;
-        private static long lastMapsSaveFrame = -1;
 
         private static string lastGameLoaded;
 
-        private static Texture2D youAreHereMarker;
-
         private static int depositSeed;
-
-        private static void SetMaps()
-        {
-            if (FlightGlobals.fetch == null) { return; }
-            foreach (CelestialBody body in FlightGlobals.Bodies)
-            {
-                var legacyPath = String.Format("map_{0}_{1}.png", depositSeed, body.name);
-                if (KSP.IO.File.Exists<KethaneController>(legacyPath) && !KSP.IO.File.Exists<KethaneController>(getMapFilename(body, "Kethane")))
-                {
-                    KSP.IO.File.WriteAllBytes<KethaneController>(KSP.IO.File.ReadAllBytes<KethaneController>(legacyPath), getMapFilename(body, "Kethane"));
-                    KSP.IO.File.Delete<KethaneController>(legacyPath);
-                }
-
-                foreach (var resourceName in resourceDefinitions.Keys)
-                {
-                    if (!PlanetTextures.ContainsKey(resourceName))
-                    {
-                        PlanetTextures[resourceName] = new Dictionary<string, Texture2D>();
-                    }
-                    if (!PlanetTextures[resourceName].ContainsKey(body.name))
-                    {
-                        PlanetTextures[resourceName].Add(body.name, new Texture2D(256, 128, TextureFormat.ARGB32, false));
-                    }
-                    if (KSP.IO.File.Exists<KethaneController>(getMapFilename(body, resourceName)))
-                    {
-                        PlanetTextures[resourceName][body.name].LoadImage(KSP.IO.File.ReadAllBytes<KethaneController>(getMapFilename(body, resourceName)));
-                    }
-                    else
-                    {
-                        for (int y = 0; y < PlanetTextures[resourceName][body.name].height; y++)
-                            for (int x = 0; x < PlanetTextures[resourceName][body.name].width; x++)
-                                PlanetTextures[resourceName][body.name].SetPixel(x, y, Color.black);
-                        PlanetTextures[resourceName][body.name].Apply();
-                    }
-                }
-            }
-            youAreHereMarker = GameDatabase.Instance.GetTexture("Kethane/YouAreHereMarker", false);
-        }
-
-        public static void SaveAllMaps()
-        {
-            if (FlightGlobals.fetch == null) { return; }
-
-            if (lastMapsSaveFrame == Time.frameCount) { return; }
-            lastMapsSaveFrame = Time.frameCount;
-
-            foreach (CelestialBody body in FlightGlobals.Bodies)
-            {
-                foreach (var resourceName in resourceDefinitions.Keys)
-                {
-                    if (PlanetTextures.ContainsKey(resourceName) && PlanetTextures[resourceName].ContainsKey(body.name))
-                    {
-                        var pbytes = PlanetTextures[resourceName][body.name].EncodeToPNG();
-                        KSP.IO.File.WriteAllBytes<KethaneController>(pbytes, getMapFilename(body, resourceName), null);
-                    }
-                }
-            }
-        }
-
-        public void DrawMap(bool deposit, string resourceName)
-        {
-            if (Vessel.mainBody != null && PlanetTextures.ContainsKey(resourceName) && PlanetTextures[resourceName].ContainsKey(Vessel.mainBody.name))
-            {
-                Texture2D planetTex = PlanetTextures[resourceName][Vessel.mainBody.name];
-                var definition = resourceDefinitions[resourceName].ForBody(Vessel.mainBody);
-
-                if (this.Vessel != null)
-                {
-                    int x = Misc.GetXOnMap(Misc.clampDegrees(Vessel.mainBody.GetLongitude(Vessel.transform.position)), planetTex.width);
-                    int y = Misc.GetYOnMap(Vessel.mainBody.GetLatitude(Vessel.transform.position), planetTex.height);
-                    if (deposit)
-                    {
-                        float ratio = GetDepositUnder(resourceName).InitialQuantity / definition.MaxQuantity;
-                        planetTex.SetPixel(x, y, definition.ColorEmpty * (1 - ratio) + definition.ColorFull * ratio);
-                    }
-                    else
-                    {
-                        planetTex.SetPixel(x, y, XKCDColors.DarkGrey);
-                    }
-                }
-
-                planetTex.Apply();
-            }
-        }
-
-        private static string getMapFilename(CelestialBody body, string resourceName)
-        {
-            return String.Format("map_{0}_{1}_{2}.png", resourceName, depositSeed, body.name);
-        }
 
         private static string configFilePath
         {
@@ -355,7 +260,6 @@ namespace Kethane
             bodySeeds = FlightGlobals.Bodies.ToDictionary(b => b.name, b => b.name.GetHashCode());
             generateFromSeed();
             SaveKethaneDeposits();
-            SetMaps();
         }
 
         public Deposit GetDepositUnder(string resourceName)
@@ -430,16 +334,6 @@ namespace Kethane
             #region Detector
             GUILayout.BeginVertical();
 
-            if (Vessel.mainBody != null && KethaneController.PlanetTextures.ContainsKey(SelectedResource) && KethaneController.PlanetTextures[SelectedResource].ContainsKey(Vessel.mainBody.name))
-            {
-                Texture2D planetTex = KethaneController.PlanetTextures[SelectedResource][Vessel.mainBody.name];
-                GUILayout.Box(planetTex);
-                Rect Last = UnityEngine.GUILayoutUtility.GetLastRect();
-
-                int x = Misc.GetXOnMap(Misc.clampDegrees(Vessel.mainBody.GetLongitude(Vessel.transform.position)), planetTex.width);
-                int y = Misc.GetYOnMap(Vessel.mainBody.GetLatitude(Vessel.transform.position), planetTex.height);
-                GUI.DrawTexture(new Rect(((Last.xMin + Last.xMax) / 2) - (planetTex.width / 2) + x - (youAreHereMarker.width / 2), ((Last.yMin + Last.yMax) / 2) + (planetTex.height / 2) - y - (youAreHereMarker.height / 2), 7, 7), youAreHereMarker);
-
                 GUILayout.BeginHorizontal();
 
                 GUI.enabled = resourceDefinitions.First().Key != SelectedResource;
@@ -459,20 +353,6 @@ namespace Kethane
                 GUI.enabled = true;
 
                 GUILayout.EndHorizontal();
-
-                float xVar = ((Last.xMin + Last.xMax) / 2) - (planetTex.width / 2) + DetectorWindowPosition.x;
-                float yVar = ((Last.yMin + Last.yMax) / 2) - (planetTex.height / 2) + DetectorWindowPosition.y;
-                xVar = xVar - UnityEngine.Input.mousePosition.x;
-                yVar = (Screen.height - yVar) - UnityEngine.Input.mousePosition.y;
-
-                bool inbound = true;
-                if (yVar > planetTex.height || yVar < 0)
-                    inbound = false;
-                if (-xVar > planetTex.width || -xVar < 0)
-                    inbound = false;
-
-                GUILayout.Label(String.Format(inbound ? "Mouse coordinates: {0:0.0}, {1:0.0}" : "Mouse coordinates: -", Misc.GetLatOnMap(yVar, planetTex.height), Misc.GetLonOnMap(xVar, planetTex.width)));
-            }
 
             GUILayout.Label(String.Format("Last deposit: {0:0.000}, {1:0.000} ({2:F0}L)", LastLat, LastLon, LastQuantity));
             ScanningSound = GUILayout.Toggle(ScanningSound, "Detection sound");
