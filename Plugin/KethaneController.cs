@@ -35,6 +35,42 @@ namespace Kethane
 
         #endregion
 
+        public static Dictionary<string, Dictionary<string, List<Deposit>>> PlanetDeposits;
+        public static bool ScanningSound = true;
+
+        private static Dictionary<string, int> bodySeeds;
+        private static GUIStyle centeredStyle = null;
+        private static GUISkin defaultSkin = null;
+        private static int depositSeed;
+        private static string lastGameLoaded;
+        private static long lastSaveFrame = -1;
+        private static SortedDictionary<String, ResourceDefinition> resourceDefinitions = null;
+
+        public bool ShowDetectorWindow;
+
+        private Rect DetectorWindowPosition = new Rect(Screen.width * 0.20f, 250, 10, 10);
+
+        private static string configFilePath
+        {
+            get { return KSPUtil.ApplicationRootPath + "saves/" + HighLogic.SaveFolder + "/kethane.cfg"; }
+        }
+
+        public static ResourceDefinition[] ResourceDefinitions
+        {
+            get
+            {
+                loadResourceDefinitions();
+                return resourceDefinitions.Values.ToArray();
+            }
+        }
+
+        public static string SelectedResource { get; private set; }
+
+        public Vessel Vessel
+        {
+            get { return controllers.Single(p => p.Value == this).Key.Target; }
+        }
+
         private KethaneController()
         {
             loadResourceDefinitions();
@@ -81,36 +117,6 @@ namespace Kethane
                 }
             }
             Debug.Log(String.Format("[Kethane] Loaded {0} resource definitions", resourceDefinitions.Count));
-        }
-
-        public Vessel Vessel
-        {
-            get { return controllers.Single(p => p.Value == this).Key.Target; }
-        }
-
-        public static Dictionary<string, Dictionary<string, List<Deposit>>> PlanetDeposits;
-        private static Dictionary<string, int> bodySeeds;
-
-        private static SortedDictionary<String, ResourceDefinition> resourceDefinitions = null;
-
-        public static ResourceDefinition[] ResourceDefinitions
-        {
-            get
-            {
-                loadResourceDefinitions();
-                return resourceDefinitions.Values.ToArray();
-            }
-        }
-
-        private static long lastSaveFrame = -1;
-
-        private static string lastGameLoaded;
-
-        private static int depositSeed;
-
-        private static string configFilePath
-        {
-            get { return KSPUtil.ApplicationRootPath + "saves/" + HighLogic.SaveFolder + "/kethane.cfg"; }
         }
 
         public static void SaveKethaneDeposits()
@@ -284,12 +290,6 @@ namespace Kethane
             return null;
         }
 
-        public bool ShowDetectorWindow;
-
-        public static bool ScanningSound = true;
-
-        private Rect DetectorWindowPosition = new Rect(Screen.width * 0.20f, 250, 10, 10);
-
         private void drawGui()
         {
             if (FlightGlobals.fetch == null) { return; }
@@ -320,11 +320,6 @@ namespace Kethane
 
             GUI.backgroundColor = oldBackground;
         }
-
-        private static GUISkin defaultSkin = null;
-        private static GUIStyle centeredStyle = null;
-
-        public static string SelectedResource { get; private set; }
 
         private void DetectorWindowGUI(int windowID)
         {
