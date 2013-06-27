@@ -8,6 +8,8 @@ namespace Kethane
     {
         private readonly int n;
 
+        private Dictionary<Cell, Vector3d> cache = new Dictionary<Cell, Vector3d>();
+
         /// <summary>
         /// Creates a new geodesic grid with the given number of triangle subdivisions.
         /// </summary>
@@ -55,10 +57,10 @@ namespace Kethane
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() { return GetEnumerator(); }
 
-        public Cell NearestCell(Vector3d line, IDictionary<Cell, Vector3d> cache)
+        public Cell NearestCell(Vector3d line)
         {
             line = line.normalized;
-            return this.OrderBy(c => (c.GetPosition(cache) - line).magnitude).First();
+            return this.OrderBy(c => (c.GetPosition() - line).magnitude).First();
         }
 
         public IEnumerable<Cell> Pentagons
@@ -278,17 +280,16 @@ namespace Kethane
             /// <summary>
             /// Gets the position of the Cell on the unit sphere.
             /// </summary>
-            /// <param name="cache">If given, is used as a cache to increase subdivision performance.</param>
             /// <returns>Position of this Cell as a unit vector.</returns>
-            public Vector3d GetPosition(IDictionary<Cell, Vector3d> cache = null)
+            public Vector3d GetPosition()
             {
-                if (cache != null && cache.ContainsKey(this)) { return cache[this]; }
-                var point = getPosition(cache);
-                if (cache != null) { cache[this] = point; }
+                if (grid.cache.ContainsKey(this)) { return grid.cache[this]; }
+                var point = getPosition();
+                grid.cache[this] = point;
                 return point;
             }
 
-            private Vector3d getPosition(IDictionary<Cell, Vector3d> cache)
+            private Vector3d getPosition()
             {
                 if (IsPentagon)
                 {
@@ -309,7 +310,7 @@ namespace Kethane
                 var first = getFirstParent();
                 var second = getSecondParent(first);
 
-                return (first.GetPosition(cache) + second.GetPosition(cache)).normalized;
+                return (first.GetPosition() + second.GetPosition()).normalized;
             }
 
             private Cell getFirstParent()

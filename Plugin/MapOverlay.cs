@@ -11,7 +11,6 @@ namespace Kethane
         private CelestialBody body;
         private Dictionary<CelestialBody, double> bodyRadii = new Dictionary<CelestialBody, double>();
         private GeodesicGrid grid;
-        private Dictionary<GeodesicGrid.Cell, Vector3d> cache = new Dictionary<GeodesicGrid.Cell, Vector3d>();
         private Mesh mesh;
         private GUISkin skin;
         private GeodesicGrid.Cell? hoverCell;
@@ -69,7 +68,7 @@ namespace Kethane
             {
                 var hitVertex = triangleToVertexBase(hitInfo.triangleIndex);
                 var sum = Enumerable.Range(hitVertex, 6).Select(c => mesh.vertices[c]).Aggregate((a, b) => a + b);
-                hoverCell = grid.NearestCell(sum, cache);
+                hoverCell = grid.NearestCell(sum);
             }
             else
             {
@@ -163,15 +162,15 @@ namespace Kethane
                     var a = neighbors[i];
                     var b = neighbors[i == neighbors.Length - 1 ? 0 : (i + 1)];
 
-                    var center = (a.GetPosition(cache) + b.GetPosition(cache) + cell.GetPosition(cache)).normalized;
+                    var center = (a.GetPosition() + b.GetPosition() + cell.GetPosition()).normalized;
 
                     var blend = 0.08f;
-                    vertices.Add(cell.GetPosition(cache) * blend + center * (1 - blend));
+                    vertices.Add(cell.GetPosition() * blend + center * (1 - blend));
                 }
 
                 if (cell.IsPentagon)
                 {
-                    vertices.Add(cell.GetPosition(cache));
+                    vertices.Add(cell.GetPosition());
                     var t = vertices.Count - 6;
                     for (var i = 0; i < 5; i++)
                     {
