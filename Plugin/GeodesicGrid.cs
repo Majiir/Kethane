@@ -61,7 +61,16 @@ namespace Kethane
         public Cell NearestCell(Vector3d line)
         {
             line = line.normalized;
-            return this.OrderBy(c => (c.GetPosition() - line).magnitude).First();
+            Cell head = this.Pentagons.WithMin(c => (c.GetPosition() - line).magnitude);
+            Cell best;
+
+            do
+            {
+                best = head;
+                head = head.Neighbors.Prepend(head).WithMin(c => (c.GetPosition() - line).magnitude);
+            } while (head != best);
+
+            return head;
         }
 
         public IEnumerable<Cell> Pentagons
