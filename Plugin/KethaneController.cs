@@ -128,7 +128,7 @@ namespace Kethane
 
                     if (Scans.ContainsKey(resource.Key) && Scans[resource.Key].ContainsKey(body.Key))
                     {
-                        bodyNode.AddValue("ScanMask", Convert.ToBase64String(Scans[resource.Key][body.Key].ToByteArray()));
+                        bodyNode.AddValue("ScanMask", Convert.ToBase64String(Scans[resource.Key][body.Key].ToByteArray()).Replace('/', '.').Replace('=', '%'));
                     }
 
                     foreach (var deposit in body.Value)
@@ -215,7 +215,7 @@ namespace Kethane
                 var scanMask = bodyNode.GetValue("ScanMask");
                 if (scanMask != null)
                 {
-                    Scans[resourceName][body.Key] = new GeodesicGrid.Cell.Set(5, Convert.FromBase64String(scanMask));
+                    Scans[resourceName][body.Key] = new GeodesicGrid.Cell.Set(5, Convert.FromBase64String(scanMask.Replace('.', '/').Replace('%', '=')));
                 }
 
                 var depositNodes = bodyNode.GetNodes("Deposit");
