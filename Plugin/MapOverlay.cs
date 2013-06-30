@@ -19,6 +19,7 @@ namespace Kethane
         private GeodesicGrid.Cell? hoverCell;
         private ResourceDefinition resource;
         private Rect controlWindowPos = new Rect(Screen.width * 0.20f, 250, 160, 0);
+        private bool showOverlay = true;
 
         private static GUIStyle centeredStyle = null;
         private static GUISkin defaultSkin = null;
@@ -67,7 +68,7 @@ namespace Kethane
 
         public void Update()
         {
-            if (!MapView.MapIsEnabled)
+            if (!MapView.MapIsEnabled || !showOverlay)
             {
                 gameObject.renderer.enabled = false;
                 return;
@@ -268,6 +269,8 @@ namespace Kethane
             GUI.enabled = true;
 
             GUILayout.EndHorizontal();
+
+            showOverlay = GUILayout.Toggle(showOverlay, "Show Grid Overlay");
 
             GUILayout.EndVertical();
 
