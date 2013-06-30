@@ -20,7 +20,6 @@ namespace Kethane
                 if (v == null)
                 {
                     controllers.Remove(wr);
-                    kvp.Value.CleanUp();
                 }
                 else if (v == vessel)
                 {
@@ -40,16 +39,10 @@ namespace Kethane
         public static bool ScanningSound = true;
 
         private static Dictionary<string, int> bodySeeds;
-        private static GUIStyle centeredStyle = null;
-        private static GUISkin defaultSkin = null;
         private static int depositSeed;
         private static string lastGameLoaded;
         private static long lastSaveFrame = -1;
         private static SortedDictionary<String, ResourceDefinition> resourceDefinitions = null;
-
-        public bool ShowDetectorWindow { get; set; }
-
-        private Rect DetectorWindowPosition = new Rect(Screen.width * 0.20f, 250, 10, 10);
 
         public static ResourceDefinition[] ResourceDefinitions
         {
@@ -61,7 +54,7 @@ namespace Kethane
         }
 
         private static string selectedResource = "Kethane";
-        public static string SelectedResource { get { return selectedResource; } private set { selectedResource = value; } }
+        public static string SelectedResource { get { return selectedResource; } set { selectedResource = value; } }
 
         public Vessel Vessel
         {
@@ -72,16 +65,10 @@ namespace Kethane
         {
             loadResourceDefinitions();
             LoadKethaneDeposits();
-            RenderingManager.AddToPostDrawQueue(3, drawGui);
 
             var config = KSP.IO.PluginConfiguration.CreateForType<KethaneController>();
             config.load();
             ScanningSound = config.GetValue<bool>("scanningSound", true);
-        }
-
-        private void CleanUp()
-        {
-            RenderingManager.RemoveFromPostDrawQueue(3, drawGui);
         }
 
         private static void loadResourceDefinitions()
@@ -306,65 +293,6 @@ namespace Kethane
             }
 
             return null;
-        }
-
-        private void drawGui()
-        {
-            if (FlightGlobals.fetch == null) { return; }
-            if (FlightGlobals.ActiveVessel != Vessel) { return; }
-            if (!Vessel.Parts.SelectMany(p => p.Modules.OfType<KethaneDetector>()).Any()) { return; }
-
-            if (defaultSkin == null)
-            {
-                GUI.skin = null;
-                defaultSkin = (GUISkin)GameObject.Instantiate(GUI.skin);
-            }
-
-            if (centeredStyle == null)
-            {
-                centeredStyle = new GUIStyle(GUI.skin.GetStyle("Label"));
-                centeredStyle.alignment = TextAnchor.MiddleCenter;
-            }
-
-            GUI.skin = defaultSkin;
-            var oldBackground = GUI.backgroundColor;
-            GUI.backgroundColor = XKCDColors.Green;
-
-            if (ShowDetectorWindow)
-            {
-                DetectorWindowPosition = GUILayout.Window(12358, DetectorWindowPosition, DetectorWindowGUI, "Kethane Detector");
-            }
-
-            GUI.backgroundColor = oldBackground;
-        }
-
-        private void DetectorWindowGUI(int windowID)
-        {
-            GUILayout.BeginVertical();
-
-            GUILayout.BeginHorizontal();
-
-            GUI.enabled = resourceDefinitions.First().Key != SelectedResource;
-            if (GUILayout.Button("◀", GUILayout.ExpandWidth(false)))
-            {
-                SelectedResource = resourceDefinitions.Last(p => p.Key.CompareTo(SelectedResource) < 0).Key;
-            }
-            GUI.enabled = true;
-
-            GUILayout.Label(SelectedResource, centeredStyle, GUILayout.ExpandWidth(true));
-
-            GUI.enabled = resourceDefinitions.Last().Key != SelectedResource;
-            if (GUILayout.Button("▶", GUILayout.ExpandWidth(false)))
-            {
-                SelectedResource = resourceDefinitions.First(p => p.Key.CompareTo(SelectedResource) > 0).Key;
-            }
-            GUI.enabled = true;
-
-            GUILayout.EndHorizontal();
-
-            GUILayout.EndVertical();
-
-            GUI.DragWindow(new Rect(0, 0, 300, 60));
         }
     }
 }

@@ -18,6 +18,10 @@ namespace Kethane
         private GUISkin skin;
         private GeodesicGrid.Cell? hoverCell;
         private ResourceDefinition resource;
+        private Rect controlWindowPos = new Rect(Screen.width * 0.20f, 250, 160, 0);
+
+        private static GUIStyle centeredStyle = null;
+        private static GUISkin defaultSkin = null;
 
         private static readonly Color32 colorEmpty = new Color32(128, 128, 128, 192);
         private static readonly Color32 colorUnknown = new Color32(0, 0, 0, 128);
@@ -179,6 +183,29 @@ namespace Kethane
                 var position = new Rect(mouse.x + 16, mouse.y + 4, 160, 32);
                 GUILayout.Window(12359, position, mouseWindow, "Resource Info");
             }
+
+            if (defaultSkin == null)
+            {
+                GUI.skin = null;
+                defaultSkin = (GUISkin)GameObject.Instantiate(GUI.skin);
+            }
+
+            if (centeredStyle == null)
+            {
+                centeredStyle = new GUIStyle(GUI.skin.GetStyle("Label"));
+                centeredStyle.alignment = TextAnchor.MiddleCenter;
+            }
+
+            GUI.skin = defaultSkin;
+            var oldBackground = GUI.backgroundColor;
+            GUI.backgroundColor = XKCDColors.Green;
+
+            if (MapView.MapIsEnabled)
+            {
+                controlWindowPos = GUILayout.Window(12358, controlWindowPos, controlWindow, "Kethane Scan Map");
+            }
+
+            GUI.backgroundColor = oldBackground;
         }
 
         private void mouseWindow(int windowId)
@@ -216,6 +243,35 @@ namespace Kethane
             }
 
             GUILayout.EndVertical();
+        }
+
+        private void controlWindow(int windowID)
+        {
+            GUILayout.BeginVertical();
+
+            GUILayout.BeginHorizontal();
+
+            GUI.enabled = KethaneController.ResourceDefinitions.First().Resource != KethaneController.SelectedResource;
+            if (GUILayout.Button("◀", GUILayout.ExpandWidth(false)))
+            {
+                KethaneController.SelectedResource = KethaneController.ResourceDefinitions.Select(d => d.Resource).Last(s => s.CompareTo(KethaneController.SelectedResource) < 0);
+            }
+            GUI.enabled = true;
+
+            GUILayout.Label(KethaneController.SelectedResource, centeredStyle, GUILayout.ExpandWidth(true));
+
+            GUI.enabled = KethaneController.ResourceDefinitions.Last().Resource != KethaneController.SelectedResource;
+            if (GUILayout.Button("▶", GUILayout.ExpandWidth(false)))
+            {
+                KethaneController.SelectedResource = KethaneController.ResourceDefinitions.Select(d => d.Resource).First(s => s.CompareTo(KethaneController.SelectedResource) > 0);
+            }
+            GUI.enabled = true;
+
+            GUILayout.EndHorizontal();
+
+            GUILayout.EndVertical();
+
+            GUI.DragWindow(new Rect(0, 0, 300, 60));
         }
 
         private static CelestialBody getTargetBody(MapObject target)

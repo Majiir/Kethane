@@ -71,18 +71,6 @@ namespace Kethane
             KethaneController.ScanningSound = false;
         }
 
-        [KSPEvent(guiActive = true, guiName = "Show Map", active = true)]
-        public void ShowMap()
-        {
-            KethaneController.GetInstance(this.vessel).ShowDetectorWindow = true;
-        }
-
-        [KSPEvent(guiActive = true, guiName = "Hide Map", active = false)]
-        public void HideMap()
-        {
-            KethaneController.GetInstance(this.vessel).ShowDetectorWindow = false;
-        }
-
         [KSPField(isPersistant = false, guiActive = true, guiName = "Status")]
         public string Status;
 
@@ -123,9 +111,6 @@ namespace Kethane
             Events["DisableDetection"].active = IsDetecting;
             Events["EnableSounds"].active = !KethaneController.ScanningSound;
             Events["DisableSounds"].active = KethaneController.ScanningSound;
-            var controller = KethaneController.GetInstance(this.vessel);
-            Events["ShowMap"].active = !controller.ShowDetectorWindow;
-            Events["HideMap"].active = controller.ShowDetectorWindow;
 
             if (Misc.GetTrueAltitude(vessel) <= this.DetectingHeight)
             {
