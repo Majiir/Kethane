@@ -19,8 +19,8 @@ namespace Kethane
         private GeodesicGrid.Cell? hoverCell;
         private ResourceDefinition resource;
 
-        private static readonly Color32 colorEmpty = new Color32(128, 128, 128, 255);
-        private static readonly Color32 colorUnknown = new Color32(0, 0, 0, 255);
+        private static readonly Color32 colorEmpty = new Color32(128, 128, 128, 192);
+        private static readonly Color32 colorUnknown = new Color32(0, 0, 0, 128);
 
         public static GeodesicGrid.Cell GetCellUnder(CelestialBody body, Vector3 worldPosition)
         {
@@ -294,7 +294,7 @@ namespace Kethane
             var material = new Material(KSP.IO.File.ReadAllText<MapOverlay>("AlphaUnlitVertexColored.txt"));
 
             var color = Color.white;
-            color.a = 0.25f;
+            color.a = 0.4f;
             material.color = color;
 
             renderer.material = material;
