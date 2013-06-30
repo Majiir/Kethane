@@ -59,7 +59,8 @@ namespace Kethane
             }
         }
 
-        public static string SelectedResource { get; private set; }
+        private static string selectedResource = "Kethane";
+        public static string SelectedResource { get { return selectedResource; } private set { selectedResource = value; } }
 
         public Vessel Vessel
         {
@@ -71,8 +72,6 @@ namespace Kethane
             loadResourceDefinitions();
             LoadKethaneDeposits();
             RenderingManager.AddToPostDrawQueue(3, drawGui);
-
-            SelectedResource = "Kethane";
 
             var config = KSP.IO.PluginConfiguration.CreateForType<KethaneController>();
             config.load();
