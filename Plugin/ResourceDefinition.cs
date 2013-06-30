@@ -58,9 +58,9 @@ namespace Kethane
             DepositCount = Misc.ParseInt(node.GetValue("DepositCount"), DepositCount);
             NumberOfTries = Misc.ParseInt(node.GetValue("NumberOfTries"), NumberOfTries);
             var colorFull = node.GetValue("ColorFull");
-            ColorFull = colorFull != null ? ConfigNode.ParseColor(colorFull) : ColorFull;
+            if (colorFull != null) { ColorFull = ConfigNode.ParseColor(colorFull); }
             var colorEmpty = node.GetValue("ColorEmpty");
-            ColorEmpty = colorEmpty != null ? ConfigNode.ParseColor(colorEmpty) : ColorEmpty;
+            if (colorEmpty != null) { ColorEmpty = ConfigNode.ParseColor(colorEmpty); }
         }
     }
 }

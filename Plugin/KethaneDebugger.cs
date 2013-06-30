@@ -104,7 +104,7 @@ namespace Kethane
 
             if (GUILayout.Button("GEN", GUILayout.ExpandWidth(true)))
             {
-                controller.GenerateKethaneDeposits();
+                KethaneController.GenerateKethaneDeposits();
             }
 
             GUILayout.Label("");
@@ -114,7 +114,7 @@ namespace Kethane
                 var random = new System.Random();
                 while (controller.GetDepositUnder(KethaneController.SelectedResource) == null)
                 {
-                    controller.GenerateKethaneDeposits(random);
+                    KethaneController.GenerateKethaneDeposits(random);
                 }
             }
 

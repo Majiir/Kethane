@@ -137,5 +137,24 @@ namespace Kethane
             }
             return result;
         }
+
+        #region BitArray extensions
+
+        public static IEnumerable<bool> GetTypedEnumerator(this System.Collections.BitArray bits)
+        {
+            for (int i = 0; i < bits.Length; i++)
+            {
+                yield return bits[i];
+            }
+        }
+
+        public static byte[] ToByteArray(this System.Collections.BitArray bits)
+        {
+            byte[] ret = new byte[(bits.Length - 1) / 8 + 1];
+            bits.CopyTo(ret, 0);
+            return ret;
+        }
+
+        #endregion
     }
 }

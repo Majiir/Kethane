@@ -59,16 +59,16 @@ namespace Kethane
             IsDetecting = !IsDetecting;
         }
 
-        [KSPEvent(guiActive = true, guiName = "Show Map", active = true)]
-        public void ShowMap()
+        [KSPEvent(guiActive = true, guiName = "Enable Scan Tone", active = true)]
+        public void EnableSounds()
         {
-            KethaneController.GetInstance(this.vessel).ShowDetectorWindow = true;
+            KethaneController.ScanningSound = true;
         }
 
-        [KSPEvent(guiActive = true, guiName = "Hide Map", active = false)]
-        public void HideMap()
+        [KSPEvent(guiActive = true, guiName = "Disable Scan Tone", active = false)]
+        public void DisableSounds()
         {
-            KethaneController.GetInstance(this.vessel).ShowDetectorWindow = false;
+            KethaneController.ScanningSound = false;
         }
 
         [KSPField(isPersistant = false, guiActive = true, guiName = "Status")]
@@ -109,9 +109,8 @@ namespace Kethane
         {
             Events["EnableDetection"].active = !IsDetecting;
             Events["DisableDetection"].active = IsDetecting;
-            var controller = KethaneController.GetInstance(this.vessel);
-            Events["ShowMap"].active = !controller.ShowDetectorWindow;
-            Events["HideMap"].active = controller.ShowDetectorWindow;
+            Events["EnableSounds"].active = !KethaneController.ScanningSound;
+            Events["DisableSounds"].active = KethaneController.ScanningSound;
 
             if (Misc.GetTrueAltitude(vessel) <= this.DetectingHeight)
             {
@@ -152,22 +151,16 @@ namespace Kethane
                 if (TimerEcho >= TimerThreshold)
                 {
                     var detected = false;
+                    var cell = MapOverlay.GetCellUnder(vessel.mainBody, vessel.transform.position);
                     foreach (var resource in resources)
                     {
-                        var DepositUnder = controller.GetDepositUnder(resource);
-                        if (DepositUnder != null && DepositUnder.Quantity >= 1.0f)
+                        KethaneController.Scans[resource][vessel.mainBody.name][cell] = true;
+                        if (KethaneController.GetCellDeposit(resource, vessel.mainBody, cell) != null)
                         {
-                            controller.DrawMap(true, resource);
-                            controller.LastLat = vessel.latitude;
-                            controller.LastLon = Misc.clampDegrees(vessel.longitude);
-                            controller.LastQuantity = DepositUnder.Quantity;
                             detected = true;
                         }
-                        else
-                        {
-                            controller.DrawMap(false, resource);
-                        }
                     }
+                    MapOverlay.Instance.RefreshCellColor(cell, vessel.mainBody);
                     TimerEcho = 0;
                     if (vessel == FlightGlobals.ActiveVessel && KethaneController.ScanningSound)
                     {
@@ -183,7 +176,7 @@ namespace Kethane
 
         public override void OnSave(ConfigNode node)
         {
-            KethaneController.GetInstance(this.vessel).SaveAllMaps();
+            KethaneController.SaveKethaneDeposits();
         }
     }
 }
