@@ -68,7 +68,7 @@ namespace Kethane
 
         public void Update()
         {
-            if (!MapView.MapIsEnabled || !showOverlay)
+            if (!MapView.MapIsEnabled || !showOverlay || MapView.MapCamera == null)
             {
                 gameObject.renderer.enabled = false;
                 return;
