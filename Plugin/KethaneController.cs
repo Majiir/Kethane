@@ -151,6 +151,8 @@ namespace Kethane
 
             var config = KSP.IO.PluginConfiguration.CreateForType<KethaneController>();
             config.SetValue("scanningSound", ScanningSound);
+            config.SetValue("windowLeft", (int)MapOverlay.Instance.controlWindowPos.x);
+            config.SetValue("windowTop", (int)MapOverlay.Instance.controlWindowPos.y);
             config.save();
         }
 
