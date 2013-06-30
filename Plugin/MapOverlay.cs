@@ -37,6 +37,8 @@ namespace Kethane
 
         public void Start()
         {
+            KethaneController.LoadKethaneDeposits();
+
             setUpMesh();
             gameObject.layer = 10;
             ScaledSpace.AddScaledSpaceTransform(gameObject.transform);

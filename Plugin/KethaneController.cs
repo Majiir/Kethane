@@ -162,7 +162,7 @@ namespace Kethane
             config.save();
         }
 
-        private static void LoadKethaneDeposits()
+        public static void LoadKethaneDeposits()
         {
             if (PlanetDeposits != null && lastGameLoaded == HighLogic.SaveFolder) { return; }
             if (FlightGlobals.fetch == null) { return; }
