@@ -37,7 +37,7 @@ namespace Kethane
             if (grid == null) { grid = new GeodesicGrid(5); }
 
             var scene = HighLogic.LoadedScene;
-            if (scene != GameScenes.FLIGHT && scene != GameScenes.TRACKSTATION)
+            if (scene != GameScenes.FLIGHT && scene != GameScenes.TRACKSTATION && scene != GameScenes.LOADING && scene != GameScenes.MAINMENU)
             {
                 enabled = false;
             }
@@ -47,10 +47,55 @@ namespace Kethane
         {
             Instance = this;
 
+            setUpMesh();
+
+            if (HighLogic.LoadedScene == GameScenes.LOADING || HighLogic.LoadedScene == GameScenes.MAINMENU)
+            {
+                var objects = GameObject.FindSceneObjectsOfType(typeof(GameObject));
+                if (objects.Any(o => o.name == "LoadingBuffer")) { return; }
+                var kerbin = objects.OfType<GameObject>().Where(b => b.name == "Kerbin").SingleOrDefault();
+
+                if (kerbin == null)
+                {
+                    Debug.LogWarning("[Kethane] Couldn't find Kerbin!");
+                    return;
+                }
+
+                gameObject.layer = kerbin.layer;
+                gameObject.transform.parent = kerbin.transform;
+                gameObject.transform.localPosition = Vector3.zero;
+                gameObject.transform.localRotation = Quaternion.identity;
+                gameObject.transform.localScale = Vector3.one * 1020;
+
+                gameObject.renderer.enabled = true;
+
+                var random = new System.Random();
+                var colors = new Color32[mesh.vertexCount];
+
+                foreach (var cell in grid)
+                {
+                    var rand = random.Next(100);
+                    Color32 color;
+                    if (rand < 10)
+                    {
+                        color = new Color32(21, 176, 26, 255);
+                    }
+                    else
+                    {
+                        color = rand < 35 ? colorEmpty : colorUnknown;
+                    }
+
+                    setCellColor(cell, color, colors);
+                }
+
+                mesh.colors32 = colors;
+
+                return;
+            }
+
             KethaneController.LoadKethaneDeposits();
             resource = KethaneController.ResourceDefinitions.Where(d => d.Resource == "Kethane").Single();
 
-            setUpMesh();
             gameObject.layer = 10;
             ScaledSpace.AddScaledSpaceTransform(gameObject.transform);
 
@@ -68,6 +113,11 @@ namespace Kethane
 
         public void Update()
         {
+            if (HighLogic.LoadedScene != GameScenes.FLIGHT && HighLogic.LoadedScene != GameScenes.TRACKSTATION)
+            {
+                return;
+            }
+
             if (!MapView.MapIsEnabled || !showOverlay || MapView.MapCamera == null)
             {
                 gameObject.renderer.enabled = false;
