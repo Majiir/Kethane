@@ -89,7 +89,10 @@ namespace Kethane
             double requestedSource = SourceConsumption * TimeWarp.fixedDeltaTime;
             double requestedEnergy = PowerConsumption * TimeWarp.fixedDeltaTime;
 
-            var availableSpace = Misc.GetConnectedResources(this.part, TargetResource).Max(r => r.maxAmount - r.amount);
+            double availableSpace = 0;
+            var listPartResource = Misc.GetConnectedResources(this.part, TargetResource);
+            if (listPartResource.Count > 0)
+                availableSpace = listPartResource.Max(r => r.maxAmount - r.amount);
             var availableSource = Misc.GetConnectedResources(this.part, SourceResource).Max(r => r.amount);
             var availableEnergy = Misc.GetConnectedResources(this.part, "ElectricCharge").Max(r => r.amount);
 

@@ -22,7 +22,6 @@ namespace Kethane
         private List<string> resources;
 
         private double TimerEcho;
-        private static System.Random detectorVariance = new System.Random();
 
         private float powerRatio;
 
@@ -59,16 +58,16 @@ namespace Kethane
             IsDetecting = !IsDetecting;
         }
 
-        [KSPEvent(guiActive = true, guiName = "Show Map", active = true)]
-        public void ShowMap()
+        [KSPEvent(guiActive = true, guiName = "Enable Scan Tone", active = true)]
+        public void EnableSounds()
         {
-            KethaneController.GetInstance(this.vessel).ShowDetectorWindow = true;
+            KethaneController.ScanningSound = true;
         }
 
-        [KSPEvent(guiActive = true, guiName = "Hide Map", active = false)]
-        public void HideMap()
+        [KSPEvent(guiActive = true, guiName = "Disable Scan Tone", active = false)]
+        public void DisableSounds()
         {
-            KethaneController.GetInstance(this.vessel).ShowDetectorWindow = false;
+            KethaneController.ScanningSound = false;
         }
 
         [KSPField(isPersistant = false, guiActive = true, guiName = "Status")]
@@ -83,25 +82,16 @@ namespace Kethane
         {
             if (state == StartState.Editor) { return; }
             this.part.force_activate();
-            #region Sound effects
+
             PingEmpty = gameObject.AddComponent<AudioSource>();
-            WWW wwwE = new WWW("file://" + KSPUtil.ApplicationRootPath.Replace("\\", "/") + "GameData/Kethane/Plugins/PluginData/MMI_Kethane/sounds/echo_empty.wav");
-            if ((PingEmpty != null) && (wwwE != null))
-            {
-                PingEmpty.clip = wwwE.GetAudioClip(false);
-                PingEmpty.volume = 1;
-                PingEmpty.Stop();
-            }
+            PingEmpty.clip = GameDatabase.Instance.GetAudioClip("Kethane/Sounds/echo_empty");
+            PingEmpty.volume = 1;
+            PingEmpty.Stop();
 
             PingDeposit = gameObject.AddComponent<AudioSource>();
-            WWW wwwD = new WWW("file://" + KSPUtil.ApplicationRootPath.Replace("\\", "/") + "GameData/Kethane/Plugins/PluginData/MMI_Kethane/sounds/echo_deposit.wav");
-            if ((PingDeposit != null) && (wwwD != null))
-            {
-                PingDeposit.clip = wwwD.GetAudioClip(false);
-                PingDeposit.volume = 1;
-                PingDeposit.Stop();
-            }
-            #endregion
+            PingDeposit.clip = GameDatabase.Instance.GetAudioClip("Kethane/Sounds/echo_deposit");
+            PingDeposit.volume = 1;
+            PingDeposit.Stop();
         }
 
         public override void OnLoad(ConfigNode node)
@@ -118,9 +108,8 @@ namespace Kethane
         {
             Events["EnableDetection"].active = !IsDetecting;
             Events["DisableDetection"].active = IsDetecting;
-            var controller = KethaneController.GetInstance(this.vessel);
-            Events["ShowMap"].active = !controller.ShowDetectorWindow;
-            Events["HideMap"].active = controller.ShowDetectorWindow;
+            Events["EnableSounds"].active = !KethaneController.ScanningSound;
+            Events["DisableSounds"].active = KethaneController.ScanningSound;
 
             if (Misc.GetTrueAltitude(vessel) <= this.DetectingHeight)
             {
@@ -154,29 +143,24 @@ namespace Kethane
                 var energyRequest = PowerConsumption * TimeWarp.fixedDeltaTime;
                 var energyDrawn = this.part.RequestResource("ElectricCharge", energyRequest);
                 this.powerRatio = energyDrawn / energyRequest;
-                TimerEcho += Time.deltaTime * (1 + Math.Log(TimeWarp.CurrentRate)) * this.powerRatio * KethaneDetector.detectorVariance.Range(0.99f, 1.01f);
+                TimerEcho += Time.deltaTime * (1 + Math.Log(TimeWarp.CurrentRate)) * this.powerRatio;
 
                 var TimerThreshold = this.DetectingPeriod + Altitude * 0.000005d; // 0,5s delay at 100km
 
                 if (TimerEcho >= TimerThreshold)
                 {
                     var detected = false;
+                    var cell = MapOverlay.GetCellUnder(vessel.mainBody, vessel.transform.position);
+                    if (resources.All(r => KethaneController.Scans[r][vessel.mainBody.name][cell])) { return; }
                     foreach (var resource in resources)
                     {
-                        var DepositUnder = controller.GetDepositUnder(resource);
-                        if (DepositUnder != null && DepositUnder.Quantity >= 1.0f)
+                        KethaneController.Scans[resource][vessel.mainBody.name][cell] = true;
+                        if (KethaneController.GetCellDeposit(resource, vessel.mainBody, cell) != null)
                         {
-                            controller.DrawMap(true, resource);
-                            controller.LastLat = vessel.latitude;
-                            controller.LastLon = Misc.clampDegrees(vessel.longitude);
-                            controller.LastQuantity = DepositUnder.Quantity;
                             detected = true;
                         }
-                        else
-                        {
-                            controller.DrawMap(false, resource);
-                        }
                     }
+                    MapOverlay.Instance.RefreshCellColor(cell, vessel.mainBody);
                     TimerEcho = 0;
                     if (vessel == FlightGlobals.ActiveVessel && KethaneController.ScanningSound)
                     {
@@ -192,7 +176,7 @@ namespace Kethane
 
         public override void OnSave(ConfigNode node)
         {
-            KethaneController.GetInstance(this.vessel).SaveAllMaps();
+            KethaneController.SaveKethaneDeposits();
         }
     }
 }

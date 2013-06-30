@@ -285,6 +285,11 @@ namespace Kethane
             renderer.materials = new Material[] { material };
             animator.colorAnimation = new Color[5];
 
+            if (parse(node.GetValue("Collision"), false))
+            {
+                obj.AddComponent("WorldParticleCollider");
+            }
+
             AngularVelocity         = parse(node.GetValue("AngularVelocity"), 0f);
             CameraVelocityScale     = parse(node.GetValue("CameraVelocityScale"), 0f);
             ColorAnimation1         = ConfigNode.ParseColor(node.GetValue("ColorAnimation1"));

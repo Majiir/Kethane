@@ -56,6 +56,12 @@ namespace Kethane
         [KSPAction("Disable Generator")]
         public void DisableAction(KSPActionParam param) { Disable(); }
 
+        [KSPAction("Toggle Generator")]
+        public void ToggleAction(KSPActionParam param)
+        {
+            Enabled = !Enabled;
+        }
+
         public override void OnStart(PartModule.StartState state)
         {
             if (state == StartState.Editor) { return; }
