@@ -216,6 +216,8 @@ namespace Kethane
 
         public void OnGUI()
         {
+            if (!MapView.MapIsEnabled || MapView.MapCamera == null) { return; }
+
             if (skin == null)
             {
                 GUI.skin = null;
@@ -258,10 +260,7 @@ namespace Kethane
             var oldBackground = GUI.backgroundColor;
             GUI.backgroundColor = XKCDColors.Green;
 
-            if (MapView.MapIsEnabled && MapView.MapCamera != null)
-            {
-                controlWindowPos = GUILayout.Window(12358, controlWindowPos, controlWindow, "Kethane Scan Map");
-            }
+            controlWindowPos = GUILayout.Window(12358, controlWindowPos, controlWindow, "Kethane Scan Map");
 
             GUI.backgroundColor = oldBackground;
         }
