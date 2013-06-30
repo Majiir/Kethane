@@ -17,7 +17,7 @@ namespace Kethane
         public GeodesicGrid(int subdivisions)
         {
             this.n = 1 << subdivisions;
-            this.cache = new Cell.Dictionary<Vector3d>(this);
+            this.cache = new Cell.Dictionary<Vector3d>(subdivisions);
         }
 
         /// <summary>
@@ -401,9 +401,9 @@ namespace Kethane
                 private T[] values;
                 private Set set;
 
-                public Dictionary(GeodesicGrid grid)
+                public Dictionary(int subdivisions)
                 {
-                    set = new Set(grid);
+                    set = new Set(subdivisions);
                     values = new T[set.Length];
                 }
 
@@ -435,9 +435,10 @@ namespace Kethane
             {
                 private System.Collections.BitArray set;
 
-                public Set(GeodesicGrid grid)
+                public Set(int subdivisions)
                 {
-                    set = new System.Collections.BitArray(grid.Count);
+                    var n = 1 << subdivisions;
+                    set = new System.Collections.BitArray(10 * n * n + 2);
                 }
 
                 public bool this[GeodesicGrid.Cell cell]
