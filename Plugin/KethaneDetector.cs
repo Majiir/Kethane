@@ -152,6 +152,7 @@ namespace Kethane
                 {
                     var detected = false;
                     var cell = MapOverlay.GetCellUnder(vessel.mainBody, vessel.transform.position);
+                    if (resources.All(r => KethaneController.Scans[r][vessel.mainBody.name][cell])) { return; }
                     foreach (var resource in resources)
                     {
                         KethaneController.Scans[resource][vessel.mainBody.name][cell] = true;
