@@ -59,6 +59,18 @@ namespace Kethane
             IsDetecting = !IsDetecting;
         }
 
+        [KSPEvent(guiActive = true, guiName = "Enable Scan Tone", active = true)]
+        public void EnableSounds()
+        {
+            KethaneController.ScanningSound = true;
+        }
+
+        [KSPEvent(guiActive = true, guiName = "Disable Scan Tone", active = false)]
+        public void DisableSounds()
+        {
+            KethaneController.ScanningSound = false;
+        }
+
         [KSPEvent(guiActive = true, guiName = "Show Map", active = true)]
         public void ShowMap()
         {
@@ -109,6 +121,8 @@ namespace Kethane
         {
             Events["EnableDetection"].active = !IsDetecting;
             Events["DisableDetection"].active = IsDetecting;
+            Events["EnableSounds"].active = !KethaneController.ScanningSound;
+            Events["DisableSounds"].active = KethaneController.ScanningSound;
             var controller = KethaneController.GetInstance(this.vessel);
             Events["ShowMap"].active = !controller.ShowDetectorWindow;
             Events["HideMap"].active = controller.ShowDetectorWindow;

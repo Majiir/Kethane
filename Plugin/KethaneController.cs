@@ -362,8 +362,6 @@ namespace Kethane
 
             GUILayout.EndHorizontal();
 
-            ScanningSound = GUILayout.Toggle(ScanningSound, "Detection sound");
-
             GUILayout.EndVertical();
 
             GUI.DragWindow(new Rect(0, 0, 300, 60));
