@@ -76,13 +76,20 @@ namespace Kethane
                 {
                     var rand = random.Next(100);
                     Color32 color;
-                    if (rand < 10)
+                    if (rand < 16)
                     {
-                        color = new Color32(21, 176, 26, 255);
+                        color = rand < 4 ? new Color32(21, 176, 26, 255) : colorEmpty;
+                        foreach (var neighbor in cell.Neighbors)
+                        {
+                            if (random.Next(2) < 1)
+                            {
+                                setCellColor(neighbor, color, colors);
+                            }
+                        }
                     }
                     else
                     {
-                        color = rand < 35 ? colorEmpty : colorUnknown;
+                        color = colorUnknown;
                     }
 
                     setCellColor(cell, color, colors);
