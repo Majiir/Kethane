@@ -163,6 +163,8 @@ namespace Kethane
 
             var config = ConfigNode.Load(getConfigFilePath());
 
+            Scans = ResourceDefinitions.ToDictionary(d => d.Resource, d => FlightGlobals.Bodies.ToDictionary(b => b.name, b => new GeodesicGrid.Cell.Set(5)));
+
             if ((config == null) || !int.TryParse(config.GetValue("Seed"), out depositSeed))
             {
                 GenerateKethaneDeposits();
@@ -183,8 +185,6 @@ namespace Kethane
             generateFromSeed();
 
             loadBodyDeposits(config, "Kethane", "Kethane");
-
-            Scans = ResourceDefinitions.ToDictionary(d => d.Resource, d => FlightGlobals.Bodies.ToDictionary(b => b.name, b => new GeodesicGrid.Cell.Set(5)));
 
             foreach (var resourceNode in config.GetNodes("Resource"))
             {
