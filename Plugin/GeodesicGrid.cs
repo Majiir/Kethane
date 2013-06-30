@@ -441,6 +441,13 @@ namespace Kethane
                     set = new System.Collections.BitArray(10 * n * n + 2);
                 }
 
+                public Set(int subdivisions, byte[] array)
+                {
+                    var n = 1 << subdivisions;
+                    set = new System.Collections.BitArray(array);
+                    set.Length = 10 * n * n + 2;
+                }
+
                 public bool this[GeodesicGrid.Cell cell]
                 {
                     get
@@ -458,6 +465,11 @@ namespace Kethane
                 public int Length
                 {
                     get { return set.Length; }
+                }
+
+                public byte[] ToByteArray()
+                {
+                    return set.ToByteArray();
                 }
             }
 
