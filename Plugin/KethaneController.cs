@@ -36,6 +36,7 @@ namespace Kethane
         #endregion
 
         public static Dictionary<string, Dictionary<string, List<Deposit>>> PlanetDeposits;
+        public static Dictionary<string, Dictionary<string, GeodesicGrid.Cell.Set>> Scans;
         public static bool ScanningSound = true;
 
         private static Dictionary<string, int> bodySeeds;
@@ -200,6 +201,8 @@ namespace Kethane
             Debug.LogWarning(String.Format("Kethane deposits loaded ({0}ms)", timer.ElapsedMilliseconds));
 
             lastGameLoaded = HighLogic.SaveFolder;
+
+            Scans = ResourceDefinitions.ToDictionary(d => d.Resource, d => FlightGlobals.Bodies.ToDictionary(b => b.name, b => new GeodesicGrid.Cell.Set(5)));
         }
 
         private static string getConfigFilePath()
