@@ -215,7 +215,14 @@ namespace Kethane
                 var scanMask = bodyNode.GetValue("ScanMask");
                 if (scanMask != null)
                 {
-                    Scans[resourceName][body.Key] = new GeodesicGrid.Cell.Set(5, Convert.FromBase64String(scanMask.Replace('.', '/').Replace('%', '=')));
+                    try
+                    {
+                        Scans[resourceName][body.Key] = new GeodesicGrid.Cell.Set(5, Convert.FromBase64String(scanMask.Replace('.', '/').Replace('%', '=')));
+                    }
+                    catch (FormatException e)
+                    {
+                        Debug.LogError(String.Format("[Kethane] Failed to parse {0}/{1} scan string, resetting ({2})", body.Key, resourceName, e.Message));
+                    }
                 }
 
                 var depositNodes = bodyNode.GetNodes("Deposit");
