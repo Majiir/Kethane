@@ -22,7 +22,6 @@ namespace Kethane
         private List<string> resources;
 
         private double TimerEcho;
-        private static System.Random detectorVariance = new System.Random();
 
         private float powerRatio;
 
@@ -144,7 +143,7 @@ namespace Kethane
                 var energyRequest = PowerConsumption * TimeWarp.fixedDeltaTime;
                 var energyDrawn = this.part.RequestResource("ElectricCharge", energyRequest);
                 this.powerRatio = energyDrawn / energyRequest;
-                TimerEcho += Time.deltaTime * (1 + Math.Log(TimeWarp.CurrentRate)) * this.powerRatio * KethaneDetector.detectorVariance.Range(0.99f, 1.01f);
+                TimerEcho += Time.deltaTime * (1 + Math.Log(TimeWarp.CurrentRate)) * this.powerRatio;
 
                 var TimerThreshold = this.DetectingPeriod + Altitude * 0.000005d; // 0,5s delay at 100km
 
