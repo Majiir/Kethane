@@ -139,6 +139,11 @@ namespace Kethane
                         bodyNode.AddValue("SeedModifier", bodySeeds[body.Key]);
                     }
 
+                    if (Scans.ContainsKey(resource.Key) && Scans[resource.Key].ContainsKey(body.Key))
+                    {
+                        bodyNode.AddValue("ScanMask", Convert.ToBase64String(Scans[resource.Key][body.Key].ToByteArray()));
+                    }
+
                     foreach (var deposit in body.Value)
                     {
                         var depositNode = new ConfigNode("Deposit");
@@ -192,6 +197,8 @@ namespace Kethane
 
             loadBodyDeposits(config, "Kethane", "Kethane");
 
+            Scans = ResourceDefinitions.ToDictionary(d => d.Resource, d => FlightGlobals.Bodies.ToDictionary(b => b.name, b => new GeodesicGrid.Cell.Set(5)));
+
             foreach (var resourceNode in config.GetNodes("Resource"))
             {
                 loadBodyDeposits(resourceNode, resourceNode.GetValue("Resource"));
@@ -201,8 +208,6 @@ namespace Kethane
             Debug.LogWarning(String.Format("Kethane deposits loaded ({0}ms)", timer.ElapsedMilliseconds));
 
             lastGameLoaded = HighLogic.SaveFolder;
-
-            Scans = ResourceDefinitions.ToDictionary(d => d.Resource, d => FlightGlobals.Bodies.ToDictionary(b => b.name, b => new GeodesicGrid.Cell.Set(5)));
         }
 
         private static string getConfigFilePath()
@@ -219,6 +224,12 @@ namespace Kethane
 
                 var bodyNode = config.GetNodes("Body").Where(b => b.GetValue("Name") == body.Key).SingleOrDefault();
                 if (bodyNode == null) { continue; }
+
+                var scanMask = bodyNode.GetValue("ScanMask");
+                if (scanMask != null)
+                {
+                    Scans[resourceName][body.Key] = new GeodesicGrid.Cell.Set(5, Convert.FromBase64String(scanMask));
+                }
 
                 var depositNodes = bodyNode.GetNodes("Deposit");
                 for (int i = 0; i < Math.Min(deposits.Count, depositNodes.Length); i++)
