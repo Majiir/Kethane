@@ -172,18 +172,46 @@ namespace Kethane
             if (hoverCell != null)
             {
                 var mouse = Event.current.mousePosition;
-                var position = new Rect(mouse.x + 16, mouse.y + 4, 130, 55);
-                GUILayout.Window(12359, position, mouseWindow, "Deposit");
+                var position = new Rect(mouse.x + 16, mouse.y + 4, 160, 32);
+                GUILayout.Window(12359, position, mouseWindow, "Resource Info");
             }
         }
 
         private void mouseWindow(int windowId)
         {
+            var cell = hoverCell.Value;
+            var pos = cell.GetPosition();
+            var lat = (float)(Math.Atan2(pos.y, Math.Sqrt(pos.x * pos.x + pos.z * pos.z)) * 180 / Math.PI);
+            var lon = (float)(Math.Atan2(pos.z, pos.x) * 180 / Math.PI);
+
+            GUILayout.BeginVertical();
+
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Cell: ");
+            GUILayout.Label("Center:");
             GUILayout.FlexibleSpace();
-            GUILayout.Label(hoverCell.ToString());
+            GUILayout.Label(String.Format("{0:F1} {1}, {2:F1} {3}", Math.Abs(lat), lat < 0 ? "S" : "N", Math.Abs(lon), lon < 0 ? "W" : "E"));
             GUILayout.EndHorizontal();
+
+            foreach (var definition in KethaneController.ResourceDefinitions.Select(d => d.ForBody(body)))
+            {
+                GUILayout.BeginHorizontal();
+
+                GUILayout.Label(String.Format("{0}:", definition.Resource));
+                GUILayout.FlexibleSpace();
+                if (KethaneController.Scans[definition.Resource][body.name][cell])
+                {
+                    var deposit = KethaneController.GetCellDeposit(definition.Resource, body, cell);
+                    GUILayout.Label(deposit != null ? String.Format("{0:N1}", deposit.Quantity) : "(none)");
+                }
+                else
+                {
+                    GUILayout.Label("(no data)");
+                }
+
+                GUILayout.EndHorizontal();
+            }
+
+            GUILayout.EndVertical();
         }
 
         private static CelestialBody getTargetBody(MapObject target)
