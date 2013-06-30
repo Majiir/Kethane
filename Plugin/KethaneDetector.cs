@@ -152,14 +152,16 @@ namespace Kethane
                 if (TimerEcho >= TimerThreshold)
                 {
                     var detected = false;
+                    var cell = MapOverlay.GetCellUnder(vessel.mainBody, vessel.transform.position);
                     foreach (var resource in resources)
                     {
-                        var DepositUnder = controller.GetDepositUnder(resource);
-                        if (DepositUnder != null && DepositUnder.Quantity >= 1.0f)
+                        KethaneController.Scans[resource][vessel.mainBody.name][cell] = true;
+                        if (KethaneController.GetCellDeposit(resource, vessel.mainBody, cell) != null)
                         {
                             detected = true;
                         }
                     }
+                    MapOverlay.Instance.RefreshCellColor(cell, vessel.mainBody);
                     TimerEcho = 0;
                     if (vessel == FlightGlobals.ActiveVessel && KethaneController.ScanningSound)
                     {

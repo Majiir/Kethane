@@ -8,6 +8,8 @@ namespace Kethane
     [KSPAddon(KSPAddon.Startup.EveryScene, false)]
     internal class MapOverlay : MonoBehaviour
     {
+        public static MapOverlay Instance { get; private set; }
+
         private static GeodesicGrid grid;
 
         private CelestialBody body;
@@ -38,6 +40,8 @@ namespace Kethane
 
         public void Start()
         {
+            Instance = this;
+
             KethaneController.LoadKethaneDeposits();
             resource = KethaneController.ResourceDefinitions.Where(d => d.Resource == "Kethane").Single();
 
