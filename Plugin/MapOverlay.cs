@@ -15,6 +15,7 @@ namespace Kethane
         private Mesh mesh;
         private GUISkin skin;
         private GeodesicGrid.Cell? hoverCell;
+        private ResourceDefinition resource;
 
         private static readonly Color32 colorEmpty = new Color32(128, 128, 128, 255);
         private static readonly Color32 colorUnknown = new Color32(0, 0, 0, 255);
@@ -38,6 +39,7 @@ namespace Kethane
         public void Start()
         {
             KethaneController.LoadKethaneDeposits();
+            resource = KethaneController.ResourceDefinitions.Where(d => d.Resource == "Kethane").Single();
 
             setUpMesh();
             gameObject.layer = 10;
@@ -68,11 +70,18 @@ namespace Kethane
             var target = MapView.fetch.mapCamera.target;
 
             var newBody = getTargetBody(target);
-            if (newBody != body)
+            var bodyChanged = newBody != body;
+            if (bodyChanged)
             {
                 body = newBody;
                 var radius = bodyRadii.ContainsKey(body) ? bodyRadii[body] : 1.025;
                 gameObject.transform.localScale = Vector3.one * (float)(radius * body.Radius / ScaledSpace.ScaleFactor);
+            }
+
+            if (bodyChanged || resource.Resource != KethaneController.SelectedResource)
+            {
+                resource = KethaneController.ResourceDefinitions.Where(r => r.Resource == KethaneController.SelectedResource).Single().ForBody(body);
+                refreshCellColors();
             }
 
             var ray = MapView.MapCamera.camera.ScreenPointToRay(Input.mousePosition);
@@ -90,6 +99,53 @@ namespace Kethane
 
             gameObject.transform.position = ScaledSpace.LocalToScaledSpace(body.position);
             gameObject.transform.rotation = body.rotation;
+        }
+
+        public void RefreshCellColor(GeodesicGrid.Cell cell, CelestialBody body)
+        {
+            if (body != this.body) { return; }
+            var colors = mesh.colors32;
+            refreshCellColor(cell, body, colors);
+            mesh.colors32 = colors;
+        }
+
+        private void refreshCellColors()
+        {
+            var colors = new Color32[mesh.vertexCount];
+            foreach (var cell in grid)
+            {
+                refreshCellColor(cell, body, colors);
+            }
+            mesh.colors32 = colors;
+        }
+
+        private void refreshCellColor(GeodesicGrid.Cell cell, CelestialBody body, Color32[] colors)
+        {
+            setCellColor(cell, KethaneController.Scans[resource.Resource][body.name][cell] ? getDepositColor(resource, KethaneController.GetCellDeposit(resource.Resource, body, cell)) : colorUnknown, colors);
+        }
+
+        private static void setCellColor(GeodesicGrid.Cell cell, Color32 color, Color32[] colors)
+        {
+            var idx = cell.GetHashCode() * 6;
+            for (int i = idx; i < idx + 6; i++)
+            {
+                colors[i] = color;
+            }
+        }
+
+        private static Color32 getDepositColor(ResourceDefinition definition, Deposit deposit)
+        {
+            Color32 color;
+            if (deposit != null)
+            {
+                var ratio = (deposit.Quantity / definition.MaxQuantity);
+                color = (Color32)(definition.ColorFull * ratio + definition.ColorEmpty * (1 - ratio));
+            }
+            else
+            {
+                color = colorEmpty;
+            }
+            return color;
         }
 
         public void OnGUI()
