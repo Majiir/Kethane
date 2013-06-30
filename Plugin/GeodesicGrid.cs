@@ -399,37 +399,64 @@ namespace Kethane
             public class Dictionary<T>
             {
                 private T[] values;
-                private System.Collections.BitArray set;
+                private Set set;
 
                 public Dictionary(GeodesicGrid grid)
                 {
-                    values = new T[grid.Count];
-                    set = new System.Collections.BitArray(values.Length);
+                    set = new Set(grid);
+                    values = new T[set.Length];
                 }
 
                 public T this[GeodesicGrid.Cell cell]
                 {
                     get
                     {
-                        var hash = cell.GetHashCode();
-                        if (cell.grid.Count > values.Length) { throw new ArgumentException(); }
-                        if (!set[hash]) { throw new KeyNotFoundException(); }
-                        return values[hash];
+                        if (!set[cell]) { throw new KeyNotFoundException(); }
+                        return values[cell.GetHashCode()];
                     }
                     set
                     {
-                        var hash = cell.GetHashCode();
-                        if (cell.grid.Count > values.Length) { throw new ArgumentException(); }
-                        values[hash] = value;
-                        set[hash] = true;
+                        set[cell] = true;
+                        values[cell.GetHashCode()] = value;
                     }
                 }
 
                 public bool ContainsKey(GeodesicGrid.Cell cell)
                 {
-                    var hash = cell.GetHashCode();
-                    if (cell.grid.Count > values.Length) { throw new ArgumentException(); }
-                    return set[hash];
+                    return set[cell];
+                }
+            }
+
+            #endregion
+
+            #region Set
+
+            public class Set
+            {
+                private System.Collections.BitArray set;
+
+                public Set(GeodesicGrid grid)
+                {
+                    set = new System.Collections.BitArray(grid.Count);
+                }
+
+                public bool this[GeodesicGrid.Cell cell]
+                {
+                    get
+                    {
+                        if (cell.grid.Count > set.Length) { throw new ArgumentException(); }
+                        return set[cell.GetHashCode()];
+                    }
+                    set
+                    {
+                        if (cell.grid.Count > set.Length) { throw new ArgumentException(); }
+                        set[cell.GetHashCode()] = value;
+                    }
+                }
+
+                public int Length
+                {
+                    get { return set.Length; }
                 }
             }
 
