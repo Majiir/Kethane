@@ -46,6 +46,11 @@ namespace Kethane
             {
                 enabled = false;
             }
+
+            if ((scene == GameScenes.LOADING || scene == GameScenes.MAINMENU) && !Misc.Parse(SettingsManager.GetValue("ShowInMenu"), true))
+            {
+                enabled = false;
+            }
         }
 
         public void Start()
