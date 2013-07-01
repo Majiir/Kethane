@@ -285,93 +285,45 @@ namespace Kethane
             renderer.materials = new Material[] { material };
             animator.colorAnimation = new Color[5];
 
-            if (parse(node.GetValue("Collision"), false))
+            if (Misc.Parse(node.GetValue("Collision"), false))
             {
                 obj.AddComponent("WorldParticleCollider");
             }
 
-            AngularVelocity         = parse(node.GetValue("AngularVelocity"), 0f);
-            CameraVelocityScale     = parse(node.GetValue("CameraVelocityScale"), 0f);
+            AngularVelocity         = Misc.Parse(node.GetValue("AngularVelocity"), 0f);
+            CameraVelocityScale     = Misc.Parse(node.GetValue("CameraVelocityScale"), 0f);
             ColorAnimation1         = ConfigNode.ParseColor(node.GetValue("ColorAnimation1"));
             ColorAnimation2         = ConfigNode.ParseColor(node.GetValue("ColorAnimation2"));
             ColorAnimation3         = ConfigNode.ParseColor(node.GetValue("ColorAnimation3"));
             ColorAnimation4         = ConfigNode.ParseColor(node.GetValue("ColorAnimation4"));
             ColorAnimation5         = ConfigNode.ParseColor(node.GetValue("ColorAnimation5"));
-            Damping                 = parse(node.GetValue("Damping"), 1f);
-            Emit                    = parse(node.GetValue("Emit"), true);
-            EmitterVelocityScale    = parse(node.GetValue("EmitterVelocityScale"), 1f);
-            Force                   = parse(node.GetValue("Force"), Vector3.zero);
-            LengthScale             = parse(node.GetValue("LengthScale"), 1f);
-            LocalRotationAxis       = parse(node.GetValue("LocalRotationAxis"), Vector3.zero);
-            LocalVelocity           = parse(node.GetValue("LocalVelocity"), Vector3.zero);
-            MaxEmission             = parse(node.GetValue("MaxEmission"), 0f);
-            MaxEnergy               = parse(node.GetValue("MaxEnergy"), 0f);
-            MaxParticleSize         = parse(node.GetValue("MaxParticleSize"), 0f);
-            MaxSize                 = parse(node.GetValue("MaxSize"), 0f);
-            MinEmission             = parse(node.GetValue("MinEmission"), 0f);
-            MinEnergy               = parse(node.GetValue("MinEnergy"), 0f);
-            MinSize                 = parse(node.GetValue("MinSize"), 0f);
-            RandomAngularVelocity   = parse(node.GetValue("RandomAngularVelocity"), 0f);
-            RandomForce             = parse(node.GetValue("RandomForce"), Vector3.zero);
-            RandomRotation          = parse(node.GetValue("RandomRotation"), false);
-            RandomVelocity          = parse(node.GetValue("RandomVelocity"), Vector3.zero);
-            RenderMode              = parse(node.GetValue("RenderMode"), ParticleRenderMode.Billboard);
-            SizeGrow                = parse(node.GetValue("SizeGrow"), 0f);
-            UseWorldSpace           = parse(node.GetValue("UseWorldSpace"), false);
-            VelocityScale           = parse(node.GetValue("VelocityScale"), 0f);
-            WorldRotationAxis       = parse(node.GetValue("WorldRotationAxis"), Vector3.zero);
-            WorldVelocity           = parse(node.GetValue("WorldVelocity"), Vector3.zero);
+            Damping                 = Misc.Parse(node.GetValue("Damping"), 1f);
+            Emit                    = Misc.Parse(node.GetValue("Emit"), true);
+            EmitterVelocityScale    = Misc.Parse(node.GetValue("EmitterVelocityScale"), 1f);
+            Force                   = Misc.Parse(node.GetValue("Force"), Vector3.zero);
+            LengthScale             = Misc.Parse(node.GetValue("LengthScale"), 1f);
+            LocalRotationAxis       = Misc.Parse(node.GetValue("LocalRotationAxis"), Vector3.zero);
+            LocalVelocity           = Misc.Parse(node.GetValue("LocalVelocity"), Vector3.zero);
+            MaxEmission             = Misc.Parse(node.GetValue("MaxEmission"), 0f);
+            MaxEnergy               = Misc.Parse(node.GetValue("MaxEnergy"), 0f);
+            MaxParticleSize         = Misc.Parse(node.GetValue("MaxParticleSize"), 0f);
+            MaxSize                 = Misc.Parse(node.GetValue("MaxSize"), 0f);
+            MinEmission             = Misc.Parse(node.GetValue("MinEmission"), 0f);
+            MinEnergy               = Misc.Parse(node.GetValue("MinEnergy"), 0f);
+            MinSize                 = Misc.Parse(node.GetValue("MinSize"), 0f);
+            RandomAngularVelocity   = Misc.Parse(node.GetValue("RandomAngularVelocity"), 0f);
+            RandomForce             = Misc.Parse(node.GetValue("RandomForce"), Vector3.zero);
+            RandomRotation          = Misc.Parse(node.GetValue("RandomRotation"), false);
+            RandomVelocity          = Misc.Parse(node.GetValue("RandomVelocity"), Vector3.zero);
+            RenderMode              = Misc.Parse(node.GetValue("RenderMode"), ParticleRenderMode.Billboard);
+            SizeGrow                = Misc.Parse(node.GetValue("SizeGrow"), 0f);
+            UseWorldSpace           = Misc.Parse(node.GetValue("UseWorldSpace"), false);
+            VelocityScale           = Misc.Parse(node.GetValue("VelocityScale"), 0f);
+            WorldRotationAxis       = Misc.Parse(node.GetValue("WorldRotationAxis"), Vector3.zero);
+            WorldVelocity           = Misc.Parse(node.GetValue("WorldVelocity"), Vector3.zero);
 
-            EmitterPosition         = parse(node.GetValue("EmitterPosition"), Vector3.zero);
-            EmitterScale            = parse(node.GetValue("EmitterScale"), Vector3.zero);
+            EmitterPosition         = Misc.Parse(node.GetValue("EmitterPosition"), Vector3.zero);
+            EmitterScale            = Misc.Parse(node.GetValue("EmitterScale"), Vector3.zero);
         }
-
-        #region Parsing utility methods
-
-        private float parse(string s, float defaultValue)
-        {
-            float value;
-            if (!float.TryParse(s, out value))
-            {
-                value = defaultValue;
-            }
-            return value;
-        }
-
-        private bool parse(string s, bool defaultValue)
-        {
-            bool value;
-            if (!bool.TryParse(s, out value))
-            {
-                value = defaultValue;
-            }
-            return value;
-        }
-
-        private Vector3 parse(string s, Vector3 defaultValue)
-        {
-            try
-            {
-                return ConfigNode.ParseVector3(s);
-            }
-            catch
-            {
-                return defaultValue;
-            }
-        }
-
-        private ParticleRenderMode parse(string s, ParticleRenderMode defaultValue)
-        {
-            try
-            {
-                return (ParticleRenderMode)Enum.Parse(typeof(ParticleRenderMode), s);
-            }
-            catch
-            {
-                return defaultValue;
-            }
-        }
-
-        #endregion
     }
 }

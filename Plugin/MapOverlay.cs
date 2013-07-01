@@ -18,12 +18,12 @@ namespace Kethane
         private GUISkin skin;
         private GeodesicGrid.Cell? hoverCell;
         private ResourceDefinition resource;
-        private Rect controlWindowPos = new Rect(Screen.width * 0.20f, 250, 160, 0);
-        private bool showOverlay = true;
 
         private static RenderingManager renderingManager;
         private static GUIStyle centeredStyle = null;
         private static GUISkin defaultSkin = null;
+        private static Rect controlWindowPos = new Rect(Screen.width * 0.20f, 250, 160, 0);
+        private static bool showOverlay = true;
 
         private static readonly Color32 colorEmpty = new Color32(128, 128, 128, 192);
         private static readonly Color32 colorUnknown = new Color32(0, 0, 0, 128);
@@ -36,6 +36,10 @@ namespace Kethane
         public void Awake()
         {
             if (grid == null) { grid = new GeodesicGrid(5); }
+
+            showOverlay = Misc.Parse(SettingsManager.GetValue("ShowOverlay"), true);
+            controlWindowPos.x = Misc.Parse(SettingsManager.GetValue("WindowLeft"), 200f);
+            controlWindowPos.y = Misc.Parse(SettingsManager.GetValue("WindowTop"), 200f);
 
             var scene = HighLogic.LoadedScene;
             if (scene != GameScenes.FLIGHT && scene != GameScenes.TRACKSTATION && scene != GameScenes.LOADING && scene != GameScenes.MAINMENU)
@@ -117,6 +121,14 @@ namespace Kethane
                     bodyRadii[body] = result;
                 }
             }
+        }
+
+        public void OnDestroy()
+        {
+            SettingsManager.SetValue("ShowOverlay", showOverlay);
+            SettingsManager.SetValue("WindowLeft", MapOverlay.controlWindowPos.x);
+            SettingsManager.SetValue("WindowTop", MapOverlay.controlWindowPos.y);
+            SettingsManager.Save();
         }
 
         public void Update()
