@@ -148,8 +148,6 @@ namespace Kethane
             Debug.LogWarning(String.Format("Kethane deposits saved ({0}ms)", timer.ElapsedMilliseconds));
 
             SettingsManager.SetValue("ScanningSound", ScanningSound);
-            SettingsManager.SetValue("WindowLeft", MapOverlay.controlWindowPos.x);
-            SettingsManager.SetValue("WindowTop", MapOverlay.controlWindowPos.y);
             SettingsManager.Save();
         }
 

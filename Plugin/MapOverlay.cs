@@ -122,6 +122,13 @@ namespace Kethane
             controlWindowPos.y = Misc.Parse(SettingsManager.GetValue("WindowTop"), 200f);
         }
 
+        public void OnDestroy()
+        {
+            SettingsManager.SetValue("WindowLeft", MapOverlay.controlWindowPos.x);
+            SettingsManager.SetValue("WindowTop", MapOverlay.controlWindowPos.y);
+            SettingsManager.Save();
+        }
+
         public void Update()
         {
             if (HighLogic.LoadedScene != GameScenes.FLIGHT && HighLogic.LoadedScene != GameScenes.TRACKSTATION)
