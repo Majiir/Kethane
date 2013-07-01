@@ -21,6 +21,7 @@ namespace Kethane
         private Rect controlWindowPos = new Rect(Screen.width * 0.20f, 250, 160, 0);
         private bool showOverlay = true;
 
+        private static RenderingManager renderingManager;
         private static GUIStyle centeredStyle = null;
         private static GUISkin defaultSkin = null;
 
@@ -216,6 +217,17 @@ namespace Kethane
 
         public void OnGUI()
         {
+            if (renderingManager == null)
+            {
+                renderingManager = (RenderingManager)GameObject.FindObjectOfType(typeof(RenderingManager));
+            }
+
+            if (renderingManager != null)
+            {
+                var obj = renderingManager.uiElementsToDisable.FirstOrDefault();
+                if (obj != null && !obj.activeSelf) { return; }
+            }
+
             if (!MapView.MapIsEnabled || MapView.MapCamera == null) { return; }
 
             if (skin == null)
