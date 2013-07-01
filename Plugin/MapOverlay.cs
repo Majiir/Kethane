@@ -264,7 +264,7 @@ namespace Kethane
 
             GUI.skin = skin;
 
-            if (hoverCell != null)
+            if (hoverCell != null && showOverlay)
             {
                 var mouse = Event.current.mousePosition;
                 var position = new Rect(mouse.x + 16, mouse.y + 4, 160, 32);
