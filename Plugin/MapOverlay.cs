@@ -172,9 +172,7 @@ namespace Kethane
             RaycastHit hitInfo;
             if (Physics.Raycast(ray, out hitInfo, (ray.origin - gameObject.transform.position).magnitude * 2, 1 << 10) && (hitInfo.transform == gameObject.transform))
             {
-                var hitVertex = triangleToVertexBase(hitInfo.triangleIndex);
-                var sum = Enumerable.Range(hitVertex, 6).Select(c => mesh.vertices[c]).Aggregate((a, b) => a + b);
-                hoverCell = grid.NearestCell(sum);
+                hoverCell = vertexToCell(triangleToVertexBase(hitInfo.triangleIndex));
             }
             else
             {
@@ -384,6 +382,11 @@ namespace Kethane
         {
             var i = mesh.triangles[triangle * 3];
             return i - i % 6;
+        }
+
+        private GeodesicGrid.Cell vertexToCell(int vertexIndex)
+        {
+            return new GeodesicGrid.Cell(vertexIndex / 6 , grid);
         }
 
         private void setUpMesh()
