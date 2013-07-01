@@ -118,13 +118,8 @@ namespace Kethane
                 }
             }
 
-            if (KethaneController.config == null)
-            {
-                KethaneController.config = KSP.IO.PluginConfiguration.CreateForType<KethaneController>();
-                KethaneController.config.load();
-            }
-            controlWindowPos.x = KethaneController.config.GetValue<int>("windowLeft", 200);
-            controlWindowPos.y = KethaneController.config.GetValue<int>("windowTop", 200);
+            controlWindowPos.x = Misc.Parse(SettingsManager.GetValue("WindowLeft"), 200f);
+            controlWindowPos.y = Misc.Parse(SettingsManager.GetValue("WindowTop"), 200f);
         }
 
         public void Update()
