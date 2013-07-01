@@ -116,11 +116,14 @@ namespace Kethane
                     bodyRadii[body] = result;
                 }
             }
-            
-            var config = KSP.IO.PluginConfiguration.CreateForType<KethaneController>();
-            config.load();
-            controlWindowPos.x = config.GetValue<int>("windowLeft", 200);
-            controlWindowPos.y = config.GetValue<int>("windowTop", 200);
+
+            if (KethaneController.config == null)
+            {
+                KethaneController.config = KSP.IO.PluginConfiguration.CreateForType<KethaneController>();
+                KethaneController.config.load();
+            }
+            controlWindowPos.x = KethaneController.config.GetValue<int>("windowLeft", 200);
+            controlWindowPos.y = KethaneController.config.GetValue<int>("windowTop", 200);
         }
 
         public void Update()

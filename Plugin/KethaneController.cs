@@ -37,6 +37,7 @@ namespace Kethane
         public static Dictionary<string, Dictionary<string, List<Deposit>>> PlanetDeposits;
         public static Dictionary<string, Dictionary<string, GeodesicGrid.Cell.Set>> Scans;
         public static bool ScanningSound = true;
+        public static KSP.IO.PluginConfiguration config;
 
         private static Dictionary<string, int> bodySeeds;
         private static int depositSeed;
@@ -66,9 +67,12 @@ namespace Kethane
             loadResourceDefinitions();
             LoadKethaneDeposits();
 
-            var config = KSP.IO.PluginConfiguration.CreateForType<KethaneController>();
-            config.load();
-            ScanningSound = config.GetValue<bool>("scanningSound", true);
+            if (config == null)
+            {
+                config = KSP.IO.PluginConfiguration.CreateForType<KethaneController>();
+                config.load();
+                ScanningSound = config.GetValue<bool>("scanningSound", true);
+            }
         }
 
         private static void loadResourceDefinitions()
@@ -149,7 +153,10 @@ namespace Kethane
             timer.Stop();
             Debug.LogWarning(String.Format("Kethane deposits saved ({0}ms)", timer.ElapsedMilliseconds));
 
-            var config = KSP.IO.PluginConfiguration.CreateForType<KethaneController>();
+            if (config == null)
+            {
+                config = KSP.IO.PluginConfiguration.CreateForType<KethaneController>();
+            }
             config.SetValue("scanningSound", ScanningSound);
             config.SetValue("windowLeft", (int)MapOverlay.controlWindowPos.x);
             config.SetValue("windowTop", (int)MapOverlay.controlWindowPos.y);
