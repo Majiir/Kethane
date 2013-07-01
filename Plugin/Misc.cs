@@ -118,25 +118,63 @@ namespace Kethane
             return (float)(random.NextDouble() * (max - min) + min);
         }
 
-        public static float ParseFloat(string value, float defaultValue)
+        #region Parsing utility methods
+
+        public static float Parse(string s, float defaultValue)
         {
-            float result;
-            if (!float.TryParse(value, out result))
+            float value;
+            if (!float.TryParse(s, out value))
             {
-                result = defaultValue;
+                value = defaultValue;
             }
-            return result;
+            return value;
         }
 
-        public static int ParseInt(string value, int defaultValue)
+        public static int Parse(string s, int defaultValue)
         {
-            int result;
-            if (!int.TryParse(value, out result))
+            int value;
+            if (!int.TryParse(s, out value))
             {
-                result = defaultValue;
+                value = defaultValue;
             }
-            return result;
+            return value;
         }
+
+        public static bool Parse(string s, bool defaultValue)
+        {
+            bool value;
+            if (!bool.TryParse(s, out value))
+            {
+                value = defaultValue;
+            }
+            return value;
+        }
+
+        public static Vector3 Parse(string s, Vector3 defaultValue)
+        {
+            try
+            {
+                return ConfigNode.ParseVector3(s);
+            }
+            catch
+            {
+                return defaultValue;
+            }
+        }
+
+        public static ParticleRenderMode Parse(string s, ParticleRenderMode defaultValue)
+        {
+            try
+            {
+                return (ParticleRenderMode)Enum.Parse(typeof(ParticleRenderMode), s);
+            }
+            catch
+            {
+                return defaultValue;
+            }
+        }
+
+        #endregion
 
         #region BitArray extensions
 

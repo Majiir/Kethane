@@ -66,9 +66,7 @@ namespace Kethane
             loadResourceDefinitions();
             LoadKethaneDeposits();
 
-            var config = KSP.IO.PluginConfiguration.CreateForType<KethaneController>();
-            config.load();
-            ScanningSound = config.GetValue<bool>("scanningSound", true);
+            ScanningSound = Misc.Parse(SettingsManager.GetValue("ScanningSound"), true);
         }
 
         private static void loadResourceDefinitions()
@@ -149,9 +147,8 @@ namespace Kethane
             timer.Stop();
             Debug.LogWarning(String.Format("Kethane deposits saved ({0}ms)", timer.ElapsedMilliseconds));
 
-            var config = KSP.IO.PluginConfiguration.CreateForType<KethaneController>();
-            config.SetValue("scanningSound", ScanningSound);
-            config.save();
+            SettingsManager.SetValue("ScanningSound", ScanningSound);
+            SettingsManager.Save();
         }
 
         public static void LoadKethaneDeposits()

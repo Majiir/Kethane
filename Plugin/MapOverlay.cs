@@ -18,11 +18,13 @@ namespace Kethane
         private GUISkin skin;
         private GeodesicGrid.Cell? hoverCell;
         private ResourceDefinition resource;
-        private Rect controlWindowPos = new Rect(Screen.width * 0.20f, 250, 160, 0);
-        private bool showOverlay = true;
+        private MeshCollider meshCollider;
 
+        private static RenderingManager renderingManager;
         private static GUIStyle centeredStyle = null;
         private static GUISkin defaultSkin = null;
+        private static Rect controlWindowPos = new Rect(Screen.width * 0.20f, 250, 160, 0);
+        private static bool showOverlay = true;
 
         private static readonly Color32 colorEmpty = new Color32(128, 128, 128, 192);
         private static readonly Color32 colorUnknown = new Color32(0, 0, 0, 128);
@@ -36,8 +38,17 @@ namespace Kethane
         {
             if (grid == null) { grid = new GeodesicGrid(5); }
 
+            showOverlay = Misc.Parse(SettingsManager.GetValue("ShowOverlay"), true);
+            controlWindowPos.x = Misc.Parse(SettingsManager.GetValue("WindowLeft"), 200f);
+            controlWindowPos.y = Misc.Parse(SettingsManager.GetValue("WindowTop"), 200f);
+
             var scene = HighLogic.LoadedScene;
             if (scene != GameScenes.FLIGHT && scene != GameScenes.TRACKSTATION && scene != GameScenes.LOADING && scene != GameScenes.MAINMENU)
+            {
+                enabled = false;
+            }
+
+            if ((scene == GameScenes.LOADING || scene == GameScenes.MAINMENU) && !Misc.Parse(SettingsManager.GetValue("ShowInMenu"), true))
             {
                 enabled = false;
             }
@@ -118,6 +129,14 @@ namespace Kethane
             }
         }
 
+        public void OnDestroy()
+        {
+            SettingsManager.SetValue("ShowOverlay", showOverlay);
+            SettingsManager.SetValue("WindowLeft", MapOverlay.controlWindowPos.x);
+            SettingsManager.SetValue("WindowTop", MapOverlay.controlWindowPos.y);
+            SettingsManager.Save();
+        }
+
         public void Update()
         {
             if (HighLogic.LoadedScene != GameScenes.FLIGHT && HighLogic.LoadedScene != GameScenes.TRACKSTATION)
@@ -152,11 +171,9 @@ namespace Kethane
 
             var ray = MapView.MapCamera.camera.ScreenPointToRay(Input.mousePosition);
             RaycastHit hitInfo;
-            if (Physics.Raycast(ray, out hitInfo, (ray.origin - gameObject.transform.position).magnitude * 2, 1 << 10) && (hitInfo.transform == gameObject.transform))
+            if (meshCollider.Raycast(ray, out hitInfo, (ray.origin - gameObject.transform.position).magnitude * 2))
             {
-                var hitVertex = triangleToVertexBase(hitInfo.triangleIndex);
-                var sum = Enumerable.Range(hitVertex, 6).Select(c => mesh.vertices[c]).Aggregate((a, b) => a + b);
-                hoverCell = grid.NearestCell(sum);
+                hoverCell = vertexToCell(triangleToVertexBase(hitInfo.triangleIndex));
             }
             else
             {
@@ -216,6 +233,19 @@ namespace Kethane
 
         public void OnGUI()
         {
+            if (renderingManager == null)
+            {
+                renderingManager = (RenderingManager)GameObject.FindObjectOfType(typeof(RenderingManager));
+            }
+
+            if (renderingManager != null)
+            {
+                var obj = renderingManager.uiElementsToDisable.FirstOrDefault();
+                if (obj != null && !obj.activeSelf) { return; }
+            }
+
+            if (!MapView.MapIsEnabled || MapView.MapCamera == null) { return; }
+
             if (skin == null)
             {
                 GUI.skin = null;
@@ -235,7 +265,7 @@ namespace Kethane
 
             GUI.skin = skin;
 
-            if (hoverCell != null)
+            if (hoverCell != null && showOverlay)
             {
                 var mouse = Event.current.mousePosition;
                 var position = new Rect(mouse.x + 16, mouse.y + 4, 160, 32);
@@ -258,10 +288,7 @@ namespace Kethane
             var oldBackground = GUI.backgroundColor;
             GUI.backgroundColor = XKCDColors.Green;
 
-            if (MapView.MapIsEnabled && MapView.MapCamera != null)
-            {
-                controlWindowPos = GUILayout.Window(12358, controlWindowPos, controlWindow, "Kethane Scan Map");
-            }
+            controlWindowPos = GUILayout.Window(12358, controlWindowPos, controlWindow, "Kethane Scan Map");
 
             GUI.backgroundColor = oldBackground;
         }
@@ -358,6 +385,11 @@ namespace Kethane
             return i - i % 6;
         }
 
+        private GeodesicGrid.Cell vertexToCell(int vertexIndex)
+        {
+            return new GeodesicGrid.Cell(vertexIndex / 6 , grid);
+        }
+
         private void setUpMesh()
         {
             var vertices = new List<UnityEngine.Vector3>();
@@ -415,8 +447,12 @@ namespace Kethane
 
             renderer.material = material;
 
-            var collider = gameObject.AddComponent<MeshCollider>();
-            collider.isTrigger = true;
+            var colliderObj = new GameObject("MapOverlay collider");
+            colliderObj.layer = LayerMask.NameToLayer("Ignore Raycast");
+            colliderObj.transform.parent = gameObject.transform;
+            meshCollider = colliderObj.AddComponent<MeshCollider>();
+            meshCollider.sharedMesh = mesh;
+            meshCollider.isTrigger = true;
         }
     }
 }
