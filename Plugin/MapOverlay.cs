@@ -18,7 +18,7 @@ namespace Kethane
         private GUISkin skin;
         private GeodesicGrid.Cell? hoverCell;
         private ResourceDefinition resource;
-        public Rect controlWindowPos = new Rect(Screen.width * 0.20f, 250, 160, 0);
+        public static Rect controlWindowPos = new Rect(Screen.width * 0.20f, 250, 160, 0);
         private bool showOverlay = true;
 
         private static GUIStyle centeredStyle = null;
@@ -119,8 +119,8 @@ namespace Kethane
             
             var config = KSP.IO.PluginConfiguration.CreateForType<KethaneController>();
             config.load();
-            MapOverlay.Instance.controlWindowPos.x = config.GetValue<int>("windowLeft", 200);
-            MapOverlay.Instance.controlWindowPos.y = config.GetValue<int>("windowTop", 200);
+            controlWindowPos.x = config.GetValue<int>("windowLeft", 200);
+            controlWindowPos.y = config.GetValue<int>("windowTop", 200);
         }
 
         public void Update()
