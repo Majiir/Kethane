@@ -30,7 +30,7 @@ namespace Kethane
         private static void load()
         {
             if (node != null) { return; }
-            node = ConfigNode.Load(settingsFile);
+            node = ConfigNode.Load(settingsFile) ?? new ConfigNode();
         }
 
         private static string settingsFile
