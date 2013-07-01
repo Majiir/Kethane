@@ -7,11 +7,13 @@ namespace Kethane
 
         public static string GetValue(string key)
         {
+            load();
             return node.GetValue(key);
         }
 
         public static void SetValue(string key, object value)
         {
+            load();
             if (node.HasValue(key))
             {
                 node.RemoveValue(key);
@@ -21,6 +23,7 @@ namespace Kethane
 
         public static void Save()
         {
+            load();
             node.Save(settingsFile);
         }
 
