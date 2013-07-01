@@ -18,12 +18,12 @@ namespace Kethane
         private GUISkin skin;
         private GeodesicGrid.Cell? hoverCell;
         private ResourceDefinition resource;
-        public static Rect controlWindowPos = new Rect(Screen.width * 0.20f, 250, 160, 0);
         private bool showOverlay = true;
 
         private static RenderingManager renderingManager;
         private static GUIStyle centeredStyle = null;
         private static GUISkin defaultSkin = null;
+        private static Rect controlWindowPos = new Rect(Screen.width * 0.20f, 250, 160, 0);
 
         private static readonly Color32 colorEmpty = new Color32(128, 128, 128, 192);
         private static readonly Color32 colorUnknown = new Color32(0, 0, 0, 128);
