@@ -1,4 +1,5 @@
-﻿
+﻿using UnityEngine;
+
 namespace Kethane
 {
     internal static class SettingsManager
@@ -24,12 +25,14 @@ namespace Kethane
         public static void Save()
         {
             load();
+            Debug.LogWarning("[Kethane] Saving settings");
             node.Save(settingsFile);
         }
 
         private static void load()
         {
             if (node != null) { return; }
+            Debug.LogWarning("[Kethane] Loading settings");
             node = ConfigNode.Load(settingsFile) ?? new ConfigNode();
         }
 
