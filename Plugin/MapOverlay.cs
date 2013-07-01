@@ -37,6 +37,10 @@ namespace Kethane
         {
             if (grid == null) { grid = new GeodesicGrid(5); }
 
+            showOverlay = Misc.Parse(SettingsManager.GetValue("ShowOverlay"), true);
+            controlWindowPos.x = Misc.Parse(SettingsManager.GetValue("WindowLeft"), 200f);
+            controlWindowPos.y = Misc.Parse(SettingsManager.GetValue("WindowTop"), 200f);
+
             var scene = HighLogic.LoadedScene;
             if (scene != GameScenes.FLIGHT && scene != GameScenes.TRACKSTATION && scene != GameScenes.LOADING && scene != GameScenes.MAINMENU)
             {
@@ -117,10 +121,6 @@ namespace Kethane
                     bodyRadii[body] = result;
                 }
             }
-
-            showOverlay = Misc.Parse(SettingsManager.GetValue("ShowOverlay"), true);
-            controlWindowPos.x = Misc.Parse(SettingsManager.GetValue("WindowLeft"), 200f);
-            controlWindowPos.y = Misc.Parse(SettingsManager.GetValue("WindowTop"), 200f);
         }
 
         public void OnDestroy()
