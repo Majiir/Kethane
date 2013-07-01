@@ -118,12 +118,14 @@ namespace Kethane
                 }
             }
 
+            showOverlay = Misc.Parse(SettingsManager.GetValue("ShowOverlay"), true);
             controlWindowPos.x = Misc.Parse(SettingsManager.GetValue("WindowLeft"), 200f);
             controlWindowPos.y = Misc.Parse(SettingsManager.GetValue("WindowTop"), 200f);
         }
 
         public void OnDestroy()
         {
+            SettingsManager.SetValue("ShowOverlay", showOverlay);
             SettingsManager.SetValue("WindowLeft", MapOverlay.controlWindowPos.x);
             SettingsManager.SetValue("WindowTop", MapOverlay.controlWindowPos.y);
             SettingsManager.Save();
