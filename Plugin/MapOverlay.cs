@@ -18,7 +18,7 @@ namespace Kethane
         private GUISkin skin;
         private GeodesicGrid.Cell? hoverCell;
         private ResourceDefinition resource;
-        private MeshCollider meshCollider;
+        private SphereCollider gridCollider;
 
         private static RenderingManager renderingManager;
         private static GUIStyle centeredStyle = null;
@@ -171,9 +171,9 @@ namespace Kethane
 
             var ray = MapView.MapCamera.camera.ScreenPointToRay(Input.mousePosition);
             RaycastHit hitInfo;
-            if (meshCollider.Raycast(ray, out hitInfo, (ray.origin - gameObject.transform.position).magnitude * 2))
+            if (gridCollider.Raycast(ray, out hitInfo, float.PositiveInfinity))
             {
-                hoverCell = vertexToCell(triangleToVertexBase(hitInfo.triangleIndex));
+                hoverCell = grid.NearestCell(gameObject.transform.InverseTransformPoint(hitInfo.point));
             }
             else
             {
@@ -450,9 +450,9 @@ namespace Kethane
             var colliderObj = new GameObject("MapOverlay collider");
             colliderObj.layer = LayerMask.NameToLayer("Ignore Raycast");
             colliderObj.transform.parent = gameObject.transform;
-            meshCollider = colliderObj.AddComponent<MeshCollider>();
-            meshCollider.sharedMesh = mesh;
-            meshCollider.isTrigger = true;
+            gridCollider = colliderObj.AddComponent<SphereCollider>();
+            gridCollider.radius = 1;
+            gridCollider.isTrigger = true;
         }
     }
 }
