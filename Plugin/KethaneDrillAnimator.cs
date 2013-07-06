@@ -13,6 +13,15 @@ namespace Kethane
         public string DrillAnimation;
 
         [KSPField(isPersistant = false)]
+        public string DeploySound;
+
+        [KSPField(isPersistant = false)]
+        public string RetractSound;
+
+        [KSPField(isPersistant = false)]
+        public string DrillSound;
+
+        [KSPField(isPersistant = false)]
         public string HeadTransform;
 
         [KSPField(isPersistant = false)]
@@ -26,6 +35,10 @@ namespace Kethane
 
         private Transform headTransform;
         private Transform tailTransform;
+
+        private AudioSource deploySound;
+        private AudioSource retractSound;
+        private AudioSource drillSound;
 
         private KethaneParticleEmitter[] emitters;
 
@@ -64,6 +77,18 @@ namespace Kethane
                 emitter.EmitterTransform.parent = headTransform;
                 emitter.EmitterTransform.localRotation = Quaternion.identity;
             }
+
+            deploySound = gameObject.AddComponent<AudioSource>();
+            retractSound = gameObject.AddComponent<AudioSource>();
+            drillSound = gameObject.AddComponent<AudioSource>();
+            deploySound.clip = GameDatabase.Instance.GetAudioClip(DeploySound);
+            retractSound.clip = GameDatabase.Instance.GetAudioClip(RetractSound);
+            drillSound.clip = GameDatabase.Instance.GetAudioClip(DrillSound);
+            drillSound.loop = true;
+            deploySound.rolloffMode = retractSound.rolloffMode = drillSound.rolloffMode = AudioRolloffMode.Logarithmic;
+            deploySound.panLevel = retractSound.panLevel = drillSound.panLevel = 1;
+            deploySound.volume = retractSound.volume = drillSound.volume = 0.75f;
+            deploySound.dopplerLevel = retractSound.dopplerLevel = drillSound.dopplerLevel = 0;
         }
 
         public ExtractorState CurrentState
@@ -94,6 +119,7 @@ namespace Kethane
             {
                 state.speed = 1;
             }
+            deploySound.Play();
         }
 
         public void Retract()
@@ -110,6 +136,7 @@ namespace Kethane
             {
                 state.speed = -1;
             }
+            retractSound.Play();
         }
 
         public override void OnUpdate()
@@ -117,6 +144,21 @@ namespace Kethane
             foreach (var deployState in deployStates)
             {
                 deployState.normalizedTime = Mathf.Clamp01(deployState.normalizedTime);
+            }
+
+            var deployment = Mathf.Clamp01(deployStates.Average(s => s.normalizedTime));
+            if (deployment > 0)
+            {
+                drillSound.volume = 0.75f;
+                drillSound.pitch = Mathf.Clamp01((0.2f - deployment) / (0.2f - 0.8f));
+                if (!drillSound.isPlaying)
+                {
+                    drillSound.Play();
+                }
+            }
+            else
+            {
+                drillSound.Stop();
             }
 
             if (CurrentState == ExtractorState.Deploying && deployStates.All(s => s.normalizedTime == 1))

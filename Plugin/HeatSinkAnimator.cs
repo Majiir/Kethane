@@ -14,10 +14,16 @@ namespace Kethane
         public string OpenAnimation;
 
         [KSPField(isPersistant = false)]
+        public float OpenCloseSpeed;
+
+        [KSPField(isPersistant = false)]
         public string OpenSound;
 
         [KSPField(isPersistant = false)]
         public string CloseSound;
+
+        [KSPField(isPersistant = false)]
+        public string HeatSound;
 
         [KSPField(isPersistant = false)]
         public float OpenTemperature;
@@ -42,6 +48,7 @@ namespace Kethane
         
         private AudioSource openSound;
         private AudioSource closeSound;
+        private AudioSource heatSound;
 
         private AnimationState[] heatAnimationStates;
         private AnimationState[] openAnimationStates;
@@ -61,9 +68,15 @@ namespace Kethane
 
             openSound = gameObject.AddComponent<AudioSource>();
             closeSound = gameObject.AddComponent<AudioSource>();
+            heatSound = gameObject.AddComponent<AudioSource>();
             openSound.clip = GameDatabase.Instance.GetAudioClip(OpenSound);
             closeSound.clip = GameDatabase.Instance.GetAudioClip(CloseSound);
-            openSound.volume = closeSound.volume = 1;
+            heatSound.clip = GameDatabase.Instance.GetAudioClip(HeatSound);
+            heatSound.loop = true;
+            openSound.rolloffMode = closeSound.rolloffMode = heatSound.rolloffMode = AudioRolloffMode.Logarithmic;
+            openSound.panLevel = closeSound.panLevel = heatSound.panLevel = 1;
+            openSound.volume = closeSound.volume = heatSound.volume = 0.75f;
+            openSound.dopplerLevel = closeSound.dopplerLevel = heatSound.dopplerLevel = 0;
         }
 
         public override void OnUpdate()
@@ -74,6 +87,16 @@ namespace Kethane
             foreach (var state in heatAnimationStates)
             {
                 state.normalizedTime = heatFraction;
+            }
+
+            heatSound.volume = heatFraction;
+            if (heatFraction > 0)
+            {
+                if (!heatSound.isPlaying) { heatSound.Play(); }
+            }
+            else
+            {
+                heatSound.Stop();
             }
 
             var shouldOpen = temperature >= OpenTemperature;
@@ -92,7 +115,7 @@ namespace Kethane
                 {
                     foreach (var state in openAnimationStates)
                     {
-                        state.speed = shouldOpen ? 1 : -1;
+                        state.speed = OpenCloseSpeed * (shouldOpen ? 1 : -1);
                     }
                     (shouldOpen ? openSound : closeSound).Play();
                 }
