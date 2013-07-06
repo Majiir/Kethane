@@ -102,6 +102,7 @@ namespace Kethane
         public static void SaveKethaneDeposits()
         {
             if (PlanetDeposits == null) { return; }
+            if (lastGameLoaded != HighLogic.SaveFolder) { return; }
             if (lastSaveFrame == Time.frameCount) { return; }
             lastSaveFrame = Time.frameCount;
 
@@ -269,6 +270,7 @@ namespace Kethane
             depositSeed = random.Next();
             bodySeeds = FlightGlobals.Bodies.ToDictionary(b => b.name, b => b.name.GetHashCode());
             generateFromSeed();
+            lastGameLoaded = HighLogic.SaveFolder;
             SaveKethaneDeposits();
         }
 
