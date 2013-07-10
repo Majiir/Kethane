@@ -79,22 +79,22 @@ namespace Kethane
             return new PrependIterator<T>(sequence, element);
         }
 
-        internal class AppendIterator<T> : AppendPrependIterator<T>
+        private class AppendIterator<T> : AppendPrependIterator<T>
         {
-            internal AppendIterator(IEnumerable<T> sequence, T element) : base(sequence, element) { }
+            public AppendIterator(IEnumerable<T> sequence, T element) : base(sequence, element) { }
         }
 
-        internal class PrependIterator<T> : AppendPrependIterator<T>
+        private class PrependIterator<T> : AppendPrependIterator<T>
         {
-            internal PrependIterator(IEnumerable<T> sequence, T element) : base(sequence, element) { }
+            public PrependIterator(IEnumerable<T> sequence, T element) : base(sequence, element) { }
         }
 
-        internal class AppendPrependIterator<T> : IEnumerable<T>
+        private class AppendPrependIterator<T> : IEnumerable<T>
         {
             private readonly T element;
             private readonly IEnumerable<T> sequence;
 
-            internal AppendPrependIterator(IEnumerable<T> sequence, T element)
+            public AppendPrependIterator(IEnumerable<T> sequence, T element)
             {
                 this.element = element;
                 this.sequence = sequence;
