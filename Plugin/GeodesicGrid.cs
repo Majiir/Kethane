@@ -325,20 +325,8 @@ namespace Kethane
 
             private Cell getFirstParent()
             {
-                int n = grid.n;
-
-                int y = Y;
-                int z = Z;
-
-                y = (2 * n) - (y + 1);
-
-                var s = (y | z) * 2 | n;
-                s &= -s;
-
-                y -= y % s;
-                z -= z % s;
-
-                return new Cell(X, (2 * n) - (y + 1), z, grid);
+                var s = getParentDistance() * 2;
+                return new Cell(X, Y + (Y + 1) % s, Z - Z % s, grid);
             }
 
             private Cell getSecondParent(Cell parent)
