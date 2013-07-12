@@ -10,7 +10,7 @@ namespace Kethane
     {
         public static MapOverlay Instance { get; private set; }
 
-        private static GeodesicGrid grid;
+        private static GeodesicGrid grid = new GeodesicGrid(5);
 
         private CelestialBody body;
         private Dictionary<CelestialBody, double> bodyRadii = new Dictionary<CelestialBody, double>();
@@ -36,8 +36,6 @@ namespace Kethane
 
         public void Awake()
         {
-            if (grid == null) { grid = new GeodesicGrid(5); }
-
             showOverlay = Misc.Parse(SettingsManager.GetValue("ShowOverlay"), true);
             controlWindowPos.x = Misc.Parse(SettingsManager.GetValue("WindowLeft"), 200f);
             controlWindowPos.y = Misc.Parse(SettingsManager.GetValue("WindowTop"), 200f);
