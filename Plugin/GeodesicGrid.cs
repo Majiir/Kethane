@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 namespace Kethane
 {
@@ -8,7 +9,7 @@ namespace Kethane
     {
         private readonly int n;
 
-        private Cell.Map<Vector3d> positions;
+        private Cell.Map<Vector3> positions;
 
         /// <summary>
         /// Creates a new geodesic grid with the given number of triangle subdivisions.
@@ -17,12 +18,12 @@ namespace Kethane
         public GeodesicGrid(int subdivisions)
         {
             this.n = 1 << subdivisions;
-            this.positions = new Cell.Map<Vector3d>(subdivisions);
+            this.positions = new Cell.Map<Vector3>(subdivisions);
 
             var cache = new Cell.Dictionary<Vector3d>(subdivisions);
             foreach (var cell in this)
             {
-                positions[cell] = cell.GetPosition(cache);
+                positions[cell] = (Vector3)cell.GetPosition(cache);
             }
         }
 
@@ -295,7 +296,7 @@ namespace Kethane
             /// Gets the position of the Cell on the unit sphere.
             /// </summary>
             /// <returns>Position of this Cell as a unit vector.</returns>
-            public Vector3d GetPosition()
+            public Vector3 GetPosition()
             {
                 return grid.positions[this];
             }
