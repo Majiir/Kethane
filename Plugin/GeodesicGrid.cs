@@ -304,28 +304,29 @@ namespace Kethane
             {
                 if (!cache.ContainsKey(this))
                 {
-                if (IsPentagon)
-                {
-                    if (IsNorth) { return new Vector3d(0, 1, 0); }
-                    if (IsSouth) { return new Vector3d(0, -1, 0); }
-
-                    int n = grid.n;
-                    var lat = Math.Atan(0.5);
-                    var lon = X * 2 * Math.PI / 5;
-                    if (Y == 2 * n - 1)
+                    if (IsPentagon)
                     {
-                        lat = -lat;
-                        lon += Math.PI / 5;
+                        if (IsNorth) { return new Vector3d(0, 1, 0); }
+                        if (IsSouth) { return new Vector3d(0, -1, 0); }
+
+                        int n = grid.n;
+                        var lat = Math.Atan(0.5);
+                        var lon = X * 2 * Math.PI / 5;
+                        if (Y == 2 * n - 1)
+                        {
+                            lat = -lat;
+                            lon += Math.PI / 5;
+                        }
+                        cache[this] = new Vector3d(Math.Cos(lat) * Math.Cos(lon), Math.Sin(lat), Math.Cos(lat) * Math.Sin(lon));
                     }
-                    cache[this] = new Vector3d(Math.Cos(lat) * Math.Cos(lon), Math.Sin(lat), Math.Cos(lat) * Math.Sin(lon));
+                    else
+                    {
+                        var first = getFirstParent();
+                        var second = getSecondParent(first);
+                        cache[this] = (first.GetPosition(cache) + second.GetPosition(cache)).normalized;
+                    }
                 }
-                else
-                {
-                var first = getFirstParent();
-                var second = getSecondParent(first);
-                cache[this] = (first.GetPosition(cache) + second.GetPosition(cache)).normalized;
-                }
-                }
+
                 return cache[this];
             }
 
