@@ -438,12 +438,12 @@ namespace Kethane
                 {
                     get
                     {
-                        if (cell.grid.Count > set.Length) { throw new ArgumentException(); }
+                        if (cell.grid.Count != set.Length) { throw new ArgumentException(); }
                         return set[cell.GetHashCode()];
                     }
                     set
                     {
-                        if (cell.grid.Count > set.Length) { throw new ArgumentException(); }
+                        if (cell.grid.Count != set.Length) { throw new ArgumentException(); }
                         set[cell.GetHashCode()] = value;
                     }
                 }
