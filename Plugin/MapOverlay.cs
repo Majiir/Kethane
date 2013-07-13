@@ -377,17 +377,6 @@ namespace Kethane
             return null;
         }
 
-        private int triangleToVertexBase(int triangle)
-        {
-            var i = mesh.triangles[triangle * 3];
-            return i - i % 6;
-        }
-
-        private GeodesicGrid.Cell vertexToCell(int vertexIndex)
-        {
-            return new GeodesicGrid.Cell(vertexIndex / 6 , grid);
-        }
-
         private void setUpMesh()
         {
             var vertices = new List<UnityEngine.Vector3>();
