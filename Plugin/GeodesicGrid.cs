@@ -251,35 +251,35 @@ namespace Kethane
             {
                 get
                 {
-                if (IsNorth)
-                {
-                    for (int x = 0; x < 5; x++)
+                    if (IsNorth)
                     {
-                        yield return new Cell(x, Y + 1, Z, grid);
+                        for (int x = 0; x < 5; x++)
+                        {
+                            yield return new Cell(x, Y + 1, Z, grid);
+                        }
                     }
-                }
-                else if (IsSouth)
-                {
-                    for (int x = 4; x >= 0; x--)
+                    else if (IsSouth)
                     {
-                        yield return new Cell(x, Y - 1, Z, grid);
+                        for (int x = 4; x >= 0; x--)
+                        {
+                            yield return new Cell(x, Y - 1, Z, grid);
+                        }
                     }
-                }
-                else
-                {
-                    var neighbors = new Cell[] {
-                        new Cell(X, Y - 1, Z,     grid),
-                        new Cell(X, Y - 1, Z + 1, grid),
-                        new Cell(X, Y,     Z + 1, grid),
-                        new Cell(X, Y + 1, Z,     grid),
-                        new Cell(X, Y + 1, Z - 1, grid),
-                        new Cell(X, Y,     Z - 1, grid)
-                    };
-                    foreach (var cell in neighbors.Distinct())
+                    else
                     {
-                        yield return cell;
+                        var neighbors = new Cell[] {
+                            new Cell(X, Y - 1, Z,     grid),
+                            new Cell(X, Y - 1, Z + 1, grid),
+                            new Cell(X, Y,     Z + 1, grid),
+                            new Cell(X, Y + 1, Z,     grid),
+                            new Cell(X, Y + 1, Z - 1, grid),
+                            new Cell(X, Y,     Z - 1, grid)
+                        };
+                        foreach (var cell in neighbors.Distinct())
+                        {
+                            yield return cell;
+                        }
                     }
-                }
                 }
             }
 
