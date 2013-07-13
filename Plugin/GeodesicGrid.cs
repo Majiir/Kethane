@@ -68,13 +68,13 @@ namespace Kethane
         public Cell NearestCell(Vector3 line)
         {
             line = line.normalized;
-            Cell head = this.Pentagons.WithMin(c => (c.GetPosition() - line).magnitude);
+            Cell head = this.Pentagons.WithMin(c => (c.Position - line).magnitude);
             Cell best;
 
             do
             {
                 best = head;
-                head = head.Neighbors.Prepend(head).WithMin(c => (c.GetPosition() - line).magnitude);
+                head = head.Neighbors.Prepend(head).WithMin(c => (c.Position - line).magnitude);
             } while (head != best);
 
             return head;
@@ -295,10 +295,9 @@ namespace Kethane
             /// <summary>
             /// Gets the position of the Cell on the unit sphere.
             /// </summary>
-            /// <returns>Position of this Cell as a unit vector.</returns>
-            public Vector3 GetPosition()
+            public Vector3 Position
             {
-                return grid.positions[this];
+                get { return grid.positions[this]; }
             }
 
             public Vector3d GetPosition(Cell.Dictionary<Vector3d> cache)

@@ -294,7 +294,7 @@ namespace Kethane
         private void mouseWindow(int windowId)
         {
             var cell = hoverCell.Value;
-            var pos = cell.GetPosition();
+            var pos = cell.Position;
             var lat = (float)(Math.Atan2(pos.y, Math.Sqrt(pos.x * pos.x + pos.z * pos.z)) * 180 / Math.PI);
             var lon = (float)(Math.Atan2(pos.z, pos.x) * 180 / Math.PI);
 
@@ -391,15 +391,15 @@ namespace Kethane
                     var a = neighbors[i];
                     var b = neighbors[i == neighbors.Length - 1 ? 0 : (i + 1)];
 
-                    var center = (a.GetPosition() + b.GetPosition() + cell.GetPosition()).normalized;
+                    var center = (a.Position + b.Position + cell.Position).normalized;
 
                     var blend = 0.08f;
-                    vertices.Add(cell.GetPosition() * blend + center * (1 - blend));
+                    vertices.Add(cell.Position * blend + center * (1 - blend));
                 }
 
                 if (cell.IsPentagon)
                 {
-                    vertices.Add(cell.GetPosition());
+                    vertices.Add(cell.Position);
                     var t = vertices.Count - 6;
                     for (var i = 0; i < 5; i++)
                     {

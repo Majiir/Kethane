@@ -283,7 +283,7 @@ namespace Kethane
         {
             if (resourceName == null || body == null || !PlanetDeposits.ContainsKey(resourceName) || !PlanetDeposits[resourceName].ContainsKey(body.name)) { return null; }
 
-            var pos = cell.GetPosition();
+            var pos = cell.Position;
             var lat = (float)(Math.Atan2(pos.y, Math.Sqrt(pos.x * pos.x + pos.z * pos.z)) * 180 / Math.PI);
             var lon = (float)(Math.Atan2(pos.z, pos.x) * 180 / Math.PI);
 
