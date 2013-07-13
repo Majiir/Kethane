@@ -8,7 +8,7 @@ namespace Kethane
     {
         private readonly int n;
 
-        private Cell.Dictionary<Vector3d> cache;
+        private Cell.Map<Vector3d> positions;
 
         /// <summary>
         /// Creates a new geodesic grid with the given number of triangle subdivisions.
@@ -17,7 +17,13 @@ namespace Kethane
         public GeodesicGrid(int subdivisions)
         {
             this.n = 1 << subdivisions;
-            this.cache = new Cell.Dictionary<Vector3d>(subdivisions);
+            this.positions = new Cell.Map<Vector3d>(subdivisions);
+
+            var cache = new Cell.Dictionary<Vector3d>(subdivisions);
+            foreach (var cell in this)
+            {
+                positions[cell] = cell.GetPosition(cache);
+            }
         }
 
         /// <summary>
@@ -291,14 +297,13 @@ namespace Kethane
             /// <returns>Position of this Cell as a unit vector.</returns>
             public Vector3d GetPosition()
             {
-                if (grid.cache.ContainsKey(this)) { return grid.cache[this]; }
-                var point = getPosition();
-                grid.cache[this] = point;
-                return point;
+                return grid.positions[this];
             }
 
-            private Vector3d getPosition()
+            public Vector3d GetPosition(Cell.Dictionary<Vector3d> cache)
             {
+                if (!cache.ContainsKey(this))
+                {
                 if (IsPentagon)
                 {
                     if (IsNorth) { return new Vector3d(0, 1, 0); }
@@ -312,13 +317,16 @@ namespace Kethane
                         lat = -lat;
                         lon += Math.PI / 5;
                     }
-                    return new Vector3d(Math.Cos(lat) * Math.Cos(lon), Math.Sin(lat), Math.Cos(lat) * Math.Sin(lon));
+                    cache[this] = new Vector3d(Math.Cos(lat) * Math.Cos(lon), Math.Sin(lat), Math.Cos(lat) * Math.Sin(lon));
                 }
-
+                else
+                {
                 var first = getFirstParent();
                 var second = getSecondParent(first);
-
-                return (first.GetPosition() + second.GetPosition()).normalized;
+                cache[this] = (first.GetPosition(cache) + second.GetPosition(cache)).normalized;
+                }
+                }
+                return cache[this];
             }
 
             private Cell getFirstParent()
