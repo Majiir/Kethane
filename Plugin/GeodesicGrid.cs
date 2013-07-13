@@ -384,13 +384,13 @@ namespace Kethane
 
             public class Dictionary<T>
             {
-                private T[] values;
+                private Map<T> values;
                 private Set set;
 
                 public Dictionary(int subdivisions)
                 {
                     set = new Set(subdivisions);
-                    values = new T[set.Length];
+                    values = new Map<T>(subdivisions);
                 }
 
                 public T this[GeodesicGrid.Cell cell]
@@ -398,12 +398,12 @@ namespace Kethane
                     get
                     {
                         if (!set[cell]) { throw new KeyNotFoundException(); }
-                        return values[cell.GetHashCode()];
+                        return values[cell];
                     }
                     set
                     {
                         set[cell] = true;
-                        values[cell.GetHashCode()] = value;
+                        values[cell] = value;
                     }
                 }
 
@@ -456,6 +456,35 @@ namespace Kethane
                 public byte[] ToByteArray()
                 {
                     return set.ToByteArray();
+                }
+            }
+
+            #endregion
+
+            #region Map
+
+            public class Map<T>
+            {
+                private T[] values;
+
+                public Map(int subdivisions)
+                {
+                    var n = 1 << subdivisions;
+                    values = new T[10 * n * n + 2];
+                }
+
+                public T this[Cell cell]
+                {
+                    get
+                    {
+                        if (cell.grid.Count != values.Length) { throw new ArgumentException(); }
+                        return values[cell.GetHashCode()];
+                    }
+                    set
+                    {
+                        if (cell.grid.Count != values.Length) { throw new ArgumentException(); }
+                        values[cell.GetHashCode()] = value;
+                    }
                 }
             }
 
