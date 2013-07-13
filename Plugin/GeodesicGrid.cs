@@ -65,7 +65,7 @@ namespace Kethane
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() { return GetEnumerator(); }
 
-        public Cell NearestCell(Vector3d line)
+        public Cell NearestCell(Vector3 line)
         {
             line = line.normalized;
             Cell head = this.Pentagons.WithMin(c => (c.GetPosition() - line).magnitude);
