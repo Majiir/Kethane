@@ -249,39 +249,37 @@ namespace Kethane
 
             public IEnumerable<Cell> Neighbors
             {
-                get { return NeighborsAtDistance(1); }
-            }
-
-            public IEnumerable<Cell> NeighborsAtDistance(int d)
-            {
+                get
+                {
                 if (IsNorth)
                 {
                     for (int x = 0; x < 5; x++)
                     {
-                        yield return new Cell(x, Y + d, Z, grid);
+                        yield return new Cell(x, Y + 1, Z, grid);
                     }
                 }
                 else if (IsSouth)
                 {
                     for (int x = 4; x >= 0; x--)
                     {
-                        yield return new Cell(x, Y - d, Z, grid);
+                        yield return new Cell(x, Y - 1, Z, grid);
                     }
                 }
                 else
                 {
                     var neighbors = new Cell[] {
-                        new Cell(X, Y - d, Z,     grid),
-                        new Cell(X, Y - d, Z + d, grid),
-                        new Cell(X, Y,     Z + d, grid),
-                        new Cell(X, Y + d, Z,     grid),
-                        new Cell(X, Y + d, Z - d, grid),
-                        new Cell(X, Y,     Z - d, grid)
+                        new Cell(X, Y - 1, Z,     grid),
+                        new Cell(X, Y - 1, Z + 1, grid),
+                        new Cell(X, Y,     Z + 1, grid),
+                        new Cell(X, Y + 1, Z,     grid),
+                        new Cell(X, Y + 1, Z - 1, grid),
+                        new Cell(X, Y,     Z - 1, grid)
                     };
                     foreach (var cell in neighbors.Distinct())
                     {
                         yield return cell;
                     }
+                }
                 }
             }
 
