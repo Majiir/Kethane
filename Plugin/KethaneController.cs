@@ -226,7 +226,7 @@ namespace Kethane
                 var depositNodes = bodyNode.GetNodes("Deposit");
                 for (int i = 0; i < Math.Min(deposits.Count, depositNodes.Length); i++)
                 {
-                    deposits[i].Quantity = float.Parse(depositNodes[i].GetValue(amountKey));
+                    deposits[i].Quantity = Misc.Parse(depositNodes[i].GetValue(amountKey), deposits[i].InitialQuantity);
                 }
             }
         }
