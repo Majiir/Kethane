@@ -55,6 +55,7 @@ echo Copying Additional Files from KethaneReleaseFolder...
 xcopy KethaneReleaseFolder\*.wav ModFolder /e /i /q
 xcopy KethaneReleaseFolder\*.mu ModFolder /e /i /q
 xcopy KethaneReleaseFolder\*.mbm ModFolder /e /i /q
+xcopy KethaneReleaseFolder\Plugins\PluginData ModFolder\Plugins\PluginData /e /i /q
 
 REM ======== Finished Message ========
 
