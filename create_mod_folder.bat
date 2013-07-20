@@ -17,7 +17,7 @@ GOTO :EXIT
 
 REM Check if the project has been built as Release...
 IF EXIST Plugin\bin\Release\MMI_Kethane.dll (GOTO :BUILDSUCCESS)
-echo ERROR: MMI_Kethane.dll not found, check build instructions in README.md
+echo ERROR: Release MMI_Kethane.dll not found, check build instructions in README.md
 GOTO :EXIT
 :BUILDSUCCESS
 
