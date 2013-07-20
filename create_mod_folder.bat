@@ -17,7 +17,7 @@ GOTO :EXIT
 
 REM Check if the project has been built as Release...
 IF EXIST Plugin\bin\Release\MMI_Kethane.dll (GOTO :BUILDSUCCESS)
-echo ERROR: MMI_Kethane.dll not found, check build instructions in README.md
+echo ERROR: Release MMI_Kethane.dll not found, check build instructions in README.md
 GOTO :EXIT
 :BUILDSUCCESS
 
@@ -55,6 +55,7 @@ echo Copying Additional Files from KethaneReleaseFolder...
 xcopy KethaneReleaseFolder\*.wav ModFolder /e /i /q
 xcopy KethaneReleaseFolder\*.mu ModFolder /e /i /q
 xcopy KethaneReleaseFolder\*.mbm ModFolder /e /i /q
+xcopy KethaneReleaseFolder\Plugins\PluginData ModFolder\Plugins\PluginData /e /i /q
 
 REM ======== Finished Message ========
 
