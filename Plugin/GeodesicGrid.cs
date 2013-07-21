@@ -311,27 +311,27 @@ namespace Kethane
 
             private Vector3d getPosition(Cell.Dictionary<Vector3d> cache)
             {
-                    if (IsPentagon)
-                    {
-                        if (IsNorth) { return new Vector3d(0, 1, 0); }
-                        if (IsSouth) { return new Vector3d(0, -1, 0); }
+                if (IsPentagon)
+                {
+                    if (IsNorth) { return new Vector3d(0, 1, 0); }
+                    if (IsSouth) { return new Vector3d(0, -1, 0); }
 
-                        int n = grid.n;
-                        var lat = Math.Atan(0.5);
-                        var lon = X * 2 * Math.PI / 5;
-                        if (Y == 2 * n - 1)
-                        {
-                            lat = -lat;
-                            lon += Math.PI / 5;
-                        }
-                        return new Vector3d(Math.Cos(lat) * Math.Cos(lon), Math.Sin(lat), Math.Cos(lat) * Math.Sin(lon));
-                    }
-                    else
+                    int n = grid.n;
+                    var lat = Math.Atan(0.5);
+                    var lon = X * 2 * Math.PI / 5;
+                    if (Y == 2 * n - 1)
                     {
-                        var first = getFirstParent();
-                        var second = getSecondParent(first);
-                        return (first.GetPosition(cache) + second.GetPosition(cache)).normalized;
+                        lat = -lat;
+                        lon += Math.PI / 5;
                     }
+                    return new Vector3d(Math.Cos(lat) * Math.Cos(lon), Math.Sin(lat), Math.Cos(lat) * Math.Sin(lon));
+                }
+                else
+                {
+                    var first = getFirstParent();
+                    var second = getSecondParent(first);
+                    return (first.GetPosition(cache) + second.GetPosition(cache)).normalized;
+                }
             }
 
             private Cell getFirstParent()
