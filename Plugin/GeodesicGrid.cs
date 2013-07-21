@@ -65,6 +65,12 @@ namespace Kethane
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() { return GetEnumerator(); }
 
+        /// <summary>
+        /// Finds the cell closest to the given vector.
+        /// </summary>
+        /// <param name="line">Direction vector relative to the grid.</param>
+        /// <returns>Cell on this grid which contains the given direction.</returns>
+        /// <remarks>This function performs a best-first search starting with the pentagonal cells and then the neighbors of each iterated cell.</remarks>
         public Cell NearestCell(Vector3 line)
         {
             line = line.normalized;
