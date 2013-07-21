@@ -394,7 +394,7 @@ namespace Kethane
                     var center = (a.Position + b.Position + cell.Position).normalized;
 
                     var blend = 0.08f;
-                    vertices.Add(cell.Position * blend + center * (1 - blend));
+                    vertices.Add((cell.Position * blend + center * (1 - blend)).normalized);
                 }
 
                 if (cell.IsPentagon)
