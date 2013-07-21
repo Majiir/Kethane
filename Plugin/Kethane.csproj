@@ -72,6 +72,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ResourceDefinition.cs" />
     <Compile Include="SettingsManager.cs" />
+    <Compile Include="TimedMovingAverage.cs" />
     <Compile Include="WeakReference.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
