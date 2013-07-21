@@ -403,13 +403,13 @@ namespace Kethane
                     var t = vertices.Count - 6;
                     for (var i = 0; i < 5; i++)
                     {
-                        triangles.AddRange(new int[] { t + 5, t + (i + 1) % 5, t + i });
+                        triangles.Add(t + 5, t + (i + 1) % 5, t + i);
                     }
                 }
                 else
                 {
                     var t = vertices.Count - 6;
-                    triangles.AddRange(new int[] { t + 2, t + 1, t, t + 4, t + 3, t + 2, t, t + 5, t + 4, t + 4, t + 2, t });
+                    triangles.Add(t + 2, t + 1, t, t + 4, t + 3, t + 2, t, t + 5, t + 4, t + 4, t + 2, t);
                 }
             }
 

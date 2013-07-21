@@ -118,6 +118,11 @@ namespace Kethane
             return (float)(random.NextDouble() * (max - min) + min);
         }
 
+        public static void Add<T>(this List<T> list, params T[] values)
+        {
+            list.AddRange(values);
+        }
+
         #region Parsing utility methods
 
         public static float Parse(string s, float defaultValue)
