@@ -20,7 +20,7 @@ namespace Kethane
         [KSPField(isPersistant = false, guiActive = true, guiName = "Intake Flow Rate", guiFormat = "F1", guiUnits = "L/s")]
         public float AirFlow;
 
-        public override void OnFixedUpdate()
+        public void FixedUpdate()
         {
             var resourceDensity = PartResourceLibrary.Instance.GetDefinition(Resource).density;
             var airDensity = this.part.vessel.atmDensity;
