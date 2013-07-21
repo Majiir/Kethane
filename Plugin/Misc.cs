@@ -167,6 +167,12 @@ namespace Kethane
             }
         }
 
+        public static Color32 Parse(string s, Color32 defaultValue)
+        {
+            if (s == null) { return defaultValue; }
+            return ConfigNode.ParseColor32(s);
+        }
+
         public static ParticleRenderMode Parse(string s, ParticleRenderMode defaultValue)
         {
             try

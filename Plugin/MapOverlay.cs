@@ -26,8 +26,8 @@ namespace Kethane
         private static Rect controlWindowPos = new Rect(Screen.width * 0.20f, 250, 160, 0);
         private static bool showOverlay = true;
 
-        private static readonly Color32 colorEmpty = new Color32(128, 128, 128, 192);
-        private static readonly Color32 colorUnknown = new Color32(0, 0, 0, 128);
+        private static readonly Color32 colorEmpty = Misc.Parse(SettingsManager.GetValue("ColorEmpty"), new Color32(128, 128, 128, 192));
+        private static readonly Color32 colorUnknown = Misc.Parse(SettingsManager.GetValue("ColorUnknown"), new Color32(0, 0, 0, 128));
 
         public static GeodesicGrid.Cell GetCellUnder(CelestialBody body, Vector3 worldPosition)
         {
