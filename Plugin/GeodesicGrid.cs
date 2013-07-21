@@ -304,6 +304,13 @@ namespace Kethane
             {
                 if (!cache.ContainsKey(this))
                 {
+                    cache[this] = getPosition(cache);
+                }
+                return cache[this];
+            }
+
+            private Vector3d getPosition(Cell.Dictionary<Vector3d> cache)
+            {
                     if (IsPentagon)
                     {
                         if (IsNorth) { return new Vector3d(0, 1, 0); }
@@ -317,17 +324,14 @@ namespace Kethane
                             lat = -lat;
                             lon += Math.PI / 5;
                         }
-                        cache[this] = new Vector3d(Math.Cos(lat) * Math.Cos(lon), Math.Sin(lat), Math.Cos(lat) * Math.Sin(lon));
+                        return new Vector3d(Math.Cos(lat) * Math.Cos(lon), Math.Sin(lat), Math.Cos(lat) * Math.Sin(lon));
                     }
                     else
                     {
                         var first = getFirstParent();
                         var second = getSecondParent(first);
-                        cache[this] = (first.GetPosition(cache) + second.GetPosition(cache)).normalized;
+                        return (first.GetPosition(cache) + second.GetPosition(cache)).normalized;
                     }
-                }
-
-                return cache[this];
             }
 
             private Cell getFirstParent()
