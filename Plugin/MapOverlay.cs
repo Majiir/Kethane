@@ -197,6 +197,45 @@ namespace Kethane
             {
                 resource = KethaneController.ResourceDefinitions.Where(r => r.Resource == KethaneController.SelectedResource).Single().ForBody(body);
                 refreshCellColors();
+
+                ////
+
+                var timer = System.Diagnostics.Stopwatch.StartNew();
+
+                var tex = new Texture2D(2048, 1024);
+                var colors = new Color32[tex.width * tex.height];
+
+                var cell = grid.Pentagons.Single(c => c.IsNorth);
+
+                for (var x = 0; x < tex.width; x++)
+                {
+                    for (var y = 0; y < tex.height; y++)
+                    {
+                        var lat = Math.PI * (y - (tex.height / 2)) / (tex.height - 1);
+                        var lon = Math.PI * 2 * (x - (tex.width / 2)) / (tex.width - 1);
+                        var pos = (Vector3)new Vector3d(Math.Cos(lat) * Math.Cos(lon), Math.Sin(lat), Math.Cos(lat) * Math.Sin(lon));
+                        
+                        var next = cell;
+                        do
+                        {
+                            cell = next;
+                            next = cell.Neighbors.Prepend(cell).WithMin(c => (c.Position - pos).magnitude);
+                        } while (cell != next);
+
+                        var color = KethaneController.Scans[resource.Resource][body.name][cell] ? getDepositColor(resource, KethaneController.GetCellDeposit(resource.Resource, body, cell)) : colorUnknown;
+                        colors[x + y * tex.width] = color;
+                    }
+                }
+
+                tex.SetPixels32(colors);
+
+                timer.Stop();
+                Debug.LogWarning(String.Format("[Kethane] Rendered map in {0:N3} ms", timer.Elapsed.TotalMilliseconds));
+
+                KSP.IO.File.WriteAllBytes<KethaneController>(tex.EncodeToPNG(), "mapdump.png");
+
+                ////
+   
             }
 
             var ray = MapView.MapCamera.camera.ScreenPointToRay(Input.mousePosition);
@@ -209,6 +248,11 @@ namespace Kethane
             {
                 hoverCell = null;
             }
+        }
+
+        private struct TextureCoordinate
+        {
+            int x, y;
         }
 
         public void RefreshCellColor(GeodesicGrid.Cell cell, CelestialBody body)
