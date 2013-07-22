@@ -53,11 +53,6 @@ namespace Kethane
             {
                 enabled = false;
             }
-
-            if ((scene == GameScenes.LOADING || scene == GameScenes.MAINMENU) && !Misc.Parse(SettingsManager.GetValue("ShowInMenu"), true))
-            {
-                enabled = false;
-            }
         }
 
         public void Start()
@@ -91,6 +86,8 @@ namespace Kethane
 
         private bool startMenuOverlay()
         {
+            if (!Misc.Parse(SettingsManager.GetValue("ShowInMenu"), true)) { return false; }
+
             var objects = GameObject.FindSceneObjectsOfType(typeof(GameObject));
             if (objects.Any(o => o.name == "LoadingBuffer")) { return false; }
             var kerbin = objects.OfType<GameObject>().Where(b => b.name == "Kerbin").LastOrDefault();
