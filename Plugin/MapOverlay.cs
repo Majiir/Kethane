@@ -418,6 +418,7 @@ namespace Kethane
                     if (GUILayout.Button("Refill Deposit"))
                     {
                         deposit.Quantity = deposit.InitialQuantity;
+                        KethaneController.SaveKethaneDeposits();
                         refreshCellColors();
                     }
                     GUI.enabled = true;
