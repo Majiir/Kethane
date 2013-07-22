@@ -401,8 +401,9 @@ namespace Kethane
                         var random = new System.Random();
                         while (KethaneController.GetCellDeposit(resource.Resource, body, GetCellUnder(body, vessel.transform.position)) == null)
                         {
-                            KethaneController.GenerateKethaneDeposits(random);
+                            KethaneController.GenerateKethaneDeposits(random, true);
                         }
+                        KethaneController.SaveKethaneDeposits();
                     }
                     GUI.enabled = true;
 

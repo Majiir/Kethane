@@ -260,7 +260,7 @@ namespace Kethane
             return deposits;
         }
 
-        public static void GenerateKethaneDeposits(System.Random random = null)
+        public static void GenerateKethaneDeposits(System.Random random = null, bool skipSave = false)
         {
             if (FlightGlobals.fetch == null) { return; }
 
@@ -271,7 +271,10 @@ namespace Kethane
             bodySeeds = FlightGlobals.Bodies.ToDictionary(b => b.name, b => b.name.GetHashCode());
             generateFromSeed();
             lastGameLoaded = HighLogic.SaveFolder;
-            SaveKethaneDeposits();
+            if (!skipSave)
+            {
+                SaveKethaneDeposits();
+            }
         }
 
         public Deposit GetDepositUnder(string resourceName)
