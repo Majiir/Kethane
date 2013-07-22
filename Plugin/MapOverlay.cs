@@ -348,7 +348,7 @@ namespace Kethane
             if (GUI.Button(new Rect(2, 2, 20, 15), expandWindow ? "\u25B4" : "\u25BE", minMaxStyle))
             {
                 expandWindow = !expandWindow;
-                controlWindowPos = new Rect(controlWindowPos.xMin, controlWindowPos.yMin, 24, 36);
+                controlWindowPos = new Rect(controlWindowPos.xMin, controlWindowPos.yMin, expandWindow ? 160 : 24, 36);
             }
 
             GUILayout.BeginVertical();
