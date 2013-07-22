@@ -67,6 +67,11 @@ namespace Kethane
                 return;
             }
 
+            startMapOverlay();
+        }
+
+        private void startMapOverlay()
+        {
             KethaneController.LoadKethaneDeposits();
             resource = KethaneController.ResourceDefinitions.Where(d => d.Resource == "Kethane").Single();
 
