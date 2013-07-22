@@ -152,6 +152,11 @@ namespace Kethane
                 return;
             }
 
+            updateMapView();
+        }
+
+        private void updateMapView()
+        {
             if (!MapView.MapIsEnabled || !showOverlay || MapView.MapCamera == null)
             {
                 gameObject.renderer.enabled = false;
