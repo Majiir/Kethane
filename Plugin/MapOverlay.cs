@@ -68,52 +68,7 @@ namespace Kethane
 
             if (HighLogic.LoadedScene == GameScenes.LOADING || HighLogic.LoadedScene == GameScenes.MAINMENU)
             {
-                var objects = GameObject.FindSceneObjectsOfType(typeof(GameObject));
-                if (objects.Any(o => o.name == "LoadingBuffer")) { return; }
-                var kerbin = objects.OfType<GameObject>().Where(b => b.name == "Kerbin").LastOrDefault();
-
-                if (kerbin == null)
-                {
-                    Debug.LogWarning("[Kethane] Couldn't find Kerbin!");
-                    return;
-                }
-
-                gameObject.layer = kerbin.layer;
-                gameObject.transform.parent = kerbin.transform;
-                gameObject.transform.localPosition = Vector3.zero;
-                gameObject.transform.localRotation = Quaternion.identity;
-                gameObject.transform.localScale = Vector3.one * 1020;
-
-                gameObject.renderer.enabled = true;
-
-                var random = new System.Random();
-                var colors = new Color32[mesh.vertexCount];
-
-                foreach (var cell in grid)
-                {
-                    var rand = random.Next(100);
-                    Color32 color;
-                    if (rand < 16)
-                    {
-                        color = rand < 4 ? new Color32(21, 176, 26, 255) : colorEmpty;
-                        foreach (var neighbor in cell.Neighbors)
-                        {
-                            if (random.Next(2) < 1)
-                            {
-                                setCellColor(neighbor, color, colors);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        color = colorUnknown;
-                    }
-
-                    setCellColor(cell, color, colors);
-                }
-
-                mesh.colors32 = colors;
-
+                startMenuOverlay();
                 return;
             }
 
@@ -132,6 +87,55 @@ namespace Kethane
                     bodyRadii[body] = result;
                 }
             }
+        }
+
+        private void startMenuOverlay()
+        {
+            var objects = GameObject.FindSceneObjectsOfType(typeof(GameObject));
+            if (objects.Any(o => o.name == "LoadingBuffer")) { return; }
+            var kerbin = objects.OfType<GameObject>().Where(b => b.name == "Kerbin").LastOrDefault();
+
+            if (kerbin == null)
+            {
+                Debug.LogWarning("[Kethane] Couldn't find Kerbin!");
+                return;
+            }
+
+            gameObject.layer = kerbin.layer;
+            gameObject.transform.parent = kerbin.transform;
+            gameObject.transform.localPosition = Vector3.zero;
+            gameObject.transform.localRotation = Quaternion.identity;
+            gameObject.transform.localScale = Vector3.one * 1020;
+
+            gameObject.renderer.enabled = true;
+
+            var random = new System.Random();
+            var colors = new Color32[mesh.vertexCount];
+
+            foreach (var cell in grid)
+            {
+                var rand = random.Next(100);
+                Color32 color;
+                if (rand < 16)
+                {
+                    color = rand < 4 ? new Color32(21, 176, 26, 255) : colorEmpty;
+                    foreach (var neighbor in cell.Neighbors)
+                    {
+                        if (random.Next(2) < 1)
+                        {
+                            setCellColor(neighbor, color, colors);
+                        }
+                    }
+                }
+                else
+                {
+                    color = colorUnknown;
+                }
+
+                setCellColor(cell, color, colors);
+            }
+
+            mesh.colors32 = colors;
         }
 
         public void OnDestroy()
