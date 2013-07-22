@@ -163,7 +163,10 @@ namespace Kethane
             {
                 body = newBody;
                 var radius = bodyRadii.ContainsKey(body) ? bodyRadii[body] : 1.025;
-                gameObject.transform.localScale = Vector3.one * (float)(radius * body.Radius / ScaledSpace.ScaleFactor);
+                gameObject.transform.parent = ScaledSpace.Instance.scaledSpaceTransforms.Single(t => t.name == body.name);
+                gameObject.transform.localScale = Vector3.one * 1000f * (float)radius;
+                gameObject.transform.localPosition = Vector3.zero;
+                gameObject.transform.localRotation = Quaternion.identity;
             }
 
             if (bodyChanged || resource.Resource != KethaneController.SelectedResource)
@@ -182,9 +185,6 @@ namespace Kethane
             {
                 hoverCell = null;
             }
-
-            gameObject.transform.position = ScaledSpace.LocalToScaledSpace(body.position);
-            gameObject.transform.rotation = body.rotation;
         }
 
         public void RefreshCellColor(GeodesicGrid.Cell cell, CelestialBody body)
