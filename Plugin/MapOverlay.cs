@@ -57,6 +57,11 @@ namespace Kethane
 
         public void Start()
         {
+            if (Instance != null)
+            {
+                Destroy(Instance.gameObject);
+            }
+
             Instance = this;
 
             setUpMesh();
