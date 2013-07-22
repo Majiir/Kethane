@@ -73,7 +73,10 @@ namespace Kethane
         private void startMapOverlay()
         {
             KethaneController.LoadKethaneDeposits();
-            resource = KethaneController.ResourceDefinitions.Where(d => d.Resource == "Kethane").Single();
+            if (resource == null)
+            {
+                resource = KethaneController.ResourceDefinitions.Where(d => d.Resource == "Kethane").Single();
+            }
 
             gameObject.layer = 10;
 
