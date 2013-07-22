@@ -359,72 +359,72 @@ namespace Kethane
             }
             else
             {
-            GUILayout.BeginHorizontal();
+                GUILayout.BeginHorizontal();
 
-            GUI.enabled = KethaneController.ResourceDefinitions.First().Resource != KethaneController.SelectedResource;
-            if (GUILayout.Button("◀", GUILayout.ExpandWidth(false)))
-            {
-                KethaneController.SelectedResource = KethaneController.ResourceDefinitions.Select(d => d.Resource).Last(s => s.CompareTo(KethaneController.SelectedResource) < 0);
-            }
-            GUI.enabled = true;
-
-            GUILayout.Label(KethaneController.SelectedResource, centeredStyle, GUILayout.ExpandWidth(true));
-
-            GUI.enabled = KethaneController.ResourceDefinitions.Last().Resource != KethaneController.SelectedResource;
-            if (GUILayout.Button("▶", GUILayout.ExpandWidth(false)))
-            {
-                KethaneController.SelectedResource = KethaneController.ResourceDefinitions.Select(d => d.Resource).First(s => s.CompareTo(KethaneController.SelectedResource) > 0);
-            }
-            GUI.enabled = true;
-
-            GUILayout.EndHorizontal();
-
-            showOverlay = GUILayout.Toggle(showOverlay, "Show Grid Overlay");
-
-            if (debugEnabled)
-            {
-                var vessel = FlightGlobals.ActiveVessel;
-                if (vessel != null && vessel.mainBody != body) { vessel = null; }
-                var deposit = vessel == null ? null : KethaneController.GetCellDeposit(resource.Resource, body, GetCellUnder(body, vessel.transform.position));
-
-                GUILayout.BeginVertical(GUI.skin.box);
-
-                if (revealAll != GUILayout.Toggle(revealAll, "Reveal Unscanned Cells"))
+                GUI.enabled = KethaneController.ResourceDefinitions.First().Resource != KethaneController.SelectedResource;
+                if (GUILayout.Button("◀", GUILayout.ExpandWidth(false)))
                 {
-                    revealAll = !revealAll;
-                    refreshCellColors();
+                    KethaneController.SelectedResource = KethaneController.ResourceDefinitions.Select(d => d.Resource).Last(s => s.CompareTo(KethaneController.SelectedResource) < 0);
                 }
+                GUI.enabled = true;
 
-                GUI.enabled = vessel != null;
-                if (GUILayout.Button("Generate Under Vessel"))
+                GUILayout.Label(KethaneController.SelectedResource, centeredStyle, GUILayout.ExpandWidth(true));
+
+                GUI.enabled = KethaneController.ResourceDefinitions.Last().Resource != KethaneController.SelectedResource;
+                if (GUILayout.Button("▶", GUILayout.ExpandWidth(false)))
                 {
-                    var random = new System.Random();
-                    while (KethaneController.GetCellDeposit(resource.Resource, body, GetCellUnder(body, vessel.transform.position)) == null)
+                    KethaneController.SelectedResource = KethaneController.ResourceDefinitions.Select(d => d.Resource).First(s => s.CompareTo(KethaneController.SelectedResource) > 0);
+                }
+                GUI.enabled = true;
+
+                GUILayout.EndHorizontal();
+
+                showOverlay = GUILayout.Toggle(showOverlay, "Show Grid Overlay");
+
+                if (debugEnabled)
+                {
+                    var vessel = FlightGlobals.ActiveVessel;
+                    if (vessel != null && vessel.mainBody != body) { vessel = null; }
+                    var deposit = vessel == null ? null : KethaneController.GetCellDeposit(resource.Resource, body, GetCellUnder(body, vessel.transform.position));
+
+                    GUILayout.BeginVertical(GUI.skin.box);
+
+                    if (revealAll != GUILayout.Toggle(revealAll, "Reveal Unscanned Cells"))
                     {
-                        KethaneController.GenerateKethaneDeposits(random);
+                        revealAll = !revealAll;
+                        refreshCellColors();
                     }
-                }
-                GUI.enabled = true;
 
-                if (GUILayout.Button("Generate All Bodies"))
-                {
-                    KethaneController.GenerateKethaneDeposits();
-                }
+                    GUI.enabled = vessel != null;
+                    if (GUILayout.Button("Generate Under Vessel"))
+                    {
+                        var random = new System.Random();
+                        while (KethaneController.GetCellDeposit(resource.Resource, body, GetCellUnder(body, vessel.transform.position)) == null)
+                        {
+                            KethaneController.GenerateKethaneDeposits(random);
+                        }
+                    }
+                    GUI.enabled = true;
 
-                GUI.enabled = deposit != null;
-                if (GUILayout.Button("Refill Deposit"))
-                {
-                    deposit.Quantity = deposit.InitialQuantity;
-                }
-                GUI.enabled = true;
+                    if (GUILayout.Button("Generate All Bodies"))
+                    {
+                        KethaneController.GenerateKethaneDeposits();
+                    }
 
-                if (GUILayout.Button("Export Data (" + (revealAll ? "All" : "Scanned") + ")"))
-                {
-                    export();
-                }
+                    GUI.enabled = deposit != null;
+                    if (GUILayout.Button("Refill Deposit"))
+                    {
+                        deposit.Quantity = deposit.InitialQuantity;
+                    }
+                    GUI.enabled = true;
 
-                GUILayout.EndVertical();
-            }
+                    if (GUILayout.Button("Export Data (" + (revealAll ? "All" : "Scanned") + ")"))
+                    {
+                        export();
+                    }
+
+                    GUILayout.EndVertical();
+                }
             }
 
             GUILayout.EndVertical();
