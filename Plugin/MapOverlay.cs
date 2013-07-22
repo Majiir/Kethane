@@ -24,10 +24,12 @@ namespace Kethane
 
         private static RenderingManager renderingManager;
         private static GUIStyle centeredStyle = null;
+        private static GUIStyle minMaxStyle = null;
         private static GUISkin defaultSkin = null;
         private static Rect controlWindowPos = new Rect(Screen.width * 0.20f, 250, 160, 0);
         private static bool showOverlay = true;
         private static bool revealAll = false;
+        private static bool expandWindow = true;
 
         private static readonly Color32 colorEmpty = Misc.Parse(SettingsManager.GetValue("ColorEmpty"), new Color32(128, 128, 128, 192));
         private static readonly Color32 colorUnknown = Misc.Parse(SettingsManager.GetValue("ColorUnknown"), new Color32(0, 0, 0, 128));
@@ -289,11 +291,17 @@ namespace Kethane
                 centeredStyle.alignment = TextAnchor.MiddleCenter;
             }
 
+            if (minMaxStyle == null)
+            {
+                minMaxStyle = new GUIStyle(GUI.skin.button);
+                minMaxStyle.contentOffset = new Vector2(-1, 0);
+            }
+
             GUI.skin = defaultSkin;
             var oldBackground = GUI.backgroundColor;
             GUI.backgroundColor = XKCDColors.Green;
 
-            controlWindowPos = GUILayout.Window(12358, controlWindowPos, controlWindow, "Kethane Scan Map");
+            controlWindowPos = GUILayout.Window(12358, controlWindowPos, controlWindow, expandWindow ? "Kethane Scan Map" : String.Empty);
 
             GUI.backgroundColor = oldBackground;
         }
@@ -337,8 +345,20 @@ namespace Kethane
 
         private void controlWindow(int windowID)
         {
+            if (GUI.Button(new Rect(2, 2, 20, 15), expandWindow ? "\u25B4" : "\u25BE", minMaxStyle))
+            {
+                expandWindow = !expandWindow;
+                controlWindowPos = new Rect(controlWindowPos.xMin, controlWindowPos.yMin, 24, 36);
+            }
+
             GUILayout.BeginVertical();
 
+            if (!expandWindow)
+            {
+                GUI.Label(new Rect(8, 15, 15, 20), "K");
+            }
+            else
+            {
             GUILayout.BeginHorizontal();
 
             GUI.enabled = KethaneController.ResourceDefinitions.First().Resource != KethaneController.SelectedResource;
@@ -404,6 +424,7 @@ namespace Kethane
                 }
 
                 GUILayout.EndVertical();
+            }
             }
 
             GUILayout.EndVertical();
