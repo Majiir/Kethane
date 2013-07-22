@@ -68,7 +68,7 @@ namespace Kethane
 
             if (HighLogic.LoadedScene == GameScenes.LOADING || HighLogic.LoadedScene == GameScenes.MAINMENU)
             {
-                startMenuOverlay();
+                gameObject.renderer.enabled = startMenuOverlay();
                 return;
             }
 
@@ -89,16 +89,16 @@ namespace Kethane
             }
         }
 
-        private void startMenuOverlay()
+        private bool startMenuOverlay()
         {
             var objects = GameObject.FindSceneObjectsOfType(typeof(GameObject));
-            if (objects.Any(o => o.name == "LoadingBuffer")) { return; }
+            if (objects.Any(o => o.name == "LoadingBuffer")) { return false; }
             var kerbin = objects.OfType<GameObject>().Where(b => b.name == "Kerbin").LastOrDefault();
 
             if (kerbin == null)
             {
                 Debug.LogWarning("[Kethane] Couldn't find Kerbin!");
-                return;
+                return false;
             }
 
             gameObject.layer = kerbin.layer;
@@ -136,6 +136,8 @@ namespace Kethane
             }
 
             mesh.colors32 = colors;
+
+            return true;
         }
 
         public void OnDestroy()
