@@ -49,7 +49,7 @@ namespace Kethane
         public void Awake()
         {
             var scene = HighLogic.LoadedScene;
-            if (scene != GameScenes.FLIGHT && scene != GameScenes.TRACKSTATION && scene != GameScenes.LOADING && scene != GameScenes.MAINMENU)
+            if (scene != GameScenes.FLIGHT && scene != GameScenes.TRACKSTATION && scene != GameScenes.MAINMENU)
             {
                 enabled = false;
             }
