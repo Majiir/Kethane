@@ -156,7 +156,7 @@ namespace Kethane
 
             gameObject.renderer.enabled = true;
 
-            var target = MapView.fetch.mapCamera.target;
+            var target = MapView.MapCamera.target;
 
             var newBody = getTargetBody(target);
             var bodyChanged = newBody != body;
