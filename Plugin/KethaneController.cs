@@ -233,10 +233,10 @@ namespace Kethane
 
         private static void generateFromSeed()
         {
-            PlanetDeposits = resourceDefinitions.Values.ToDictionary(d => d.Resource, d => FlightGlobals.Bodies.ToDictionary(b => b.name, b => generate(b, depositSeed, d.ForBody(b))));
+            PlanetDeposits = resourceDefinitions.Values.ToDictionary(d => d.Resource, d => FlightGlobals.Bodies.ToDictionary(b => b.name, b => generate(b, d.ForBody(b))));
         }
 
-        private static List<Deposit> generate(CelestialBody body, int seed, ResourceDefinition resource)
+        private static List<Deposit> generate(CelestialBody body, ResourceDefinition resource)
         {
             var random = new System.Random(depositSeed ^ (resource.Resource == "Kethane" ? bodySeeds[body.name] : 0) ^ resource.SeedModifier);
 
