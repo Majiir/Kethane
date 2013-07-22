@@ -319,7 +319,7 @@ namespace Kethane
 
                 GUILayout.Label(String.Format("{0}:", definition.Resource));
                 GUILayout.FlexibleSpace();
-                if (KethaneController.Scans[definition.Resource][body.name][cell])
+                if (revealAll || KethaneController.Scans[definition.Resource][body.name][cell])
                 {
                     var deposit = KethaneController.GetCellDeposit(definition.Resource, body, cell);
                     GUILayout.Label(deposit != null ? String.Format("{0:N1}", deposit.Quantity) : "(none)");
