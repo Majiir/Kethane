@@ -61,7 +61,7 @@ namespace Kethane
 
             setUpMesh();
 
-            if (HighLogic.LoadedScene == GameScenes.LOADING || HighLogic.LoadedScene == GameScenes.MAINMENU)
+            if (HighLogic.LoadedScene == GameScenes.MAINMENU)
             {
                 gameObject.renderer.enabled = startMenuOverlay();
                 return;
