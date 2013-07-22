@@ -119,7 +119,6 @@ namespace Kethane
             resource = KethaneController.ResourceDefinitions.Where(d => d.Resource == "Kethane").Single();
 
             gameObject.layer = 10;
-            ScaledSpace.AddScaledSpaceTransform(gameObject.transform);
 
             var node = ConfigNode.Load(KSPUtil.ApplicationRootPath + "GameData/Kethane/Grid.cfg");
             if (node == null) { return; }
