@@ -408,7 +408,7 @@ namespace Kethane
 
             GUILayout.EndVertical();
 
-            GUI.DragWindow(new Rect(0, 0, 300, 60));
+            GUI.DragWindow(new Rect(0, 0, controlWindowPos.width, controlWindowPos.height));
         }
 
         private static void export()
