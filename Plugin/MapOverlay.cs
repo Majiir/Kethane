@@ -399,10 +399,13 @@ namespace Kethane
                     if (GUILayout.Button("Generate Under Vessel"))
                     {
                         var random = new System.Random();
-                        while (KethaneController.GetCellDeposit(resource.Resource, body, GetCellUnder(body, vessel.transform.position)) == null)
+
+                        do
                         {
                             KethaneController.GenerateKethaneDeposits(random, true);
                         }
+                        while (KethaneController.GetCellDeposit(resource.Resource, body, GetCellUnder(body, vessel.transform.position)) == null);
+
                         KethaneController.SaveKethaneDeposits();
                         refreshCellColors();
                     }
