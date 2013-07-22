@@ -26,14 +26,20 @@ namespace Kethane
         private static GUIStyle centeredStyle = null;
         private static GUIStyle minMaxStyle = null;
         private static GUISkin defaultSkin = null;
-        private static Rect controlWindowPos = new Rect(Screen.width * 0.20f, 250, 160, 0);
-        private static bool showOverlay = true;
+        private static Rect controlWindowPos = new Rect(0, 0, 160, 0);
+        private static bool showOverlay = Misc.Parse(SettingsManager.GetValue("ShowOverlay"), true);
         private static bool revealAll = false;
         private static bool expandWindow = true;
 
         private static readonly Color32 colorEmpty = Misc.Parse(SettingsManager.GetValue("ColorEmpty"), new Color32(128, 128, 128, 192));
         private static readonly Color32 colorUnknown = Misc.Parse(SettingsManager.GetValue("ColorUnknown"), new Color32(0, 0, 0, 128));
         private static readonly bool debugEnabled = Misc.Parse(SettingsManager.GetValue("Debug"), false);
+
+        static MapOverlay()
+        {
+            controlWindowPos.x = Misc.Parse(SettingsManager.GetValue("WindowLeft"), 200f);
+            controlWindowPos.y = Misc.Parse(SettingsManager.GetValue("WindowTop"), 200f);
+        }
 
         public static GeodesicGrid.Cell GetCellUnder(CelestialBody body, Vector3 worldPosition)
         {
@@ -42,10 +48,6 @@ namespace Kethane
 
         public void Awake()
         {
-            showOverlay = Misc.Parse(SettingsManager.GetValue("ShowOverlay"), true);
-            controlWindowPos.x = Misc.Parse(SettingsManager.GetValue("WindowLeft"), 200f);
-            controlWindowPos.y = Misc.Parse(SettingsManager.GetValue("WindowTop"), 200f);
-
             var scene = HighLogic.LoadedScene;
             if (scene != GameScenes.FLIGHT && scene != GameScenes.TRACKSTATION && scene != GameScenes.LOADING && scene != GameScenes.MAINMENU)
             {
