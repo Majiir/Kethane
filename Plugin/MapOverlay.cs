@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using System.Text;
 using UnityEngine;
 
 namespace Kethane
@@ -25,9 +27,11 @@ namespace Kethane
         private static GUISkin defaultSkin = null;
         private static Rect controlWindowPos = new Rect(Screen.width * 0.20f, 250, 160, 0);
         private static bool showOverlay = true;
+        private static bool revealAll = false;
 
         private static readonly Color32 colorEmpty = Misc.Parse(SettingsManager.GetValue("ColorEmpty"), new Color32(128, 128, 128, 192));
         private static readonly Color32 colorUnknown = Misc.Parse(SettingsManager.GetValue("ColorUnknown"), new Color32(0, 0, 0, 128));
+        private static readonly bool debugEnabled = Misc.Parse(SettingsManager.GetValue("Debug"), false);
 
         public static GeodesicGrid.Cell GetCellUnder(CelestialBody body, Vector3 worldPosition)
         {
@@ -202,7 +206,10 @@ namespace Kethane
 
         private void refreshCellColor(GeodesicGrid.Cell cell, CelestialBody body, Color32[] colors)
         {
-            setCellColor(cell, KethaneController.Scans[resource.Resource][body.name][cell] ? getDepositColor(resource, KethaneController.GetCellDeposit(resource.Resource, body, cell)) : colorUnknown, colors);
+            var deposit = KethaneController.GetCellDeposit(resource.Resource, body, cell);
+            var scanned = KethaneController.Scans[resource.Resource][body.name][cell];
+            var color = (revealAll ? deposit != null : scanned) ? getDepositColor(resource, deposit) : colorUnknown;
+            setCellColor(cell, color, colors);
         }
 
         private static void setCellColor(GeodesicGrid.Cell cell, Color32 color, Color32[] colors)
@@ -354,9 +361,98 @@ namespace Kethane
 
             showOverlay = GUILayout.Toggle(showOverlay, "Show Grid Overlay");
 
+            if (debugEnabled)
+            {
+                var vessel = FlightGlobals.ActiveVessel;
+                if (vessel != null && vessel.mainBody != body) { vessel = null; }
+                var deposit = vessel == null ? null : KethaneController.GetCellDeposit(resource.Resource, body, GetCellUnder(body, vessel.transform.position));
+
+                GUILayout.BeginVertical(GUI.skin.box);
+
+                if (revealAll != GUILayout.Toggle(revealAll, "Reveal Unscanned Cells"))
+                {
+                    revealAll = !revealAll;
+                    refreshCellColors();
+                }
+
+                GUI.enabled = vessel != null;
+                if (GUILayout.Button("Generate Under Vessel"))
+                {
+                    var random = new System.Random();
+                    while (KethaneController.GetCellDeposit(resource.Resource, body, GetCellUnder(body, vessel.transform.position)) == null)
+                    {
+                        KethaneController.GenerateKethaneDeposits(random);
+                    }
+                }
+                GUI.enabled = true;
+
+                if (GUILayout.Button("Generate All Bodies"))
+                {
+                    KethaneController.GenerateKethaneDeposits();
+                }
+
+                GUI.enabled = deposit != null;
+                if (GUILayout.Button("Refill Deposit"))
+                {
+                    deposit.Quantity = deposit.InitialQuantity;
+                }
+                GUI.enabled = true;
+
+                if (GUILayout.Button("Export Data (" + (revealAll ? "All" : "Scanned") + ")"))
+                {
+                    export();
+                }
+
+                GUILayout.EndVertical();
+            }
+
             GUILayout.EndVertical();
 
             GUI.DragWindow(new Rect(0, 0, 300, 60));
+        }
+
+        private static void export()
+        {
+            var sb = new StringBuilder();
+
+            var cells = new GeodesicGrid.Cell.Map<string>(5);
+            foreach (var cell in grid)
+            {
+                var pos = cell.Position;
+                var lat = (float)(Math.Atan2(pos.y, Math.Sqrt(pos.x * pos.x + pos.z * pos.z)) * 180 / Math.PI);
+                var lon = (float)(Math.Atan2(pos.z, pos.x) * 180 / Math.PI);
+                cells[cell] = String.Format(CultureInfo.InvariantCulture, "{0},{1},{2},{3},{4},{5},", cell.GetHashCode(), lat, lon, pos.x, pos.y, pos.z);
+            }
+
+            sb.AppendLine("body,resource,cellId,lat,lon,x,y,z,scanned,quantity,initialQuantity,depositIndex");
+
+            foreach (var body in FlightGlobals.Bodies)
+            {
+                foreach (var resource in KethaneController.ResourceDefinitions)
+                {
+                    foreach (var cell in grid)
+                    {
+                        var scanned = KethaneController.Scans[resource.Resource][body.name][cell];
+                        var deposit = KethaneController.GetCellDeposit(resource.Resource, body, cell);
+                        var index = deposit == null ? -1 : KethaneController.PlanetDeposits[resource.Resource][body.name].IndexOf(deposit);
+
+                        sb.Append(String.Format("{0},{1},", body.name, resource.Resource));
+                        sb.Append(cells[cell]);
+                        sb.Append(scanned ? "true" : "false");
+                        if ((revealAll || scanned) && deposit != null)
+                        {
+                            sb.Append(String.Format(CultureInfo.InvariantCulture, ",{0},{1},{2}", deposit.Quantity, deposit.InitialQuantity, index));
+                        }
+                        else
+                        {
+                            sb.Append(",,,");
+                        }
+                        sb.AppendLine();
+                    }
+                }
+            }
+
+            KSP.IO.File.WriteAllText<KethaneController>(sb.ToString(), "kethane_export.csv");
         }
 
         private static CelestialBody getTargetBody(MapObject target)

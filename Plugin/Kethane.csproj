@@ -61,7 +61,6 @@
     <Compile Include="KethaneKerbalBlender.cs" />
     <Compile Include="KethaneController.cs" />
     <Compile Include="KethaneConverter.cs" />
-    <Compile Include="KethaneDebugger.cs" />
     <Compile Include="KethaneDetector.cs" />
     <Compile Include="KethaneExtractor.cs" />
     <Compile Include="KethaneParticleEmitter.cs" />
