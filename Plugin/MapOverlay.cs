@@ -404,18 +404,21 @@ namespace Kethane
                             KethaneController.GenerateKethaneDeposits(random, true);
                         }
                         KethaneController.SaveKethaneDeposits();
+                        refreshCellColors();
                     }
                     GUI.enabled = true;
 
                     if (GUILayout.Button("Generate All Bodies"))
                     {
                         KethaneController.GenerateKethaneDeposits();
+                        refreshCellColors();
                     }
 
                     GUI.enabled = deposit != null;
                     if (GUILayout.Button("Refill Deposit"))
                     {
                         deposit.Quantity = deposit.InitialQuantity;
+                        refreshCellColors();
                     }
                     GUI.enabled = true;
 
