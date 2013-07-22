@@ -249,6 +249,8 @@ namespace Kethane
 
         public void OnGUI()
         {
+            if (HighLogic.LoadedScene != GameScenes.FLIGHT && HighLogic.LoadedScene != GameScenes.TRACKSTATION) { return; }
+
             if (renderingManager == null)
             {
                 renderingManager = (RenderingManager)GameObject.FindObjectOfType(typeof(RenderingManager));
