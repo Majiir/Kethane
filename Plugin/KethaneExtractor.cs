@@ -29,10 +29,36 @@ namespace Kethane
         [KSPField(isPersistant = false, guiActive = true, guiName = "Status")]
         public string Status;
 
+        [KSPField(isPersistant = false)]
+        public string HeadTransform;
+
+        [KSPField(isPersistant = false)]
+        public string TailTransform;
+
+        private Transform headTransform;
+        private Transform tailTransform;
+
+        private KethaneParticleEmitter[] emitters;
+
         public override void OnStart(PartModule.StartState state)
         {
             this.part.force_activate();
             animator = part.Modules.OfType<IExtractorAnimator>().Single();
+
+            headTransform = this.part.FindModelTransform(HeadTransform);
+            tailTransform = this.part.FindModelTransform(TailTransform);
+
+            if (state == StartState.Editor) { return; }
+            if (FlightGlobals.fetch == null) { return; }
+
+            emitters = part.Modules.OfType<KethaneParticleEmitter>().ToArray();
+
+            foreach (var emitter in emitters)
+            {
+                emitter.Setup();
+                emitter.EmitterTransform.parent = headTransform;
+                emitter.EmitterTransform.localRotation = Quaternion.identity;
+            }
         }
 
         public override void OnLoad(ConfigNode node)
@@ -97,12 +123,49 @@ namespace Kethane
                 }
             }
             Status = animator.CurrentState.ToString();
+
+            if (animator.CurrentState != ExtractorState.Retracted)
+            {
+                RaycastHit hitInfo;
+                var hit = raycastGround(out hitInfo);
+
+                foreach (var emitter in emitters.Where(e => e.Label != "gas"))
+                {
+                    emitter.Emit = hit;
+                }
+                if (hit)
+                {
+                    foreach (var emitter in emitters)
+                    {
+                        emitter.EmitterPosition = headTransform.InverseTransformPoint(hitInfo.point);
+                    }
+                }
+
+                foreach (var emitter in emitters.Where(e => e.Label == "gas"))
+                {
+                    if (animator.CurrentState == ExtractorState.Deployed)
+                    {
+                        emitter.Emit = hit && KethaneController.GetInstance(this.vessel).GetDepositUnder("Kethane") != null;
+                    }
+                    else
+                    {
+                        emitter.Emit = false;
+                    }
+                }
+            }
+            else
+            {
+                foreach (var emitter in emitters)
+                {
+                    emitter.Emit = false;
+                }
+            }
         }
 
         public override void OnFixedUpdate()
         {
             if (animator.CurrentState != ExtractorState.Deployed) { return; }
-            if (!animator.CanExtract) { return; }
+            if (!raycastGround()) { return; }
 
             var energyRequest = this.PowerConsumption * TimeWarp.fixedDeltaTime;
             var energyRatio = this.part.RequestResource("ElectricCharge", energyRequest) / energyRequest;
@@ -121,6 +184,19 @@ namespace Kethane
         public override void OnSave(ConfigNode node)
         {
             KethaneController.SaveKethaneDeposits();
+        }
+
+        private bool raycastGround()
+        {
+            RaycastHit hitInfo;
+            return raycastGround(out hitInfo);
+        }
+
+        private bool raycastGround(out RaycastHit hitInfo)
+        {
+            var mask = 1 << FlightGlobals.getMainBody().gameObject.layer;
+            var direction = headTransform.position - tailTransform.position;
+            return Physics.Raycast(tailTransform.position, direction, out hitInfo, direction.magnitude, mask);
         }
     }
 }
