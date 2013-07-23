@@ -78,7 +78,7 @@ namespace Kethane
 
                 case DeployState.DeployArm1:
                     {
-                        float Speed = (!IsDrillUndergorund ? 0.5f : 0.2f);
+                        float Speed = 0.5f;
                         Vector3 Translation = new Vector3(0, -dt * Speed, 0);
                         Cyl1Transform.localPosition += (down ? Translation : -Translation);
                         if (down)
@@ -101,7 +101,7 @@ namespace Kethane
 
                 case DeployState.DeployArm2:
                     {
-                        float Speed = (!IsDrillUndergorund ? 0.5f : 0.2f);
+                        float Speed = 0.5f;
                         Vector3 Translation = new Vector3(0, -dt * Speed, 0);
                         Cyl2Transform.localPosition += (down ? Translation : -Translation);
                         if (down)
@@ -124,7 +124,7 @@ namespace Kethane
 
                 case DeployState.DeployArm3:
                     {
-                        float Speed = (!IsDrillUndergorund ? 0.5f : 0.2f);
+                        float Speed = 0.5f;
                         Vector3 Translation = new Vector3(0, -dt * Speed, 0);
                         Cyl3Transform.localPosition += (down ? Translation : -Translation);
                         if (down)
