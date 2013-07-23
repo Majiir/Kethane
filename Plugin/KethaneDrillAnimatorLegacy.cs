@@ -5,8 +5,6 @@ namespace Kethane
 {
     public class KethaneDrillAnimatorLegacy : PartModule, IExtractorAnimator
     {
-        #region Fields
-
         private Transform BaseTransform, Cyl1Transform, Cyl2Transform, Cyl3Transform;
 
         [KSPField(isPersistant = true)]
@@ -21,9 +19,8 @@ namespace Kethane
             DeployArm3,
             Deployed,
         };
-        public DeployState DrillDeploymentState = new DeployState();
 
-        #endregion
+        public DeployState DrillDeploymentState = DeployState.Idle;
 
         public override void OnUpdate()
         {
@@ -149,13 +146,11 @@ namespace Kethane
         public override void OnStart(PartModule.StartState state)
         {
             if (state == StartState.Editor) { return; }
-            #region Child model parts
 
             BaseTransform = this.part.transform.FindChild("model").FindChild("Kethane Small Miner").FindChild("Main Box");
             Cyl3Transform = BaseTransform.FindChild("1 Cyl");
             Cyl2Transform = Cyl3Transform.FindChild("2 Cyl");
             Cyl1Transform = Cyl2Transform.FindChild("3 Cyl");
-            #endregion
         }
 
         public void Deploy()
