@@ -14,9 +14,6 @@ namespace Kethane
         [KSPField(isPersistant = true)]
         private bool ArmWantToGoDown = false;
 
-        private const int EffectsNumber = 4;
-        private GameObject[] DigEffects = new GameObject[EffectsNumber];
-        private Vector3[] DigEffectRotations = new Vector3[EffectsNumber];
         private Vector3 HitPoint = new Vector3();
 
         private int CollsionLayerMask = 0;
@@ -175,36 +172,6 @@ namespace Kethane
             Cyl2Transform = Cyl3Transform.FindChild("2 Cyl");
             Cyl1Transform = Cyl2Transform.FindChild("3 Cyl");
             #endregion
-            #region Setup effects
-            for (int i = 0; i < EffectsNumber; i++)
-            {
-                DigEffects[i] = (GameObject)GameObject.Instantiate(UnityEngine.Resources.Load("Effects/fx_gasJet_white"));
-                DigEffects[i].name = "DigEffect" + i.ToString();
-                DigEffects[i].transform.parent = BaseTransform;
-
-                DigEffects[i].gameObject.SetActive(false);
-            }
-
-
-            DigEffectRotations[0] = new Vector3(30, 0, 0);
-            DigEffectRotations[1] = new Vector3(0, 0, 30);
-            DigEffectRotations[2] = new Vector3(-30, 0, 0);
-            DigEffectRotations[3] = new Vector3(0, 0, -30);
-
-            UpdateEffects();
-            #endregion
-        }
-
-        private void ActivateEffects()
-        {
-            foreach (GameObject Effect in DigEffects)
-                Effect.gameObject.SetActive(true);
-        }
-
-        private void DeactivateEffects()
-        {
-            foreach (GameObject Effect in DigEffects)
-                Effect.gameObject.SetActive(false);
         }
 
         private bool IsPlanet(Collider collider)
@@ -256,29 +223,6 @@ namespace Kethane
                 }
             }
             #endregion
-            #region Update effects
-            if (IsDrillUndergorund && Math.Abs(DeployLength) > 0.01f && DrillDeploymentState == DeployState.Deployed)
-            {
-                if (Vector3.Distance(this.vessel.transform.position, Camera.mainCamera.transform.position) < 500)
-                {
-                    UpdateEffects();
-                    ActivateEffects();
-                }
-                else
-                    DeactivateEffects();
-            }
-            else
-                DeactivateEffects();
-            #endregion
-        }
-
-        private void UpdateEffects()
-        {
-            for (int i = 0; i < EffectsNumber; i++)
-            {
-                DigEffects[i].transform.position = HitPoint - 0.1f * BaseTransform.right;
-                DigEffects[i].transform.localRotation = Quaternion.Euler(DigEffectRotations[i]);
-            }
         }
 
         public void Deploy()
