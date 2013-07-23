@@ -158,12 +158,14 @@ namespace Kethane
 
         private void UpdateArm()
         {
-            #region Handle deploying
-                if (ArmWantToGoDown)
-                    HandleDeployment(Time.deltaTime);
-                else
-                    HandleDeployment(Time.deltaTime, false);
-            #endregion
+            if (ArmWantToGoDown)
+            {
+                HandleDeployment(Time.deltaTime);
+            }
+            else
+            {
+                HandleDeployment(Time.deltaTime, false);
+            }
         }
 
         public void Deploy()
