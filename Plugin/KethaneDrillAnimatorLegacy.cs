@@ -25,8 +25,11 @@ namespace Kethane
 
         #endregion
 
-        private void HandleDeployment(float dt, bool down = true)
+        public override void OnUpdate()
         {
+            var dt = Time.deltaTime;
+            var down = ArmWantToGoDown;
+
             if (DrillDeploymentState != DeployState.Idle)
             {
                 float Rotation = dt * 3.75f;
@@ -141,7 +144,6 @@ namespace Kethane
                             DrillDeploymentState = DeployState.DeployArm3;
                     } break;
             }
-
         }
 
         public override void OnStart(PartModule.StartState state)
@@ -156,18 +158,6 @@ namespace Kethane
             #endregion
         }
 
-        private void UpdateArm()
-        {
-            if (ArmWantToGoDown)
-            {
-                HandleDeployment(Time.deltaTime);
-            }
-            else
-            {
-                HandleDeployment(Time.deltaTime, false);
-            }
-        }
-
         public void Deploy()
         {
             ArmWantToGoDown = true;
@@ -176,11 +166,6 @@ namespace Kethane
         public void Retract()
         {
             ArmWantToGoDown = false;
-        }
-
-        public override void OnUpdate()
-        {
-            UpdateArm();
         }
 
         public ExtractorState CurrentState
