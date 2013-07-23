@@ -159,14 +159,10 @@ namespace Kethane
         private void UpdateArm()
         {
             #region Handle deploying
-
-            if (TimeWarp.CurrentRateIndex == 0)
-            {
                 if (ArmWantToGoDown)
                     HandleDeployment(Time.deltaTime);
                 else
                     HandleDeployment(Time.deltaTime, false);
-            }
             #endregion
         }
 
