@@ -26,14 +26,20 @@ namespace Kethane
         private static GUIStyle centeredStyle = null;
         private static GUIStyle minMaxStyle = null;
         private static GUISkin defaultSkin = null;
-        private static Rect controlWindowPos = new Rect(Screen.width * 0.20f, 250, 160, 0);
-        private static bool showOverlay = true;
+        private static Rect controlWindowPos = new Rect(0, 0, 160, 0);
+        private static bool showOverlay = Misc.Parse(SettingsManager.GetValue("ShowOverlay"), true);
         private static bool revealAll = false;
         private static bool expandWindow = true;
 
         private static readonly Color32 colorEmpty = Misc.Parse(SettingsManager.GetValue("ColorEmpty"), new Color32(128, 128, 128, 192));
         private static readonly Color32 colorUnknown = Misc.Parse(SettingsManager.GetValue("ColorUnknown"), new Color32(0, 0, 0, 128));
         private static readonly bool debugEnabled = Misc.Parse(SettingsManager.GetValue("Debug"), false);
+
+        static MapOverlay()
+        {
+            controlWindowPos.x = Misc.Parse(SettingsManager.GetValue("WindowLeft"), 200f);
+            controlWindowPos.y = Misc.Parse(SettingsManager.GetValue("WindowTop"), 200f);
+        }
 
         public static GeodesicGrid.Cell GetCellUnder(CelestialBody body, Vector3 worldPosition)
         {
@@ -42,17 +48,8 @@ namespace Kethane
 
         public void Awake()
         {
-            showOverlay = Misc.Parse(SettingsManager.GetValue("ShowOverlay"), true);
-            controlWindowPos.x = Misc.Parse(SettingsManager.GetValue("WindowLeft"), 200f);
-            controlWindowPos.y = Misc.Parse(SettingsManager.GetValue("WindowTop"), 200f);
-
             var scene = HighLogic.LoadedScene;
-            if (scene != GameScenes.FLIGHT && scene != GameScenes.TRACKSTATION && scene != GameScenes.LOADING && scene != GameScenes.MAINMENU)
-            {
-                enabled = false;
-            }
-
-            if ((scene == GameScenes.LOADING || scene == GameScenes.MAINMENU) && !Misc.Parse(SettingsManager.GetValue("ShowInMenu"), true))
+            if (scene != GameScenes.FLIGHT && scene != GameScenes.TRACKSTATION && scene != GameScenes.MAINMENU)
             {
                 enabled = false;
             }
@@ -60,66 +57,34 @@ namespace Kethane
 
         public void Start()
         {
+            if (Instance != null)
+            {
+                Destroy(Instance.gameObject);
+            }
+
             Instance = this;
 
             setUpMesh();
 
-            if (HighLogic.LoadedScene == GameScenes.LOADING || HighLogic.LoadedScene == GameScenes.MAINMENU)
+            if (HighLogic.LoadedScene == GameScenes.MAINMENU)
             {
-                var objects = GameObject.FindSceneObjectsOfType(typeof(GameObject));
-                if (objects.Any(o => o.name == "LoadingBuffer")) { return; }
-                var kerbin = objects.OfType<GameObject>().Where(b => b.name == "Kerbin").SingleOrDefault();
+                gameObject.renderer.enabled = startMenuOverlay();
+            }
+            else if (HighLogic.LoadedScene == GameScenes.FLIGHT || HighLogic.LoadedScene == GameScenes.TRACKSTATION)
+            {
+                startMapOverlay();
+            }
+        }
 
-                if (kerbin == null)
-                {
-                    Debug.LogWarning("[Kethane] Couldn't find Kerbin!");
-                    return;
-                }
-
-                gameObject.layer = kerbin.layer;
-                gameObject.transform.parent = kerbin.transform;
-                gameObject.transform.localPosition = Vector3.zero;
-                gameObject.transform.localRotation = Quaternion.identity;
-                gameObject.transform.localScale = Vector3.one * 1020;
-
-                gameObject.renderer.enabled = true;
-
-                var random = new System.Random();
-                var colors = new Color32[mesh.vertexCount];
-
-                foreach (var cell in grid)
-                {
-                    var rand = random.Next(100);
-                    Color32 color;
-                    if (rand < 16)
-                    {
-                        color = rand < 4 ? new Color32(21, 176, 26, 255) : colorEmpty;
-                        foreach (var neighbor in cell.Neighbors)
-                        {
-                            if (random.Next(2) < 1)
-                            {
-                                setCellColor(neighbor, color, colors);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        color = colorUnknown;
-                    }
-
-                    setCellColor(cell, color, colors);
-                }
-
-                mesh.colors32 = colors;
-
-                return;
+        private void startMapOverlay()
+        {
+            KethaneController.LoadKethaneDeposits();
+            if (resource == null)
+            {
+                resource = KethaneController.ResourceDefinitions.Where(d => d.Resource == "Kethane").Single();
             }
 
-            KethaneController.LoadKethaneDeposits();
-            resource = KethaneController.ResourceDefinitions.Where(d => d.Resource == "Kethane").Single();
-
             gameObject.layer = 10;
-            ScaledSpace.AddScaledSpaceTransform(gameObject.transform);
 
             var node = ConfigNode.Load(KSPUtil.ApplicationRootPath + "GameData/Kethane/Grid.cfg");
             if (node == null) { return; }
@@ -131,6 +96,59 @@ namespace Kethane
                     bodyRadii[body] = result;
                 }
             }
+        }
+
+        private bool startMenuOverlay()
+        {
+            if (!Misc.Parse(SettingsManager.GetValue("ShowInMenu"), true)) { return false; }
+
+            var objects = GameObject.FindSceneObjectsOfType(typeof(GameObject));
+            if (objects.Any(o => o.name == "LoadingBuffer")) { return false; }
+            var kerbin = objects.OfType<GameObject>().Where(b => b.name == "Kerbin").LastOrDefault();
+
+            if (kerbin == null)
+            {
+                Debug.LogWarning("[Kethane] Couldn't find Kerbin!");
+                return false;
+            }
+
+            gameObject.layer = kerbin.layer;
+            gameObject.transform.parent = kerbin.transform;
+            gameObject.transform.localPosition = Vector3.zero;
+            gameObject.transform.localRotation = Quaternion.identity;
+            gameObject.transform.localScale = Vector3.one * 1020;
+
+            gameObject.renderer.enabled = true;
+
+            var random = new System.Random();
+            var colors = new Color32[mesh.vertexCount];
+
+            foreach (var cell in grid)
+            {
+                var rand = random.Next(100);
+                Color32 color;
+                if (rand < 16)
+                {
+                    color = rand < 4 ? new Color32(21, 176, 26, 255) : colorEmpty;
+                    foreach (var neighbor in cell.Neighbors)
+                    {
+                        if (random.Next(2) < 1)
+                        {
+                            setCellColor(neighbor, color, colors);
+                        }
+                    }
+                }
+                else
+                {
+                    color = colorUnknown;
+                }
+
+                setCellColor(cell, color, colors);
+            }
+
+            mesh.colors32 = colors;
+
+            return true;
         }
 
         public void OnDestroy()
@@ -148,6 +166,11 @@ namespace Kethane
                 return;
             }
 
+            updateMapView();
+        }
+
+        private void updateMapView()
+        {
             if (!MapView.MapIsEnabled || !showOverlay || MapView.MapCamera == null)
             {
                 gameObject.renderer.enabled = false;
@@ -156,7 +179,7 @@ namespace Kethane
 
             gameObject.renderer.enabled = true;
 
-            var target = MapView.fetch.mapCamera.target;
+            var target = MapView.MapCamera.target;
 
             var newBody = getTargetBody(target);
             var bodyChanged = newBody != body;
@@ -164,7 +187,10 @@ namespace Kethane
             {
                 body = newBody;
                 var radius = bodyRadii.ContainsKey(body) ? bodyRadii[body] : 1.025;
-                gameObject.transform.localScale = Vector3.one * (float)(radius * body.Radius / ScaledSpace.ScaleFactor);
+                gameObject.transform.parent = ScaledSpace.Instance.scaledSpaceTransforms.Single(t => t.name == body.name);
+                gameObject.transform.localScale = Vector3.one * 1000f * (float)radius;
+                gameObject.transform.localPosition = Vector3.zero;
+                gameObject.transform.localRotation = Quaternion.identity;
             }
 
             if (bodyChanged || resource.Resource != KethaneController.SelectedResource)
@@ -183,9 +209,6 @@ namespace Kethane
             {
                 hoverCell = null;
             }
-
-            gameObject.transform.position = ScaledSpace.LocalToScaledSpace(body.position);
-            gameObject.transform.rotation = body.rotation;
         }
 
         public void RefreshCellColor(GeodesicGrid.Cell cell, CelestialBody body)
@@ -240,6 +263,8 @@ namespace Kethane
 
         public void OnGUI()
         {
+            if (HighLogic.LoadedScene != GameScenes.FLIGHT && HighLogic.LoadedScene != GameScenes.TRACKSTATION) { return; }
+
             if (renderingManager == null)
             {
                 renderingManager = (RenderingManager)GameObject.FindObjectOfType(typeof(RenderingManager));

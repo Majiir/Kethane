@@ -194,7 +194,7 @@ namespace Kethane
 
         private bool raycastGround(out RaycastHit hitInfo)
         {
-            var mask = 1 << FlightGlobals.getMainBody().gameObject.layer;
+            var mask = 1 << 15;
             var direction = headTransform.position - tailTransform.position;
             return Physics.Raycast(tailTransform.position, direction, out hitInfo, direction.magnitude, mask);
         }
