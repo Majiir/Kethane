@@ -12,7 +12,6 @@ namespace Kethane
     internal interface IExtractorAnimator
     {
         ExtractorState CurrentState { get; }
-        bool CanExtract { get; }
         void Deploy();
         void Retract();
     }

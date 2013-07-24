@@ -226,17 +226,17 @@ namespace Kethane
                 var depositNodes = bodyNode.GetNodes("Deposit");
                 for (int i = 0; i < Math.Min(deposits.Count, depositNodes.Length); i++)
                 {
-                    deposits[i].Quantity = float.Parse(depositNodes[i].GetValue(amountKey));
+                    deposits[i].Quantity = Misc.Parse(depositNodes[i].GetValue(amountKey), deposits[i].InitialQuantity);
                 }
             }
         }
 
         private static void generateFromSeed()
         {
-            PlanetDeposits = resourceDefinitions.Values.ToDictionary(d => d.Resource, d => FlightGlobals.Bodies.ToDictionary(b => b.name, b => generate(b, depositSeed, d.ForBody(b))));
+            PlanetDeposits = resourceDefinitions.Values.ToDictionary(d => d.Resource, d => FlightGlobals.Bodies.ToDictionary(b => b.name, b => generate(b, d.ForBody(b))));
         }
 
-        private static List<Deposit> generate(CelestialBody body, int seed, ResourceDefinition resource)
+        private static List<Deposit> generate(CelestialBody body, ResourceDefinition resource)
         {
             var random = new System.Random(depositSeed ^ (resource.Resource == "Kethane" ? bodySeeds[body.name] : 0) ^ resource.SeedModifier);
 
@@ -260,7 +260,7 @@ namespace Kethane
             return deposits;
         }
 
-        public static void GenerateKethaneDeposits(System.Random random = null)
+        public static void GenerateKethaneDeposits(System.Random random = null, bool skipSave = false)
         {
             if (FlightGlobals.fetch == null) { return; }
 
@@ -271,7 +271,10 @@ namespace Kethane
             bodySeeds = FlightGlobals.Bodies.ToDictionary(b => b.name, b => b.name.GetHashCode());
             generateFromSeed();
             lastGameLoaded = HighLogic.SaveFolder;
-            SaveKethaneDeposits();
+            if (!skipSave)
+            {
+                SaveKethaneDeposits();
+            }
         }
 
         public Deposit GetDepositUnder(string resourceName)
@@ -283,7 +286,7 @@ namespace Kethane
         {
             if (resourceName == null || body == null || !PlanetDeposits.ContainsKey(resourceName) || !PlanetDeposits[resourceName].ContainsKey(body.name)) { return null; }
 
-            var pos = cell.GetPosition();
+            var pos = cell.Position;
             var lat = (float)(Math.Atan2(pos.y, Math.Sqrt(pos.x * pos.x + pos.z * pos.z)) * 180 / Math.PI);
             var lon = (float)(Math.Atan2(pos.z, pos.x) * 180 / Math.PI);
 

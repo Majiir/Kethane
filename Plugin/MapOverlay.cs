@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using System.Text;
 using UnityEngine;
 
 namespace Kethane
@@ -10,7 +12,7 @@ namespace Kethane
     {
         public static MapOverlay Instance { get; private set; }
 
-        private static GeodesicGrid grid;
+        private static GeodesicGrid grid = new GeodesicGrid(5);
 
         private CelestialBody body;
         private Dictionary<CelestialBody, double> bodyRadii = new Dictionary<CelestialBody, double>();
@@ -22,12 +24,22 @@ namespace Kethane
 
         private static RenderingManager renderingManager;
         private static GUIStyle centeredStyle = null;
+        private static GUIStyle minMaxStyle = null;
         private static GUISkin defaultSkin = null;
-        private static Rect controlWindowPos = new Rect(Screen.width * 0.20f, 250, 160, 0);
-        private static bool showOverlay = true;
+        private static Rect controlWindowPos = new Rect(0, 0, 160, 0);
+        private static bool showOverlay = Misc.Parse(SettingsManager.GetValue("ShowOverlay"), true);
+        private static bool revealAll = false;
+        private static bool expandWindow = true;
 
-        private static readonly Color32 colorEmpty = new Color32(128, 128, 128, 192);
-        private static readonly Color32 colorUnknown = new Color32(0, 0, 0, 128);
+        private static readonly Color32 colorEmpty = Misc.Parse(SettingsManager.GetValue("ColorEmpty"), new Color32(128, 128, 128, 192));
+        private static readonly Color32 colorUnknown = Misc.Parse(SettingsManager.GetValue("ColorUnknown"), new Color32(0, 0, 0, 128));
+        private static readonly bool debugEnabled = Misc.Parse(SettingsManager.GetValue("Debug"), false);
+
+        static MapOverlay()
+        {
+            controlWindowPos.x = Misc.Parse(SettingsManager.GetValue("WindowLeft"), 200f);
+            controlWindowPos.y = Misc.Parse(SettingsManager.GetValue("WindowTop"), 200f);
+        }
 
         public static GeodesicGrid.Cell GetCellUnder(CelestialBody body, Vector3 worldPosition)
         {
@@ -36,19 +48,8 @@ namespace Kethane
 
         public void Awake()
         {
-            if (grid == null) { grid = new GeodesicGrid(5); }
-
-            showOverlay = Misc.Parse(SettingsManager.GetValue("ShowOverlay"), true);
-            controlWindowPos.x = Misc.Parse(SettingsManager.GetValue("WindowLeft"), 200f);
-            controlWindowPos.y = Misc.Parse(SettingsManager.GetValue("WindowTop"), 200f);
-
             var scene = HighLogic.LoadedScene;
-            if (scene != GameScenes.FLIGHT && scene != GameScenes.TRACKSTATION && scene != GameScenes.LOADING && scene != GameScenes.MAINMENU)
-            {
-                enabled = false;
-            }
-
-            if ((scene == GameScenes.LOADING || scene == GameScenes.MAINMENU) && !Misc.Parse(SettingsManager.GetValue("ShowInMenu"), true))
+            if (scene != GameScenes.FLIGHT && scene != GameScenes.TRACKSTATION && scene != GameScenes.MAINMENU)
             {
                 enabled = false;
             }
@@ -56,66 +57,34 @@ namespace Kethane
 
         public void Start()
         {
+            if (Instance != null)
+            {
+                Destroy(Instance.gameObject);
+            }
+
             Instance = this;
 
             setUpMesh();
 
-            if (HighLogic.LoadedScene == GameScenes.LOADING || HighLogic.LoadedScene == GameScenes.MAINMENU)
+            if (HighLogic.LoadedScene == GameScenes.MAINMENU)
             {
-                var objects = GameObject.FindSceneObjectsOfType(typeof(GameObject));
-                if (objects.Any(o => o.name == "LoadingBuffer")) { return; }
-                var kerbin = objects.OfType<GameObject>().Where(b => b.name == "Kerbin").SingleOrDefault();
+                gameObject.renderer.enabled = startMenuOverlay();
+            }
+            else if (HighLogic.LoadedScene == GameScenes.FLIGHT || HighLogic.LoadedScene == GameScenes.TRACKSTATION)
+            {
+                startMapOverlay();
+            }
+        }
 
-                if (kerbin == null)
-                {
-                    Debug.LogWarning("[Kethane] Couldn't find Kerbin!");
-                    return;
-                }
-
-                gameObject.layer = kerbin.layer;
-                gameObject.transform.parent = kerbin.transform;
-                gameObject.transform.localPosition = Vector3.zero;
-                gameObject.transform.localRotation = Quaternion.identity;
-                gameObject.transform.localScale = Vector3.one * 1020;
-
-                gameObject.renderer.enabled = true;
-
-                var random = new System.Random();
-                var colors = new Color32[mesh.vertexCount];
-
-                foreach (var cell in grid)
-                {
-                    var rand = random.Next(100);
-                    Color32 color;
-                    if (rand < 16)
-                    {
-                        color = rand < 4 ? new Color32(21, 176, 26, 255) : colorEmpty;
-                        foreach (var neighbor in cell.Neighbors)
-                        {
-                            if (random.Next(2) < 1)
-                            {
-                                setCellColor(neighbor, color, colors);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        color = colorUnknown;
-                    }
-
-                    setCellColor(cell, color, colors);
-                }
-
-                mesh.colors32 = colors;
-
-                return;
+        private void startMapOverlay()
+        {
+            KethaneController.LoadKethaneDeposits();
+            if (resource == null)
+            {
+                resource = KethaneController.ResourceDefinitions.Where(d => d.Resource == "Kethane").Single();
             }
 
-            KethaneController.LoadKethaneDeposits();
-            resource = KethaneController.ResourceDefinitions.Where(d => d.Resource == "Kethane").Single();
-
             gameObject.layer = 10;
-            ScaledSpace.AddScaledSpaceTransform(gameObject.transform);
 
             var node = ConfigNode.Load(KSPUtil.ApplicationRootPath + "GameData/Kethane/Grid.cfg");
             if (node == null) { return; }
@@ -127,6 +96,59 @@ namespace Kethane
                     bodyRadii[body] = result;
                 }
             }
+        }
+
+        private bool startMenuOverlay()
+        {
+            if (!Misc.Parse(SettingsManager.GetValue("ShowInMenu"), true)) { return false; }
+
+            var objects = GameObject.FindSceneObjectsOfType(typeof(GameObject));
+            if (objects.Any(o => o.name == "LoadingBuffer")) { return false; }
+            var kerbin = objects.OfType<GameObject>().Where(b => b.name == "Kerbin").LastOrDefault();
+
+            if (kerbin == null)
+            {
+                Debug.LogWarning("[Kethane] Couldn't find Kerbin!");
+                return false;
+            }
+
+            gameObject.layer = kerbin.layer;
+            gameObject.transform.parent = kerbin.transform;
+            gameObject.transform.localPosition = Vector3.zero;
+            gameObject.transform.localRotation = Quaternion.identity;
+            gameObject.transform.localScale = Vector3.one * 1020;
+
+            gameObject.renderer.enabled = true;
+
+            var random = new System.Random();
+            var colors = new Color32[mesh.vertexCount];
+
+            foreach (var cell in grid)
+            {
+                var rand = random.Next(100);
+                Color32 color;
+                if (rand < 16)
+                {
+                    color = rand < 4 ? new Color32(21, 176, 26, 255) : colorEmpty;
+                    foreach (var neighbor in cell.Neighbors)
+                    {
+                        if (random.Next(2) < 1)
+                        {
+                            setCellColor(neighbor, color, colors);
+                        }
+                    }
+                }
+                else
+                {
+                    color = colorUnknown;
+                }
+
+                setCellColor(cell, color, colors);
+            }
+
+            mesh.colors32 = colors;
+
+            return true;
         }
 
         public void OnDestroy()
@@ -144,6 +166,11 @@ namespace Kethane
                 return;
             }
 
+            updateMapView();
+        }
+
+        private void updateMapView()
+        {
             if (!MapView.MapIsEnabled || !showOverlay || MapView.MapCamera == null)
             {
                 gameObject.renderer.enabled = false;
@@ -152,7 +179,7 @@ namespace Kethane
 
             gameObject.renderer.enabled = true;
 
-            var target = MapView.fetch.mapCamera.target;
+            var target = MapView.MapCamera.target;
 
             var newBody = getTargetBody(target);
             var bodyChanged = newBody != body;
@@ -160,7 +187,10 @@ namespace Kethane
             {
                 body = newBody;
                 var radius = bodyRadii.ContainsKey(body) ? bodyRadii[body] : 1.025;
-                gameObject.transform.localScale = Vector3.one * (float)(radius * body.Radius / ScaledSpace.ScaleFactor);
+                gameObject.transform.parent = ScaledSpace.Instance.scaledSpaceTransforms.Single(t => t.name == body.name);
+                gameObject.transform.localScale = Vector3.one * 1000f * (float)radius;
+                gameObject.transform.localPosition = Vector3.zero;
+                gameObject.transform.localRotation = Quaternion.identity;
             }
 
             if (bodyChanged || resource.Resource != KethaneController.SelectedResource)
@@ -179,9 +209,6 @@ namespace Kethane
             {
                 hoverCell = null;
             }
-
-            gameObject.transform.position = ScaledSpace.LocalToScaledSpace(body.position);
-            gameObject.transform.rotation = body.rotation;
         }
 
         public void RefreshCellColor(GeodesicGrid.Cell cell, CelestialBody body)
@@ -204,7 +231,10 @@ namespace Kethane
 
         private void refreshCellColor(GeodesicGrid.Cell cell, CelestialBody body, Color32[] colors)
         {
-            setCellColor(cell, KethaneController.Scans[resource.Resource][body.name][cell] ? getDepositColor(resource, KethaneController.GetCellDeposit(resource.Resource, body, cell)) : colorUnknown, colors);
+            var deposit = KethaneController.GetCellDeposit(resource.Resource, body, cell);
+            var scanned = KethaneController.Scans[resource.Resource][body.name][cell];
+            var color = (revealAll ? deposit != null : scanned) ? getDepositColor(resource, deposit) : colorUnknown;
+            setCellColor(cell, color, colors);
         }
 
         private static void setCellColor(GeodesicGrid.Cell cell, Color32 color, Color32[] colors)
@@ -233,6 +263,8 @@ namespace Kethane
 
         public void OnGUI()
         {
+            if (HighLogic.LoadedScene != GameScenes.FLIGHT && HighLogic.LoadedScene != GameScenes.TRACKSTATION) { return; }
+
             if (renderingManager == null)
             {
                 renderingManager = (RenderingManager)GameObject.FindObjectOfType(typeof(RenderingManager));
@@ -284,11 +316,17 @@ namespace Kethane
                 centeredStyle.alignment = TextAnchor.MiddleCenter;
             }
 
+            if (minMaxStyle == null)
+            {
+                minMaxStyle = new GUIStyle(GUI.skin.button);
+                minMaxStyle.contentOffset = new Vector2(-1, 0);
+            }
+
             GUI.skin = defaultSkin;
             var oldBackground = GUI.backgroundColor;
             GUI.backgroundColor = XKCDColors.Green;
 
-            controlWindowPos = GUILayout.Window(12358, controlWindowPos, controlWindow, "Kethane Scan Map");
+            controlWindowPos = GUILayout.Window(12358, controlWindowPos, controlWindow, expandWindow ? "Kethane Scan Map" : String.Empty);
 
             GUI.backgroundColor = oldBackground;
         }
@@ -296,7 +334,7 @@ namespace Kethane
         private void mouseWindow(int windowId)
         {
             var cell = hoverCell.Value;
-            var pos = cell.GetPosition();
+            var pos = cell.Position;
             var lat = (float)(Math.Atan2(pos.y, Math.Sqrt(pos.x * pos.x + pos.z * pos.z)) * 180 / Math.PI);
             var lon = (float)(Math.Atan2(pos.z, pos.x) * 180 / Math.PI);
 
@@ -314,7 +352,7 @@ namespace Kethane
 
                 GUILayout.Label(String.Format("{0}:", definition.Resource));
                 GUILayout.FlexibleSpace();
-                if (KethaneController.Scans[definition.Resource][body.name][cell])
+                if (revealAll || KethaneController.Scans[definition.Resource][body.name][cell])
                 {
                     var deposit = KethaneController.GetCellDeposit(definition.Resource, body, cell);
                     GUILayout.Label(deposit != null ? String.Format("{0:N1}", deposit.Quantity) : "(none)");
@@ -332,33 +370,143 @@ namespace Kethane
 
         private void controlWindow(int windowID)
         {
+            if (GUI.Button(new Rect(2, 2, 20, 15), expandWindow ? "\u25B4" : "\u25BE", minMaxStyle))
+            {
+                expandWindow = !expandWindow;
+                controlWindowPos = new Rect(controlWindowPos.xMin, controlWindowPos.yMin, expandWindow ? 160 : 24, 36);
+            }
+
             GUILayout.BeginVertical();
 
-            GUILayout.BeginHorizontal();
-
-            GUI.enabled = KethaneController.ResourceDefinitions.First().Resource != KethaneController.SelectedResource;
-            if (GUILayout.Button("◀", GUILayout.ExpandWidth(false)))
+            if (!expandWindow)
             {
-                KethaneController.SelectedResource = KethaneController.ResourceDefinitions.Select(d => d.Resource).Last(s => s.CompareTo(KethaneController.SelectedResource) < 0);
+                GUI.Label(new Rect(8, 15, 15, 20), "K");
             }
-            GUI.enabled = true;
-
-            GUILayout.Label(KethaneController.SelectedResource, centeredStyle, GUILayout.ExpandWidth(true));
-
-            GUI.enabled = KethaneController.ResourceDefinitions.Last().Resource != KethaneController.SelectedResource;
-            if (GUILayout.Button("▶", GUILayout.ExpandWidth(false)))
+            else
             {
-                KethaneController.SelectedResource = KethaneController.ResourceDefinitions.Select(d => d.Resource).First(s => s.CompareTo(KethaneController.SelectedResource) > 0);
+                GUILayout.BeginHorizontal();
+
+                GUI.enabled = KethaneController.ResourceDefinitions.First().Resource != KethaneController.SelectedResource;
+                if (GUILayout.Button("◀", GUILayout.ExpandWidth(false)))
+                {
+                    KethaneController.SelectedResource = KethaneController.ResourceDefinitions.Select(d => d.Resource).Last(s => s.CompareTo(KethaneController.SelectedResource) < 0);
+                }
+                GUI.enabled = true;
+
+                GUILayout.Label(KethaneController.SelectedResource, centeredStyle, GUILayout.ExpandWidth(true));
+
+                GUI.enabled = KethaneController.ResourceDefinitions.Last().Resource != KethaneController.SelectedResource;
+                if (GUILayout.Button("▶", GUILayout.ExpandWidth(false)))
+                {
+                    KethaneController.SelectedResource = KethaneController.ResourceDefinitions.Select(d => d.Resource).First(s => s.CompareTo(KethaneController.SelectedResource) > 0);
+                }
+                GUI.enabled = true;
+
+                GUILayout.EndHorizontal();
+
+                showOverlay = GUILayout.Toggle(showOverlay, "Show Grid Overlay");
+
+                if (debugEnabled)
+                {
+                    var vessel = FlightGlobals.ActiveVessel;
+                    if (vessel != null && vessel.mainBody != body) { vessel = null; }
+                    var deposit = vessel == null ? null : KethaneController.GetCellDeposit(resource.Resource, body, GetCellUnder(body, vessel.transform.position));
+
+                    GUILayout.BeginVertical(GUI.skin.box);
+
+                    if (revealAll != GUILayout.Toggle(revealAll, "Reveal Unscanned Cells"))
+                    {
+                        revealAll = !revealAll;
+                        refreshCellColors();
+                    }
+
+                    GUI.enabled = vessel != null;
+                    if (GUILayout.Button("Generate Under Vessel"))
+                    {
+                        var random = new System.Random();
+
+                        do
+                        {
+                            KethaneController.GenerateKethaneDeposits(random, true);
+                        }
+                        while (KethaneController.GetCellDeposit(resource.Resource, body, GetCellUnder(body, vessel.transform.position)) == null);
+
+                        KethaneController.SaveKethaneDeposits();
+                        refreshCellColors();
+                    }
+                    GUI.enabled = true;
+
+                    if (GUILayout.Button("Generate All Bodies"))
+                    {
+                        KethaneController.GenerateKethaneDeposits();
+                        refreshCellColors();
+                    }
+
+                    GUI.enabled = deposit != null;
+                    if (GUILayout.Button("Refill Deposit"))
+                    {
+                        deposit.Quantity = deposit.InitialQuantity;
+                        KethaneController.SaveKethaneDeposits();
+                        refreshCellColors();
+                    }
+                    GUI.enabled = true;
+
+                    if (GUILayout.Button("Export Data (" + (revealAll ? "All" : "Scanned") + ")"))
+                    {
+                        export();
+                    }
+
+                    GUILayout.EndVertical();
+                }
             }
-            GUI.enabled = true;
-
-            GUILayout.EndHorizontal();
-
-            showOverlay = GUILayout.Toggle(showOverlay, "Show Grid Overlay");
 
             GUILayout.EndVertical();
 
-            GUI.DragWindow(new Rect(0, 0, 300, 60));
+            GUI.DragWindow(new Rect(0, 0, controlWindowPos.width, controlWindowPos.height));
+        }
+
+        private static void export()
+        {
+            var sb = new StringBuilder();
+
+            var cells = new GeodesicGrid.Cell.Map<string>(5);
+            foreach (var cell in grid)
+            {
+                var pos = cell.Position;
+                var lat = (float)(Math.Atan2(pos.y, Math.Sqrt(pos.x * pos.x + pos.z * pos.z)) * 180 / Math.PI);
+                var lon = (float)(Math.Atan2(pos.z, pos.x) * 180 / Math.PI);
+                cells[cell] = String.Format(CultureInfo.InvariantCulture, "{0},{1},{2},{3},{4},{5},", cell.GetHashCode(), lat, lon, pos.x, pos.y, pos.z);
+            }
+
+            sb.AppendLine("body,resource,cellId,lat,lon,x,y,z,scanned,quantity,initialQuantity,depositIndex");
+
+            foreach (var body in FlightGlobals.Bodies)
+            {
+                foreach (var resource in KethaneController.ResourceDefinitions)
+                {
+                    foreach (var cell in grid)
+                    {
+                        var scanned = KethaneController.Scans[resource.Resource][body.name][cell];
+                        var deposit = KethaneController.GetCellDeposit(resource.Resource, body, cell);
+                        var index = deposit == null ? -1 : KethaneController.PlanetDeposits[resource.Resource][body.name].IndexOf(deposit);
+
+                        sb.Append(String.Format("{0},{1},", body.name, resource.Resource));
+                        sb.Append(cells[cell]);
+                        sb.Append(scanned ? "true" : "false");
+                        if ((revealAll || scanned) && deposit != null)
+                        {
+                            sb.Append(String.Format(CultureInfo.InvariantCulture, ",{0},{1},{2}", deposit.Quantity, deposit.InitialQuantity, index));
+                        }
+                        else
+                        {
+                            sb.Append(",,,");
+                        }
+                        sb.AppendLine();
+                    }
+                }
+            }
+
+            KSP.IO.File.WriteAllText<KethaneController>(sb.ToString(), "kethane_export.csv");
         }
 
         private static CelestialBody getTargetBody(MapObject target)
@@ -379,17 +527,6 @@ namespace Kethane
             return null;
         }
 
-        private int triangleToVertexBase(int triangle)
-        {
-            var i = mesh.triangles[triangle * 3];
-            return i - i % 6;
-        }
-
-        private GeodesicGrid.Cell vertexToCell(int vertexIndex)
-        {
-            return new GeodesicGrid.Cell(vertexIndex / 6 , grid);
-        }
-
         private void setUpMesh()
         {
             var vertices = new List<UnityEngine.Vector3>();
@@ -404,25 +541,25 @@ namespace Kethane
                     var a = neighbors[i];
                     var b = neighbors[i == neighbors.Length - 1 ? 0 : (i + 1)];
 
-                    var center = (a.GetPosition() + b.GetPosition() + cell.GetPosition()).normalized;
+                    var center = (a.Position + b.Position + cell.Position).normalized;
 
                     var blend = 0.08f;
-                    vertices.Add(cell.GetPosition() * blend + center * (1 - blend));
+                    vertices.Add((cell.Position * blend + center * (1 - blend)).normalized);
                 }
 
                 if (cell.IsPentagon)
                 {
-                    vertices.Add(cell.GetPosition());
+                    vertices.Add(cell.Position);
                     var t = vertices.Count - 6;
                     for (var i = 0; i < 5; i++)
                     {
-                        triangles.AddRange(new int[] { t + 5, t + (i + 1) % 5, t + i });
+                        triangles.Add(t + 5, t + (i + 1) % 5, t + i);
                     }
                 }
                 else
                 {
                     var t = vertices.Count - 6;
-                    triangles.AddRange(new int[] { t + 2, t + 1, t, t + 4, t + 3, t + 2, t, t + 5, t + 4, t + 4, t + 2, t });
+                    triangles.Add(t + 2, t + 1, t, t + 4, t + 3, t + 2, t, t + 5, t + 4, t + 4, t + 2, t);
                 }
             }
 

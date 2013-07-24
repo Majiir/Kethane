@@ -118,6 +118,11 @@ namespace Kethane
             return (float)(random.NextDouble() * (max - min) + min);
         }
 
+        public static void Add<T>(this List<T> list, params T[] values)
+        {
+            list.AddRange(values);
+        }
+
         #region Parsing utility methods
 
         public static float Parse(string s, float defaultValue)
@@ -160,6 +165,12 @@ namespace Kethane
             {
                 return defaultValue;
             }
+        }
+
+        public static Color32 Parse(string s, Color32 defaultValue)
+        {
+            if (s == null) { return defaultValue; }
+            return ConfigNode.ParseColor32(s);
         }
 
         public static ParticleRenderMode Parse(string s, ParticleRenderMode defaultValue)

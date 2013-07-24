@@ -145,7 +145,7 @@ namespace Kethane
                 this.powerRatio = energyDrawn / energyRequest;
                 TimerEcho += Time.deltaTime * (1 + Math.Log(TimeWarp.CurrentRate)) * this.powerRatio;
 
-                var TimerThreshold = this.DetectingPeriod + Altitude * 0.000005d; // 0,5s delay at 100km
+                var TimerThreshold = this.DetectingPeriod * (1 + Altitude * 0.000002d);
 
                 if (TimerEcho >= TimerThreshold)
                 {

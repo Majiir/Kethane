@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 namespace Kethane
 {
@@ -8,7 +9,7 @@ namespace Kethane
     {
         private readonly int n;
 
-        private Cell.Dictionary<Vector3d> cache;
+        private Cell.Map<Vector3> positions;
 
         /// <summary>
         /// Creates a new geodesic grid with the given number of triangle subdivisions.
@@ -17,7 +18,13 @@ namespace Kethane
         public GeodesicGrid(int subdivisions)
         {
             this.n = 1 << subdivisions;
-            this.cache = new Cell.Dictionary<Vector3d>(subdivisions);
+            this.positions = new Cell.Map<Vector3>(subdivisions);
+
+            var cache = new Cell.Dictionary<Vector3d>(subdivisions);
+            foreach (var cell in this)
+            {
+                positions[cell] = (Vector3)cell.GetPosition(cache);
+            }
         }
 
         /// <summary>
@@ -58,16 +65,22 @@ namespace Kethane
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() { return GetEnumerator(); }
 
-        public Cell NearestCell(Vector3d line)
+        /// <summary>
+        /// Finds the cell closest to the given vector.
+        /// </summary>
+        /// <param name="line">Direction vector relative to the grid.</param>
+        /// <returns>Cell on this grid which contains the given direction.</returns>
+        /// <remarks>This function performs a best-first search starting with the pentagonal cells and then the neighbors of each iterated cell.</remarks>
+        public Cell NearestCell(Vector3 line)
         {
             line = line.normalized;
-            Cell head = this.Pentagons.WithMin(c => (c.GetPosition() - line).magnitude);
+            Cell head = this.Pentagons.WithMin(c => (c.Position - line).magnitude);
             Cell best;
 
             do
             {
                 best = head;
-                head = head.Neighbors.Prepend(head).WithMin(c => (c.GetPosition() - line).magnitude);
+                head = head.Neighbors.Prepend(head).WithMin(c => (c.Position - line).magnitude);
             } while (head != best);
 
             return head;
@@ -249,38 +262,36 @@ namespace Kethane
 
             public IEnumerable<Cell> Neighbors
             {
-                get { return NeighborsAtDistance(1); }
-            }
-
-            public IEnumerable<Cell> NeighborsAtDistance(int d)
-            {
-                if (IsNorth)
+                get
                 {
-                    for (int x = 0; x < 5; x++)
+                    if (IsNorth)
                     {
-                        yield return new Cell(x, Y + d, Z, grid);
+                        for (int x = 0; x < 5; x++)
+                        {
+                            yield return new Cell(x, Y + 1, Z, grid);
+                        }
                     }
-                }
-                else if (IsSouth)
-                {
-                    for (int x = 4; x >= 0; x--)
+                    else if (IsSouth)
                     {
-                        yield return new Cell(x, Y - d, Z, grid);
+                        for (int x = 4; x >= 0; x--)
+                        {
+                            yield return new Cell(x, Y - 1, Z, grid);
+                        }
                     }
-                }
-                else
-                {
-                    var neighbors = new Cell[] {
-                        new Cell(X, Y - d, Z,     grid),
-                        new Cell(X, Y - d, Z + d, grid),
-                        new Cell(X, Y,     Z + d, grid),
-                        new Cell(X, Y + d, Z,     grid),
-                        new Cell(X, Y + d, Z - d, grid),
-                        new Cell(X, Y,     Z - d, grid)
-                    };
-                    foreach (var cell in neighbors.Distinct())
+                    else
                     {
-                        yield return cell;
+                        var neighbors = new Cell[] {
+                            new Cell(X, Y - 1, Z,     grid),
+                            new Cell(X, Y - 1, Z + 1, grid),
+                            new Cell(X, Y,     Z + 1, grid),
+                            new Cell(X, Y + 1, Z,     grid),
+                            new Cell(X, Y + 1, Z - 1, grid),
+                            new Cell(X, Y,     Z - 1, grid)
+                        };
+                        foreach (var cell in neighbors.Distinct())
+                        {
+                            yield return cell;
+                        }
                     }
                 }
             }
@@ -290,16 +301,21 @@ namespace Kethane
             /// <summary>
             /// Gets the position of the Cell on the unit sphere.
             /// </summary>
-            /// <returns>Position of this Cell as a unit vector.</returns>
-            public Vector3d GetPosition()
+            public Vector3 Position
             {
-                if (grid.cache.ContainsKey(this)) { return grid.cache[this]; }
-                var point = getPosition();
-                grid.cache[this] = point;
-                return point;
+                get { return grid.positions[this]; }
             }
 
-            private Vector3d getPosition()
+            public Vector3d GetPosition(Cell.Dictionary<Vector3d> cache)
+            {
+                if (!cache.ContainsKey(this))
+                {
+                    cache[this] = getPosition(cache);
+                }
+                return cache[this];
+            }
+
+            private Vector3d getPosition(Cell.Dictionary<Vector3d> cache)
             {
                 if (IsPentagon)
                 {
@@ -316,29 +332,18 @@ namespace Kethane
                     }
                     return new Vector3d(Math.Cos(lat) * Math.Cos(lon), Math.Sin(lat), Math.Cos(lat) * Math.Sin(lon));
                 }
-
-                var first = getFirstParent();
-                var second = getSecondParent(first);
-
-                return (first.GetPosition() + second.GetPosition()).normalized;
+                else
+                {
+                    var first = getFirstParent();
+                    var second = getSecondParent(first);
+                    return (first.GetPosition(cache) + second.GetPosition(cache)).normalized;
+                }
             }
 
             private Cell getFirstParent()
             {
-                int n = grid.n;
-
-                int y = Y;
-                int z = Z;
-
-                y = (2 * n) - (y + 1);
-
-                var s = (y | z) * 2 | n;
-                s &= -s;
-
-                y -= y % s;
-                z -= z % s;
-
-                return new Cell(X, (2 * n) - (y + 1), z, grid);
+                var s = getParentDistance() * 2;
+                return new Cell(X, Y + (Y + 1) % s, Z - Z % s, grid);
             }
 
             private Cell getSecondParent(Cell parent)
@@ -398,13 +403,13 @@ namespace Kethane
 
             public class Dictionary<T>
             {
-                private T[] values;
+                private Map<T> values;
                 private Set set;
 
                 public Dictionary(int subdivisions)
                 {
                     set = new Set(subdivisions);
-                    values = new T[set.Length];
+                    values = new Map<T>(subdivisions);
                 }
 
                 public T this[GeodesicGrid.Cell cell]
@@ -412,12 +417,12 @@ namespace Kethane
                     get
                     {
                         if (!set[cell]) { throw new KeyNotFoundException(); }
-                        return values[cell.GetHashCode()];
+                        return values[cell];
                     }
                     set
                     {
                         set[cell] = true;
-                        values[cell.GetHashCode()] = value;
+                        values[cell] = value;
                     }
                 }
 
@@ -452,12 +457,12 @@ namespace Kethane
                 {
                     get
                     {
-                        if (cell.grid.Count > set.Length) { throw new ArgumentException(); }
+                        if (cell.grid.Count != set.Length) { throw new ArgumentException(); }
                         return set[cell.GetHashCode()];
                     }
                     set
                     {
-                        if (cell.grid.Count > set.Length) { throw new ArgumentException(); }
+                        if (cell.grid.Count != set.Length) { throw new ArgumentException(); }
                         set[cell.GetHashCode()] = value;
                     }
                 }
@@ -470,6 +475,35 @@ namespace Kethane
                 public byte[] ToByteArray()
                 {
                     return set.ToByteArray();
+                }
+            }
+
+            #endregion
+
+            #region Map
+
+            public class Map<T>
+            {
+                private T[] values;
+
+                public Map(int subdivisions)
+                {
+                    var n = 1 << subdivisions;
+                    values = new T[10 * n * n + 2];
+                }
+
+                public T this[Cell cell]
+                {
+                    get
+                    {
+                        if (cell.grid.Count != values.Length) { throw new ArgumentException(); }
+                        return values[cell.GetHashCode()];
+                    }
+                    set
+                    {
+                        if (cell.grid.Count != values.Length) { throw new ArgumentException(); }
+                        values[cell.GetHashCode()] = value;
+                    }
                 }
             }
 
