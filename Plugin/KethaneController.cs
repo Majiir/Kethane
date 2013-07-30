@@ -171,7 +171,7 @@ namespace Kethane
 
             bodySeeds = FlightGlobals.Bodies.ToDictionary(b => b.name, b => b.name.GetHashCode());
 
-            foreach (var node in config.GetNodes("Body").Concat(config.GetNodes("Resource").Where(r => r.GetValue("Resource") == "Kethane").SelectMany(r => r.GetNodes("Body"))))
+            foreach (var node in config.GetNodes("Resource").Where(r => r.GetValue("Resource") == "Kethane").SelectMany(r => r.GetNodes("Body")))
             {
                 int seed;
                 if (int.TryParse(node.GetValue("SeedModifier"), out seed))
@@ -181,8 +181,6 @@ namespace Kethane
             }
 
             generateFromSeed();
-
-            loadBodyDeposits(config, "Kethane", "Kethane");
 
             foreach (var resourceNode in config.GetNodes("Resource"))
             {
@@ -200,7 +198,7 @@ namespace Kethane
             return KSPUtil.ApplicationRootPath + "saves/" + HighLogic.SaveFolder + "/kethane.cfg";
         }
 
-        private static void loadBodyDeposits(ConfigNode config, string resourceName, string amountKey = "Quantity")
+        private static void loadBodyDeposits(ConfigNode config, string resourceName)
         {
             if (!PlanetDeposits.ContainsKey(resourceName)) { return; }
             foreach (var body in PlanetDeposits[resourceName])
@@ -226,7 +224,7 @@ namespace Kethane
                 var depositNodes = bodyNode.GetNodes("Deposit");
                 for (int i = 0; i < Math.Min(deposits.Count, depositNodes.Length); i++)
                 {
-                    deposits[i].Quantity = Misc.Parse(depositNodes[i].GetValue(amountKey), deposits[i].InitialQuantity);
+                    deposits[i].Quantity = Misc.Parse(depositNodes[i].GetValue("Quantity"), deposits[i].InitialQuantity);
                 }
             }
         }
