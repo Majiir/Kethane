@@ -7,36 +7,9 @@ namespace Kethane
 {
     internal class KethaneController
     {
-        #region Static factory
-
-        private static Dictionary<WeakReference<Vessel>, KethaneController> controllers = new Dictionary<WeakReference<Vessel>, KethaneController>();
-
-        public static KethaneController GetInstance(Vessel vessel)
-        {
-            foreach (var kvp in controllers.ToArray())
-            {
-                var wr = kvp.Key;
-                var v = wr.Target;
-                if (v == null)
-                {
-                    controllers.Remove(wr);
-                }
-                else if (v == vessel)
-                {
-                    return controllers[wr];
-                }
-            }
-
-            var commander = new KethaneController();
-            controllers[new WeakReference<Vessel>(vessel)] = commander;
-            return commander;
-        }
-
-        #endregion
-
         public static Dictionary<string, Dictionary<string, List<Deposit>>> PlanetDeposits;
         public static Dictionary<string, Dictionary<string, GeodesicGrid.Cell.Set>> Scans;
-        public static bool ScanningSound = true;
+        public static bool ScanningSound = Misc.Parse(SettingsManager.GetValue("ScanningSound"), true);
 
         private static Dictionary<string, int> bodySeeds;
         private static int depositSeed;
@@ -55,19 +28,6 @@ namespace Kethane
 
         private static string selectedResource = "Kethane";
         public static string SelectedResource { get { return selectedResource; } set { selectedResource = value; } }
-
-        public Vessel Vessel
-        {
-            get { return controllers.Single(p => p.Value == this).Key.Target; }
-        }
-
-        private KethaneController()
-        {
-            loadResourceDefinitions();
-            LoadKethaneDeposits();
-
-            ScanningSound = Misc.Parse(SettingsManager.GetValue("ScanningSound"), true);
-        }
 
         private static void loadResourceDefinitions()
         {
@@ -275,9 +235,9 @@ namespace Kethane
             }
         }
 
-        public Deposit GetDepositUnder(string resourceName)
+        public static Deposit GetDepositUnder(string resourceName, Vessel vessel)
         {
-            return GetCellDeposit(resourceName, Vessel.mainBody, MapOverlay.GetCellUnder(Vessel.mainBody, Vessel.transform.position));
+            return GetCellDeposit(resourceName, vessel.mainBody, MapOverlay.GetCellUnder(vessel.mainBody, vessel.transform.position));
         }
 
         public static Deposit GetCellDeposit(string resourceName, CelestialBody body, GeodesicGrid.Cell cell)

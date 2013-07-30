@@ -73,7 +73,6 @@
     <Compile Include="ResourceDefinition.cs" />
     <Compile Include="SettingsManager.cs" />
     <Compile Include="TimedMovingAverage.cs" />
-    <Compile Include="WeakReference.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

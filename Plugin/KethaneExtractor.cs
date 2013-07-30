@@ -145,7 +145,7 @@ namespace Kethane
                 {
                     if (animator.CurrentState == ExtractorState.Deployed)
                     {
-                        emitter.Emit = hit && KethaneController.GetInstance(this.vessel).GetDepositUnder("Kethane") != null;
+                        emitter.Emit = hit && KethaneController.GetDepositUnder("Kethane", this.vessel) != null;
                     }
                     else
                     {
@@ -172,7 +172,7 @@ namespace Kethane
 
             foreach (var resource in resources)
             {
-                var deposit = KethaneController.GetInstance(this.vessel).GetDepositUnder(resource.Name);
+                var deposit = KethaneController.GetDepositUnder(resource.Name, this.vessel);
                 if (deposit == null) { continue; }
 
                 var amount = TimeWarp.fixedDeltaTime * resource.Rate * energyRatio;
