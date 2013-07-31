@@ -2,7 +2,8 @@
 
 namespace Kethane
 {
-    internal static class SettingsManager
+    [KSPAddon(KSPAddon.Startup.Instantly, true)]
+    internal class SettingsManager : MonoBehaviour
     {
         private static ConfigNode node;
 
@@ -39,6 +40,16 @@ namespace Kethane
         private static string settingsFile
         {
             get { return KSPUtil.ApplicationRootPath + "GameData/Kethane/settings.cfg"; }
+        }
+
+        public void Awake()
+        {
+            MonoBehaviour.DontDestroyOnLoad(this);
+        }
+
+        public void Destroy()
+        {
+            Save();
         }
     }
 }
