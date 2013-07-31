@@ -18,7 +18,6 @@ namespace Kethane
         public float RadiusVariance { get; private set; }
         public int DepositCount { get; private set; }
         public int NumberOfTries { get; private set; }
-        public int SeedModifier { get; private set; }
         public Color ColorFull { get; private set; }
         public Color ColorEmpty { get; private set; }
 
@@ -27,7 +26,6 @@ namespace Kethane
         public ResourceDefinition(ConfigNode node)
         {
             Resource = node.GetValue("Resource");
-            SeedModifier = Misc.Parse(node.GetValue("SeedModifier"), Resource.GetHashCode());
 
             ColorFull = ColorEmpty = Color.white;
 

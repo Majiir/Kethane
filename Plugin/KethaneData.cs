@@ -142,7 +142,7 @@ namespace Kethane
 
         private BodyDeposits generate(CelestialBody body, ResourceDefinition resource)
         {
-            return new BodyDeposits(resource, depositSeed ^ (resource.Resource == "Kethane" ? bodySeeds[body.name] : 0) ^ resource.SeedModifier);
+            return new BodyDeposits(resource, depositSeed ^ (resource.Resource == "Kethane" ? bodySeeds[body.name] : 0) ^ (resource.Resource == "Kethane" ? 0 : resource.Resource.GetHashCode()));
         }
 
         private void loadBodyDeposits(ConfigNode config, string resourceName)
