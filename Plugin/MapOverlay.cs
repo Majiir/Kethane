@@ -78,11 +78,6 @@ namespace Kethane
 
         private void startMapOverlay()
         {
-            if (resource == null)
-            {
-                resource = KethaneController.ResourceDefinitions.Where(d => d.Resource == "Kethane").Single();
-            }
-
             gameObject.layer = 10;
 
             var node = ConfigNode.Load(KSPUtil.ApplicationRootPath + "GameData/Kethane/Grid.cfg");
@@ -192,7 +187,7 @@ namespace Kethane
                 gameObject.transform.localRotation = Quaternion.identity;
             }
 
-            if (bodyChanged || resource.Resource != KethaneController.SelectedResource)
+            if (bodyChanged || resource == null || resource.Resource != KethaneController.SelectedResource)
             {
                 resource = KethaneController.ResourceDefinitions.Where(r => r.Resource == KethaneController.SelectedResource).Single().ForBody(body);
                 refreshCellColors();
