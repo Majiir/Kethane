@@ -137,12 +137,7 @@ namespace Kethane
 
         private void generateFromSeed()
         {
-            PlanetDeposits = KethaneController.ResourceDefinitions.ToDictionary(d => d.Resource, d => FlightGlobals.Bodies.ToDictionary(b => b.name, b => generate(b, d)));
-        }
-
-        private BodyDeposits generate(CelestialBody body, ResourceDefinition resource)
-        {
-            return new BodyDeposits(resource.Generator.ForBody(body), depositSeed ^ (resource.Resource == "Kethane" ? bodySeeds[body.name] : 0) ^ (resource.Resource == "Kethane" ? 0 : resource.Resource.GetHashCode()));
+            PlanetDeposits = KethaneController.ResourceDefinitions.ToDictionary(d => d.Resource, d => FlightGlobals.Bodies.ToDictionary(b => b.name, b => new BodyDeposits(d.Generator.ForBody(b), depositSeed ^ (d.Resource == "Kethane" ? bodySeeds[b.name] : 0) ^ (d.Resource == "Kethane" ? 0 : d.Resource.GetHashCode()))));
         }
 
         private void loadBodyDeposits(ConfigNode config, string resourceName)
