@@ -24,8 +24,12 @@ namespace Kethane
             }
         }
 
-        private static string selectedResource = "Kethane";
-        public static string SelectedResource { get { return selectedResource; } set { selectedResource = value; } }
+        public static string SelectedResource { get; set; }
+
+        static KethaneController()
+        {
+            SelectedResource = "Kethane";
+        }
 
         private static void loadResourceDefinitions()
         {
