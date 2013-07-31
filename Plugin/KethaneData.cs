@@ -27,7 +27,7 @@ namespace Kethane
             }
         }
 
-        public Dictionary<string, Dictionary<string, List<Deposit>>> PlanetDeposits;
+        public Dictionary<string, Dictionary<string, BodyDeposits>> PlanetDeposits;
         public Dictionary<string, Dictionary<string, GeodesicGrid.Cell.Set>> Scans;
 
         private Dictionary<string, int> bodySeeds;
@@ -42,22 +42,7 @@ namespace Kethane
         {
             if (resourceName == null || body == null || !PlanetDeposits.ContainsKey(resourceName) || !PlanetDeposits[resourceName].ContainsKey(body.name)) { return null; }
 
-            var pos = cell.Position;
-            var lat = (float)(Math.Atan2(pos.y, Math.Sqrt(pos.x * pos.x + pos.z * pos.z)) * 180 / Math.PI);
-            var lon = (float)(Math.Atan2(pos.z, pos.x) * 180 / Math.PI);
-
-            var x = lon + 180f;
-            var y = 90f - lat;
-
-            foreach (Deposit deposit in PlanetDeposits[resourceName][body.name])
-            {
-                if (deposit.Shape.PointInPolygon(new Vector2(x, y)))
-                {
-                    return deposit;
-                }
-            }
-
-            return null;
+            return PlanetDeposits[resourceName][body.name].GetDeposit(cell);
         }
 
         public void GenerateKethaneDeposits(System.Random random = null)
@@ -137,14 +122,10 @@ namespace Kethane
                         bodyNode.AddValue("ScanMask", Convert.ToBase64String(Scans[resource.Key][body.Key].ToByteArray()).Replace('/', '.').Replace('=', '%'));
                     }
 
-                    foreach (var deposit in body.Value)
-                    {
-                        var depositNode = new ConfigNode("Deposit");
-                        depositNode.AddValue("Quantity", deposit.Quantity);
-                        bodyNode.AddNode(depositNode);
-                    }
+                    var node = body.Value.Save();
+                    ConfigNode.Merge(node, bodyNode);
 
-                    resourceNode.AddNode(bodyNode);
+                    resourceNode.AddNode(node);
                 }
 
                 configNode.AddNode(resourceNode);
@@ -159,28 +140,9 @@ namespace Kethane
             PlanetDeposits = KethaneController.ResourceDefinitions.ToDictionary(d => d.Resource, d => FlightGlobals.Bodies.ToDictionary(b => b.name, b => generate(b, d.ForBody(b))));
         }
 
-        private List<Deposit> generate(CelestialBody body, ResourceDefinition resource)
+        private BodyDeposits generate(CelestialBody body, ResourceDefinition resource)
         {
-            var random = new System.Random(depositSeed ^ (resource.Resource == "Kethane" ? bodySeeds[body.name] : 0) ^ resource.SeedModifier);
-
-            var deposits = new List<Deposit>();
-
-            for (int i = 0; i < resource.DepositCount; i++)
-            {
-                float R = random.Range(resource.MinRadius, resource.MaxRadius);
-                for (int j = 0; j < resource.NumberOfTries; j++)
-                {
-                    Vector2 Pos = new Vector2(random.Range(R, 360 - R), random.Range(R, 180 - R));
-                    var deposit = Deposit.Generate(Pos, R, random, resource);
-                    if (!deposits.Any(d => d.Shape.Vertices.Any(v => deposit.Shape.PointInPolygon(new Vector2(v.x, v.y)))) && !deposit.Shape.Vertices.Any(v => deposits.Any(d => d.Shape.PointInPolygon(new Vector2(v.x, v.y)))))
-                    {
-                        deposits.Add(deposit);
-                        break;
-                    }
-                }
-            }
-
-            return deposits;
+            return new BodyDeposits(resource, depositSeed ^ (resource.Resource == "Kethane" ? bodySeeds[body.name] : 0) ^ resource.SeedModifier);
         }
 
         private void loadBodyDeposits(ConfigNode config, string resourceName)
@@ -209,7 +171,7 @@ namespace Kethane
                 var depositNodes = bodyNode.GetNodes("Deposit");
                 for (int i = 0; i < Math.Min(deposits.Count, depositNodes.Length); i++)
                 {
-                    deposits[i].Quantity = Misc.Parse(depositNodes[i].GetValue("Quantity"), deposits[i].InitialQuantity);
+                    deposits.DepositAt(i).Quantity = Misc.Parse(depositNodes[i].GetValue("Quantity"), deposits.DepositAt(i).InitialQuantity);
                 }
             }
         }

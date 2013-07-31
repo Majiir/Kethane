@@ -35,7 +35,74 @@ namespace Kethane
         }
     }
 
-    internal class Deposit
+    internal class BodyDeposits : IBodyResources
+    {
+        private readonly List<Deposit> deposits;
+
+        public BodyDeposits(ResourceDefinition resource, int seed)
+        {
+            var random = new System.Random(seed);
+            this.deposits = new List<Deposit>();
+
+            for (int i = 0; i < resource.DepositCount; i++)
+            {
+                float R = random.Range(resource.MinRadius, resource.MaxRadius);
+                for (int j = 0; j < resource.NumberOfTries; j++)
+                {
+                    Vector2 Pos = new Vector2(random.Range(R, 360 - R), random.Range(R, 180 - R));
+                    var deposit = Deposit.Generate(Pos, R, random, resource);
+                    if (!deposits.Any(d => d.Shape.Vertices.Any(v => deposit.Shape.PointInPolygon(new Vector2(v.x, v.y)))) && !deposit.Shape.Vertices.Any(v => deposits.Any(d => d.Shape.PointInPolygon(new Vector2(v.x, v.y)))))
+                    {
+                        deposits.Add(deposit);
+                        break;
+                    }
+                }
+            }
+        }
+
+        public int IndexOf(Deposit deposit)
+        {
+            return deposits.IndexOf(deposit);
+        }
+
+        public Deposit DepositAt(int index)
+        {
+            return deposits[index];
+        }
+
+        public int Count { get { return deposits.Count; } }
+
+        public ICellResource GetResource(GeodesicGrid.Cell cell)
+        {
+            return GetDeposit(cell);
+        }
+
+        public Deposit GetDeposit(GeodesicGrid.Cell cell)
+        {
+            var pos = cell.Position;
+            var lat = (float)(Math.Atan2(pos.y, Math.Sqrt(pos.x * pos.x + pos.z * pos.z)) * 180 / Math.PI);
+            var lon = (float)(Math.Atan2(pos.z, pos.x) * 180 / Math.PI);
+
+            var x = lon + 180f;
+            var y = 90f - lat;
+
+            return deposits.FirstOrDefault(d => d.Shape.PointInPolygon(new Vector2(x, y)));
+        }
+
+        public ConfigNode Save()
+        {
+            var node = new ConfigNode();
+            foreach (var deposit in deposits)
+            {
+                var depositNode = new ConfigNode("Deposit");
+                depositNode.AddValue("Quantity", deposit.Quantity);
+                node.AddNode(depositNode);
+            }
+            return node;
+        }
+    }
+
+    internal class Deposit : ICellResource
     {
         public Polygon Shape;
 
