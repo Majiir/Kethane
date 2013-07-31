@@ -7,7 +7,11 @@ namespace Kethane
 {
     internal class KethaneController
     {
-        public static bool ScanningSound = Misc.Parse(SettingsManager.GetValue("ScanningSound"), true);
+        public static bool ScanningSound
+        {
+            get { return Misc.Parse(SettingsManager.GetValue("ScanningSound"), true); }
+            set { SettingsManager.SetValue("ScanningSound", value); }
+        }
 
         private static SortedDictionary<String, ResourceDefinition> resourceDefinitions = null;
 
@@ -51,12 +55,6 @@ namespace Kethane
                 }
             }
             Debug.Log(String.Format("[Kethane] Loaded {0} resource definitions", resourceDefinitions.Count));
-        }
-
-        public static void SaveKethaneDeposits()
-        {
-            SettingsManager.SetValue("ScanningSound", ScanningSound);
-            SettingsManager.Save();
         }
     }
 }

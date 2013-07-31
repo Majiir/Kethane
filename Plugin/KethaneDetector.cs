@@ -172,10 +172,5 @@ namespace Kethane
                 this.powerRatio = 0;
             }
         }
-
-        public override void OnSave(ConfigNode node)
-        {
-            KethaneController.SaveKethaneDeposits();
-        }
     }
 }
