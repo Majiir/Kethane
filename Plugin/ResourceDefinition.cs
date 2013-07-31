@@ -9,6 +9,24 @@ namespace Kethane
     internal class ResourceDefinition
     {
         public string Resource { get; private set; }
+        public Color ColorFull { get; private set; }
+        public Color ColorEmpty { get; private set; }
+        public GeneratorConfiguration Generator { get; private set; }
+
+        public ResourceDefinition(ConfigNode node)
+        {
+            Resource = node.GetValue("Resource");
+            var colorFull = node.GetValue("ColorFull");
+            ColorFull = colorFull != null ? ConfigNode.ParseColor(colorFull) : Color.white;
+            var colorEmpty = node.GetValue("ColorEmpty");
+            ColorEmpty = colorEmpty != null ? ConfigNode.ParseColor(colorEmpty) : Color.white;
+
+            Generator = new GeneratorConfiguration(node.GetNode("Generator"));
+        }
+    }
+
+    internal class GeneratorConfiguration
+    {
         public float MinRadius { get; private set; }
         public float MaxRadius { get; private set; }
         public float MinQuantity { get; private set; }
@@ -18,28 +36,21 @@ namespace Kethane
         public float RadiusVariance { get; private set; }
         public int DepositCount { get; private set; }
         public int NumberOfTries { get; private set; }
-        public Color ColorFull { get; private set; }
-        public Color ColorEmpty { get; private set; }
 
-        private Dictionary<string, ResourceDefinition> bodies = new Dictionary<string, ResourceDefinition>();
+        private Dictionary<string, GeneratorConfiguration> bodies = new Dictionary<string, GeneratorConfiguration>();
 
-        public ResourceDefinition(ConfigNode node)
+        public GeneratorConfiguration(ConfigNode node)
         {
-            Resource = node.GetValue("Resource");
-
-            ColorFull = ColorEmpty = Color.white;
-
             load(node);
             foreach (var bodyNode in node.GetNodes("Body"))
             {
-                var body = (ResourceDefinition)this.MemberwiseClone();
-                body.Resource = Resource;
+                var body = (GeneratorConfiguration)this.MemberwiseClone();
                 body.load(bodyNode);
                 bodies[bodyNode.GetValue("name")] = body;
             }
         }
 
-        public ResourceDefinition ForBody(CelestialBody body)
+        public GeneratorConfiguration ForBody(CelestialBody body)
         {
             return bodies.ContainsKey(body.name) ? bodies[body.name] : this;
         }
@@ -55,10 +66,6 @@ namespace Kethane
             RadiusVariance = Misc.Parse(node.GetValue("RadiusVariance"), RadiusVariance);
             DepositCount = Misc.Parse(node.GetValue("DepositCount"), DepositCount);
             NumberOfTries = Misc.Parse(node.GetValue("NumberOfTries"), NumberOfTries);
-            var colorFull = node.GetValue("ColorFull");
-            if (colorFull != null) { ColorFull = ConfigNode.ParseColor(colorFull); }
-            var colorEmpty = node.GetValue("ColorEmpty");
-            if (colorEmpty != null) { ColorEmpty = ConfigNode.ParseColor(colorEmpty); }
         }
     }
 }

@@ -193,7 +193,7 @@ namespace Kethane
 
             if (bodyChanged || resource == null || resource.Resource != KethaneController.SelectedResource)
             {
-                resource = KethaneController.ResourceDefinitions.Where(r => r.Resource == KethaneController.SelectedResource).Single().ForBody(body);
+                resource = KethaneController.ResourceDefinitions.Where(r => r.Resource == KethaneController.SelectedResource).Single();
                 refreshCellColors();
             }
 
@@ -232,7 +232,7 @@ namespace Kethane
         {
             var deposit = data.GetCellDeposit(resource.Resource, body, cell);
             var scanned = data.Scans[resource.Resource][body.name][cell];
-            var color = (revealAll ? deposit != null : scanned) ? getDepositColor(resource, deposit) : colorUnknown;
+            var color = (revealAll ? deposit != null : scanned) ? getDepositColor(resource, deposit, body) : colorUnknown;
             setCellColor(cell, color, colors);
         }
 
@@ -245,12 +245,12 @@ namespace Kethane
             }
         }
 
-        private static Color32 getDepositColor(ResourceDefinition definition, Deposit deposit)
+        private static Color32 getDepositColor(ResourceDefinition definition, Deposit deposit, CelestialBody body)
         {
             Color32 color;
             if (deposit != null)
             {
-                var ratio = (deposit.Quantity / definition.MaxQuantity);
+                var ratio = (deposit.Quantity / definition.Generator.ForBody(body).MaxQuantity);
                 color = (Color32)(definition.ColorFull * ratio + definition.ColorEmpty * (1 - ratio));
             }
             else
@@ -345,7 +345,7 @@ namespace Kethane
             GUILayout.Label(String.Format("{0:F1} {1}, {2:F1} {3}", Math.Abs(lat), lat < 0 ? "S" : "N", Math.Abs(lon), lon < 0 ? "W" : "E"));
             GUILayout.EndHorizontal();
 
-            foreach (var definition in KethaneController.ResourceDefinitions.Select(d => d.ForBody(body)))
+            foreach (var definition in KethaneController.ResourceDefinitions)
             {
                 GUILayout.BeginHorizontal();
 

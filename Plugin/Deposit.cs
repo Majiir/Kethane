@@ -39,7 +39,7 @@ namespace Kethane
     {
         private readonly List<Deposit> deposits;
 
-        public BodyDeposits(ResourceDefinition resource, int seed)
+        public BodyDeposits(GeneratorConfiguration resource, int seed)
         {
             var random = new System.Random(seed);
             this.deposits = new List<Deposit>();
@@ -116,7 +116,7 @@ namespace Kethane
             InitialQuantity = initialQuantity;
         }
 
-        public static Deposit Generate(Vector2 Pos, float radius, System.Random random, ResourceDefinition resource)
+        public static Deposit Generate(Vector2 Pos, float radius, System.Random random, GeneratorConfiguration resource)
         {
             var initialQuantity = random.Range(resource.MinQuantity, resource.MaxQuantity);
 
