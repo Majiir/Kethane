@@ -419,35 +419,6 @@ namespace Kethane
                         refreshCellColors();
                     }
 
-                    GUI.enabled = vessel != null;
-                    if (GUILayout.Button("Generate Under Vessel"))
-                    {
-                        var random = new System.Random();
-
-                        do
-                        {
-                            KethaneData.Current.GenerateKethaneDeposits(random);
-                        }
-                        while (KethaneData.Current.GetCellDeposit(resource.Resource, body, GetCellUnder(body, vessel.transform.position)) == null);
-
-                        refreshCellColors();
-                    }
-                    GUI.enabled = true;
-
-                    if (GUILayout.Button("Generate All Bodies"))
-                    {
-                        KethaneData.Current.GenerateKethaneDeposits();
-                        refreshCellColors();
-                    }
-
-                    GUI.enabled = deposit != null;
-                    if (GUILayout.Button("Refill Deposit"))
-                    {
-                        deposit.Quantity = deposit.InitialQuantity;
-                        refreshCellColors();
-                    }
-                    GUI.enabled = true;
-
                     if (GUILayout.Button("Export Data (" + (revealAll ? "All" : "Scanned") + ")"))
                     {
                         export();
@@ -475,7 +446,7 @@ namespace Kethane
                 cells[cell] = String.Format(CultureInfo.InvariantCulture, "{0},{1},{2},{3},{4},{5},", cell.GetHashCode(), lat, lon, pos.x, pos.y, pos.z);
             }
 
-            sb.AppendLine("body,resource,cellId,lat,lon,x,y,z,scanned,quantity,initialQuantity,depositIndex");
+            sb.AppendLine("body,resource,cellId,lat,lon,x,y,z,scanned,quantity");
 
             foreach (var body in FlightGlobals.Bodies)
             {
@@ -485,18 +456,17 @@ namespace Kethane
                     {
                         var scanned = KethaneData.Current.Scans[resource.Resource][body.name][cell];
                         var deposit = KethaneData.Current.GetCellDeposit(resource.Resource, body, cell);
-                        var index = deposit == null ? -1 : KethaneData.Current.PlanetDeposits[resource.Resource][body.name].IndexOf(deposit);
 
                         sb.Append(String.Format("{0},{1},", body.name, resource.Resource));
                         sb.Append(cells[cell]);
                         sb.Append(scanned ? "true" : "false");
                         if ((revealAll || scanned) && deposit != null)
                         {
-                            sb.Append(String.Format(CultureInfo.InvariantCulture, ",{0},{1},{2}", deposit.Quantity, deposit.InitialQuantity, index));
+                            sb.Append(String.Format(CultureInfo.InvariantCulture, ",{0}", deposit.Quantity));
                         }
                         else
                         {
-                            sb.Append(",,,");
+                            sb.Append(",");
                         }
                         sb.AppendLine();
                     }

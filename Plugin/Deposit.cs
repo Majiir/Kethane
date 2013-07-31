@@ -60,11 +60,6 @@ namespace Kethane
             }
         }
 
-        public int IndexOf(Deposit deposit)
-        {
-            return deposits.IndexOf(deposit);
-        }
-
         public Deposit DepositAt(int index)
         {
             return deposits[index];
