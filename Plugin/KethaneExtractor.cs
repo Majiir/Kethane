@@ -145,7 +145,7 @@ namespace Kethane
                 {
                     if (animator.CurrentState == ExtractorState.Deployed)
                     {
-                        emitter.Emit = hit && KethaneController.GetDepositUnder("Kethane", this.vessel) != null;
+                        emitter.Emit = hit && KethaneData.Current.GetDepositUnder("Kethane", this.vessel) != null;
                     }
                     else
                     {
@@ -172,18 +172,13 @@ namespace Kethane
 
             foreach (var resource in resources)
             {
-                var deposit = KethaneController.GetDepositUnder(resource.Name, this.vessel);
+                var deposit = KethaneData.Current.GetDepositUnder(resource.Name, this.vessel);
                 if (deposit == null) { continue; }
 
                 var amount = TimeWarp.fixedDeltaTime * resource.Rate * energyRatio;
                 amount = Math.Min(amount, deposit.Quantity);
                 deposit.Quantity += this.part.RequestResource(resource.Name, -amount);
             }
-        }
-
-        public override void OnSave(ConfigNode node)
-        {
-            KethaneController.SaveKethaneDeposits();
         }
 
         private bool raycastGround()

@@ -78,7 +78,6 @@ namespace Kethane
 
         private void startMapOverlay()
         {
-            KethaneController.LoadKethaneDeposits();
             if (resource == null)
             {
                 resource = KethaneController.ResourceDefinitions.Where(d => d.Resource == "Kethane").Single();
@@ -231,8 +230,8 @@ namespace Kethane
 
         private void refreshCellColor(GeodesicGrid.Cell cell, CelestialBody body, Color32[] colors)
         {
-            var deposit = KethaneController.GetCellDeposit(resource.Resource, body, cell);
-            var scanned = KethaneController.Scans[resource.Resource][body.name][cell];
+            var deposit = KethaneData.Current.GetCellDeposit(resource.Resource, body, cell);
+            var scanned = KethaneData.Current.Scans[resource.Resource][body.name][cell];
             var color = (revealAll ? deposit != null : scanned) ? getDepositColor(resource, deposit) : colorUnknown;
             setCellColor(cell, color, colors);
         }
@@ -352,9 +351,9 @@ namespace Kethane
 
                 GUILayout.Label(String.Format("{0}:", definition.Resource));
                 GUILayout.FlexibleSpace();
-                if (revealAll || KethaneController.Scans[definition.Resource][body.name][cell])
+                if (revealAll || KethaneData.Current.Scans[definition.Resource][body.name][cell])
                 {
-                    var deposit = KethaneController.GetCellDeposit(definition.Resource, body, cell);
+                    var deposit = KethaneData.Current.GetCellDeposit(definition.Resource, body, cell);
                     GUILayout.Label(deposit != null ? String.Format("{0:N1}", deposit.Quantity) : "(none)");
                 }
                 else
@@ -410,7 +409,7 @@ namespace Kethane
                 {
                     var vessel = FlightGlobals.ActiveVessel;
                     if (vessel != null && vessel.mainBody != body) { vessel = null; }
-                    var deposit = vessel == null ? null : KethaneController.GetCellDeposit(resource.Resource, body, GetCellUnder(body, vessel.transform.position));
+                    var deposit = vessel == null ? null : KethaneData.Current.GetCellDeposit(resource.Resource, body, GetCellUnder(body, vessel.transform.position));
 
                     GUILayout.BeginVertical(GUI.skin.box);
 
@@ -427,18 +426,17 @@ namespace Kethane
 
                         do
                         {
-                            KethaneController.GenerateKethaneDeposits(random, true);
+                            KethaneData.Current.GenerateKethaneDeposits(random);
                         }
-                        while (KethaneController.GetCellDeposit(resource.Resource, body, GetCellUnder(body, vessel.transform.position)) == null);
+                        while (KethaneData.Current.GetCellDeposit(resource.Resource, body, GetCellUnder(body, vessel.transform.position)) == null);
 
-                        KethaneController.SaveKethaneDeposits();
                         refreshCellColors();
                     }
                     GUI.enabled = true;
 
                     if (GUILayout.Button("Generate All Bodies"))
                     {
-                        KethaneController.GenerateKethaneDeposits();
+                        KethaneData.Current.GenerateKethaneDeposits();
                         refreshCellColors();
                     }
 
@@ -446,7 +444,6 @@ namespace Kethane
                     if (GUILayout.Button("Refill Deposit"))
                     {
                         deposit.Quantity = deposit.InitialQuantity;
-                        KethaneController.SaveKethaneDeposits();
                         refreshCellColors();
                     }
                     GUI.enabled = true;
@@ -486,9 +483,9 @@ namespace Kethane
                 {
                     foreach (var cell in grid)
                     {
-                        var scanned = KethaneController.Scans[resource.Resource][body.name][cell];
-                        var deposit = KethaneController.GetCellDeposit(resource.Resource, body, cell);
-                        var index = deposit == null ? -1 : KethaneController.PlanetDeposits[resource.Resource][body.name].IndexOf(deposit);
+                        var scanned = KethaneData.Current.Scans[resource.Resource][body.name][cell];
+                        var deposit = KethaneData.Current.GetCellDeposit(resource.Resource, body, cell);
+                        var index = deposit == null ? -1 : KethaneData.Current.PlanetDeposits[resource.Resource][body.name].IndexOf(deposit);
 
                         sb.Append(String.Format("{0},{1},", body.name, resource.Resource));
                         sb.Append(cells[cell]);
