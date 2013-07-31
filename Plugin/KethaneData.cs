@@ -90,7 +90,34 @@ namespace Kethane
 
             foreach (var resourceNode in config.GetNodes("Resource"))
             {
-                loadBodyDeposits(resourceNode, resourceNode.GetValue("Resource"));
+                var resourceName = resourceNode.GetValue("Resource");
+                if (!PlanetDeposits.ContainsKey(resourceName)) { continue; }
+                foreach (var body in PlanetDeposits[resourceName])
+                {
+                    var deposits = body.Value;
+
+                    var bodyNode = resourceNode.GetNodes("Body").Where(b => b.GetValue("Name") == body.Key).SingleOrDefault();
+                    if (bodyNode == null) { continue; }
+
+                    var scanMask = bodyNode.GetValue("ScanMask");
+                    if (scanMask != null)
+                    {
+                        try
+                        {
+                            Scans[resourceName][body.Key] = new GeodesicGrid.Cell.Set(5, Convert.FromBase64String(scanMask.Replace('.', '/').Replace('%', '=')));
+                        }
+                        catch (FormatException e)
+                        {
+                            Debug.LogError(String.Format("[Kethane] Failed to parse {0}/{1} scan string, resetting ({2})", body.Key, resourceName, e.Message));
+                        }
+                    }
+
+                    var depositNodes = bodyNode.GetNodes("Deposit");
+                    for (int i = 0; i < Math.Min(deposits.Count, depositNodes.Length); i++)
+                    {
+                        deposits.DepositAt(i).Quantity = Misc.Parse(depositNodes[i].GetValue("Quantity"), deposits.DepositAt(i).InitialQuantity);
+                    }
+                }
             }
 
             timer.Stop();
@@ -138,37 +165,6 @@ namespace Kethane
         private void generateFromSeed()
         {
             PlanetDeposits = KethaneController.ResourceDefinitions.ToDictionary(d => d.Resource, d => FlightGlobals.Bodies.ToDictionary(b => b.name, b => new BodyDeposits(d.Generator.ForBody(b), depositSeed ^ (d.Resource == "Kethane" ? bodySeeds[b.name] : 0) ^ (d.Resource == "Kethane" ? 0 : d.Resource.GetHashCode()))));
-        }
-
-        private void loadBodyDeposits(ConfigNode config, string resourceName)
-        {
-            if (!PlanetDeposits.ContainsKey(resourceName)) { return; }
-            foreach (var body in PlanetDeposits[resourceName])
-            {
-                var deposits = body.Value;
-
-                var bodyNode = config.GetNodes("Body").Where(b => b.GetValue("Name") == body.Key).SingleOrDefault();
-                if (bodyNode == null) { continue; }
-
-                var scanMask = bodyNode.GetValue("ScanMask");
-                if (scanMask != null)
-                {
-                    try
-                    {
-                        Scans[resourceName][body.Key] = new GeodesicGrid.Cell.Set(5, Convert.FromBase64String(scanMask.Replace('.', '/').Replace('%', '=')));
-                    }
-                    catch (FormatException e)
-                    {
-                        Debug.LogError(String.Format("[Kethane] Failed to parse {0}/{1} scan string, resetting ({2})", body.Key, resourceName, e.Message));
-                    }
-                }
-
-                var depositNodes = bodyNode.GetNodes("Deposit");
-                for (int i = 0; i < Math.Min(deposits.Count, depositNodes.Length); i++)
-                {
-                    deposits.DepositAt(i).Quantity = Misc.Parse(depositNodes[i].GetValue("Quantity"), deposits.DepositAt(i).InitialQuantity);
-                }
-            }
         }
     }
 }
