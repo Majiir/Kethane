@@ -68,6 +68,14 @@ namespace Kethane
 
         public override void OnLoad(ConfigNode config)
         {
+            var oldPath = KSPUtil.ApplicationRootPath + "saves/" + HighLogic.SaveFolder + "/kethane.cfg";
+            var oldConfig = ConfigNode.Load(oldPath);
+            if (oldConfig != null)
+            {
+                config = oldConfig;
+                System.IO.File.Delete(oldPath);
+            }
+
             var timer = System.Diagnostics.Stopwatch.StartNew();
 
             Scans = KethaneController.ResourceDefinitions.ToDictionary(d => d.Resource, d => FlightGlobals.Bodies.ToDictionary(b => b.name, b => new GeodesicGrid.Cell.Set(5)));
