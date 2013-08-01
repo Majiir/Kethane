@@ -67,11 +67,13 @@ namespace Kethane
 
             var timer = System.Diagnostics.Stopwatch.StartNew();
 
+            var random = new System.Random();
+
             Scans = KethaneController.ResourceDefinitions.ToDictionary(d => d.Resource, d => FlightGlobals.Bodies.ToDictionary(b => b.name, b => new GeodesicGrid.Cell.Set(5)));
 
             PlanetDeposits = KethaneController.ResourceDefinitions.ToDictionary(d => d.Resource, d => FlightGlobals.Bodies.ToDictionary(b => b.name, b =>
             {
-                int seed = new System.Random().Next();
+                int seed = random.Next();
                 var resourceNode = config.GetNodes("Resource").SingleOrDefault(n => n.GetValue("Resource") == d.Resource);
                 if (resourceNode != null)
                 {
