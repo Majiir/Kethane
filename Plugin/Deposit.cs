@@ -50,6 +50,50 @@ namespace Kethane
         }
     }
 
+    internal class GeneratorConfiguration
+    {
+        public float MinRadius { get; private set; }
+        public float MaxRadius { get; private set; }
+        public float MinQuantity { get; private set; }
+        public float MaxQuantity { get; private set; }
+        public int MinVertices { get; private set; }
+        public int MaxVertices { get; private set; }
+        public float RadiusVariance { get; private set; }
+        public int DepositCount { get; private set; }
+        public int NumberOfTries { get; private set; }
+
+        private Dictionary<string, GeneratorConfiguration> bodies = new Dictionary<string, GeneratorConfiguration>();
+
+        public GeneratorConfiguration(ConfigNode node)
+        {
+            load(node);
+            foreach (var bodyNode in node.GetNodes("Body"))
+            {
+                var body = (GeneratorConfiguration)this.MemberwiseClone();
+                body.load(bodyNode);
+                bodies[bodyNode.GetValue("name")] = body;
+            }
+        }
+
+        public GeneratorConfiguration ForBody(CelestialBody body)
+        {
+            return bodies.ContainsKey(body.name) ? bodies[body.name] : this;
+        }
+
+        private void load(ConfigNode node)
+        {
+            MinRadius = Misc.Parse(node.GetValue("MinRadius"), MinRadius);
+            MaxRadius = Misc.Parse(node.GetValue("MaxRadius"), MaxRadius);
+            MinQuantity = Misc.Parse(node.GetValue("MinQuantity"), MinQuantity);
+            MaxQuantity = Misc.Parse(node.GetValue("MaxQuantity"), MaxQuantity);
+            MinVertices = Misc.Parse(node.GetValue("MinVertices"), MinVertices);
+            MaxVertices = Misc.Parse(node.GetValue("MaxVertices"), MaxVertices);
+            RadiusVariance = Misc.Parse(node.GetValue("RadiusVariance"), RadiusVariance);
+            DepositCount = Misc.Parse(node.GetValue("DepositCount"), DepositCount);
+            NumberOfTries = Misc.Parse(node.GetValue("NumberOfTries"), NumberOfTries);
+        }
+    }
+
     internal class BodyDeposits : IBodyResources
     {
         private readonly List<Deposit> deposits;
