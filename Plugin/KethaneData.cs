@@ -67,23 +67,17 @@ namespace Kethane
 
             var timer = System.Diagnostics.Stopwatch.StartNew();
 
-            var random = new System.Random();
-
             Scans = KethaneController.ResourceDefinitions.ToDictionary(d => d.Resource, d => FlightGlobals.Bodies.ToDictionary(b => b.name, b => new GeodesicGrid.Cell.Set(5)));
 
             PlanetDeposits = KethaneController.ResourceDefinitions.ToDictionary(d => d.Resource, d => FlightGlobals.Bodies.ToDictionary(b => b.name, b =>
             {
-                int seed = random.Next();
+                ConfigNode bodyNode = null;
                 var resourceNode = config.GetNodes("Resource").SingleOrDefault(n => n.GetValue("Resource") == d.Resource);
                 if (resourceNode != null)
                 {
-                    var bodyNode = resourceNode.GetNodes("Body").SingleOrDefault(n => n.GetValue("Name") == b.name);
-                    if (bodyNode != null)
-                    {
-                        seed = Misc.Parse(bodyNode.GetValue("Seed"), seed);
-                    }
+                    bodyNode = resourceNode.GetNodes("Body").SingleOrDefault(n => n.GetValue("Name") == b.name);
                 }
-                return new BodyDeposits(d.Generator.ForBody(b), seed);
+                return new BodyDeposits(d.Generator.ForBody(b), bodyNode);
             }));
 
             foreach (var resourceNode in config.GetNodes("Resource"))
@@ -108,12 +102,6 @@ namespace Kethane
                         {
                             Debug.LogError(String.Format("[Kethane] Failed to parse {0}/{1} scan string, resetting ({2})", body.Key, resourceName, e.Message));
                         }
-                    }
-
-                    var depositNodes = bodyNode.GetNodes("Deposit");
-                    for (int i = 0; i < Math.Min(deposits.Count, depositNodes.Length); i++)
-                    {
-                        deposits.DepositAt(i).Quantity = Misc.Parse(depositNodes[i].GetValue("Quantity"), deposits.DepositAt(i).InitialQuantity);
                     }
                 }
             }

@@ -40,10 +40,14 @@ namespace Kethane
         private readonly List<Deposit> deposits;
         private readonly int seed;
 
-        public BodyDeposits(GeneratorConfiguration resource, int seed)
+        private static System.Random seedGenerator = new System.Random();
+
+        public BodyDeposits(GeneratorConfiguration resource, ConfigNode node)
         {
+            if (node == null) { node = new ConfigNode(); }
+
             this.deposits = new List<Deposit>();
-            this.seed = seed;
+            this.seed = Misc.Parse(node.GetValue("Seed"), seedGenerator.Next());
 
             var random = new System.Random(seed);
 
@@ -61,14 +65,13 @@ namespace Kethane
                     }
                 }
             }
-        }
 
-        public Deposit DepositAt(int index)
-        {
-            return deposits[index];
+            var depositNodes = node.GetNodes("Deposit");
+            for (int i = 0; i < Math.Min(deposits.Count, depositNodes.Length); i++)
+            {
+                deposits[i].Quantity = Misc.Parse(depositNodes[i].GetValue("Quantity"), deposits[i].InitialQuantity);
+            }
         }
-
-        public int Count { get { return deposits.Count; } }
 
         public ICellResource GetResource(GeodesicGrid.Cell cell)
         {
