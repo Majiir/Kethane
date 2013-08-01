@@ -42,6 +42,8 @@ namespace Kethane
 
         private static System.Random seedGenerator = new System.Random();
 
+        public float MaxQuantity { get; private set; }
+
         public BodyDeposits(GeneratorConfiguration resource, ConfigNode node)
         {
             if (node == null) { node = new ConfigNode(); }
@@ -71,6 +73,8 @@ namespace Kethane
             {
                 deposits[i].Quantity = Misc.Parse(depositValues[i], deposits[i].InitialQuantity);
             }
+
+            MaxQuantity = resource.MaxQuantity;
         }
 
         public ICellResource GetResource(GeodesicGrid.Cell cell)

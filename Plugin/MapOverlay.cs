@@ -232,7 +232,8 @@ namespace Kethane
         {
             var deposit = data.GetCellDeposit(resource.Resource, body, cell);
             var scanned = data.Scans[resource.Resource][body.name][cell];
-            var color = (revealAll ? deposit != null : scanned) ? getDepositColor(resource, deposit, body) : colorUnknown;
+            var bodyResources = data.PlanetDeposits[resource.Resource][body.name];
+            var color = (revealAll ? deposit != null : scanned) ? getDepositColor(resource, bodyResources, deposit, body) : colorUnknown;
             setCellColor(cell, color, colors);
         }
 
@@ -245,12 +246,12 @@ namespace Kethane
             }
         }
 
-        private static Color32 getDepositColor(ResourceDefinition definition, ICellResource deposit, CelestialBody body)
+        private static Color32 getDepositColor(ResourceDefinition definition, IBodyResources bodyResources, ICellResource deposit, CelestialBody body)
         {
             Color32 color;
             if (deposit != null)
             {
-                var ratio = (deposit.Quantity / definition.Generator.ForBody(body).MaxQuantity);
+                var ratio = (deposit.Quantity / bodyResources.MaxQuantity);
                 color = (Color32)(definition.ColorFull * ratio + definition.ColorEmpty * (1 - ratio));
             }
             else

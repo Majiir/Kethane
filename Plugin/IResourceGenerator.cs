@@ -10,6 +10,7 @@ namespace Kethane
     {
         ConfigNode Save();
         ICellResource GetResource(GeodesicGrid.Cell cell);
+        float MaxQuantity { get; }
     }
 
     internal interface ICellResource
