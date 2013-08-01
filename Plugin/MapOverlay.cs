@@ -169,7 +169,7 @@ namespace Kethane
 
         private void updateMapView()
         {
-            if (!MapView.MapIsEnabled || !showOverlay || MapView.MapCamera == null)
+            if (!MapView.MapIsEnabled || !showOverlay || MapView.MapCamera == null || KethaneData.Current == null)
             {
                 gameObject.renderer.enabled = false;
                 return;
