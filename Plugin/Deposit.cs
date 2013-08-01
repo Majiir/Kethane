@@ -66,10 +66,10 @@ namespace Kethane
                 }
             }
 
-            var depositNodes = node.GetNodes("Deposit");
-            for (int i = 0; i < Math.Min(deposits.Count, depositNodes.Length); i++)
+            var depositValues = node.GetValues("Deposit");
+            for (int i = 0; i < Math.Min(deposits.Count, depositValues.Length); i++)
             {
-                deposits[i].Quantity = Misc.Parse(depositNodes[i].GetValue("Quantity"), deposits[i].InitialQuantity);
+                deposits[i].Quantity = Misc.Parse(depositValues[i], deposits[i].InitialQuantity);
             }
         }
 
@@ -96,9 +96,7 @@ namespace Kethane
             node.AddValue("Seed", seed);
             foreach (var deposit in deposits)
             {
-                var depositNode = new ConfigNode("Deposit");
-                depositNode.AddValue("Quantity", deposit.Quantity);
-                node.AddNode(depositNode);
+                node.AddValue("Deposit", deposit.Quantity);
             }
             return node;
         }

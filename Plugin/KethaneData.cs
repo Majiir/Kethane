@@ -144,7 +144,7 @@ namespace Kethane
                     dataNode.AddValue("Seed", depositSeed ^ bodySeed ^ (resourceName == "Kethane" ? 0 : resourceName.GetHashCode()));
                     foreach (var depositNode in bodyNode.GetNodes("Deposit"))
                     {
-                        dataNode.AddNode(depositNode);
+                        dataNode.AddValue("Deposit", depositNode.GetValue("Quantity"));
                     }
                     bodyNode.RemoveNodes("Deposit");
                 }
