@@ -35,6 +35,21 @@ namespace Kethane
         }
     }
 
+    internal class ResourceGenerator : IResourceGenerator
+    {
+        private GeneratorConfiguration config;
+
+        public ResourceGenerator(ConfigNode node)
+        {
+            config = new GeneratorConfiguration(node);
+        }
+
+        public IBodyResources Load(CelestialBody body, ConfigNode node)
+        {
+            return new BodyDeposits(config.ForBody(body), node);
+        }
+    }
+
     internal class BodyDeposits : IBodyResources
     {
         private readonly List<Deposit> deposits;

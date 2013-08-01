@@ -30,6 +30,8 @@ namespace Kethane
         public Dictionary<string, Dictionary<string, IBodyResources>> PlanetDeposits = new Dictionary<string,Dictionary<string,IBodyResources>>();
         public Dictionary<string, Dictionary<string, GeodesicGrid.Cell.Set>> Scans = new Dictionary<string,Dictionary<string,GeodesicGrid.Cell.Set>>();
 
+        private Dictionary<string, ConfigNode> generatorNodes = new Dictionary<string, ConfigNode>();
+
         public ICellResource GetDepositUnder(string resourceName, Vessel vessel)
         {
             return GetCellDeposit(resourceName, vessel.mainBody, MapOverlay.GetCellUnder(vessel.mainBody, vessel.transform.position));
@@ -80,13 +82,16 @@ namespace Kethane
                 PlanetDeposits[resourceName] = new Dictionary<string, IBodyResources>();
                 Scans[resourceName] = new Dictionary<string, GeodesicGrid.Cell.Set>();
 
+                generatorNodes[resourceName] = resourceNode.GetNode("Generator") ?? resource.Generator;
+                var generator = new ResourceGenerator(generatorNodes[resourceName].CreateCopy());
+
                 var bodyNodes = resourceNode.GetNodes("Body");
 
                 foreach (var body in FlightGlobals.Bodies)
                 {
                     var bodyNode = bodyNodes.SingleOrDefault(n => n.GetValue("Name") == body.name) ?? new ConfigNode();
 
-                    PlanetDeposits[resourceName][body.name] = new BodyDeposits(resource.Generator.ForBody(body), bodyNode.GetNode("GeneratorData"));
+                    PlanetDeposits[resourceName][body.name] = generator.Load(body, bodyNode.GetNode("GeneratorData"));
                     Scans[resourceName][body.name] = new GeodesicGrid.Cell.Set(5);
 
                     var scanMask = bodyNode.GetValue("ScanMask");
@@ -157,6 +162,7 @@ namespace Kethane
             {
                 var resourceNode = new ConfigNode("Resource");
                 resourceNode.AddValue("Resource", resource.Key);
+                resourceNode.AddNode(generatorNodes[resource.Key]);
 
                 foreach (var body in resource.Value)
                 {

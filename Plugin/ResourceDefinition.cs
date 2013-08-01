@@ -11,7 +11,7 @@ namespace Kethane
         public string Resource { get; private set; }
         public Color ColorFull { get; private set; }
         public Color ColorEmpty { get; private set; }
-        public GeneratorConfiguration Generator { get; private set; }
+        public ConfigNode Generator { get; private set; }
 
         public ResourceDefinition(ConfigNode node)
         {
@@ -21,7 +21,7 @@ namespace Kethane
             var colorEmpty = node.GetValue("ColorEmpty");
             ColorEmpty = colorEmpty != null ? ConfigNode.ParseColor(colorEmpty) : Color.white;
 
-            Generator = new GeneratorConfiguration(node.GetNode("Generator"));
+            Generator = node.GetNode("Generator");
         }
     }
 
