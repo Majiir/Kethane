@@ -27,19 +27,19 @@ namespace Kethane
             }
         }
 
-        public Dictionary<string, Dictionary<string, BodyDeposits>> PlanetDeposits;
+        public Dictionary<string, Dictionary<string, IBodyResources>> PlanetDeposits;
         public Dictionary<string, Dictionary<string, GeodesicGrid.Cell.Set>> Scans;
 
-        public Deposit GetDepositUnder(string resourceName, Vessel vessel)
+        public ICellResource GetDepositUnder(string resourceName, Vessel vessel)
         {
             return GetCellDeposit(resourceName, vessel.mainBody, MapOverlay.GetCellUnder(vessel.mainBody, vessel.transform.position));
         }
 
-        public Deposit GetCellDeposit(string resourceName, CelestialBody body, GeodesicGrid.Cell cell)
+        public ICellResource GetCellDeposit(string resourceName, CelestialBody body, GeodesicGrid.Cell cell)
         {
             if (resourceName == null || body == null || !PlanetDeposits.ContainsKey(resourceName) || !PlanetDeposits[resourceName].ContainsKey(body.name)) { return null; }
 
-            return PlanetDeposits[resourceName][body.name].GetDeposit(cell);
+            return PlanetDeposits[resourceName][body.name].GetResource(cell);
         }
 
         public override void OnLoad(ConfigNode config)
@@ -81,7 +81,7 @@ namespace Kethane
                         dataNode = bodyNode.GetNode("GeneratorData");
                     }
                 }
-                return new BodyDeposits(d.Generator.ForBody(b), dataNode);
+                return (IBodyResources)new BodyDeposits(d.Generator.ForBody(b), dataNode);
             }));
 
             foreach (var resourceNode in config.GetNodes("Resource"))

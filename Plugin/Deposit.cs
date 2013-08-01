@@ -75,11 +75,6 @@ namespace Kethane
 
         public ICellResource GetResource(GeodesicGrid.Cell cell)
         {
-            return GetDeposit(cell);
-        }
-
-        public Deposit GetDeposit(GeodesicGrid.Cell cell)
-        {
             var pos = cell.Position;
             var lat = (float)(Math.Atan2(pos.y, Math.Sqrt(pos.x * pos.x + pos.z * pos.z)) * 180 / Math.PI);
             var lon = (float)(Math.Atan2(pos.z, pos.x) * 180 / Math.PI);

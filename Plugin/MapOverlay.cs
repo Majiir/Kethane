@@ -245,7 +245,7 @@ namespace Kethane
             }
         }
 
-        private static Color32 getDepositColor(ResourceDefinition definition, Deposit deposit, CelestialBody body)
+        private static Color32 getDepositColor(ResourceDefinition definition, ICellResource deposit, CelestialBody body)
         {
             Color32 color;
             if (deposit != null)
