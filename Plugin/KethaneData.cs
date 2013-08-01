@@ -27,8 +27,8 @@ namespace Kethane
             }
         }
 
-        public Dictionary<string, Dictionary<string, IBodyResources>> PlanetDeposits;
-        public Dictionary<string, Dictionary<string, GeodesicGrid.Cell.Set>> Scans;
+        public Dictionary<string, Dictionary<string, IBodyResources>> PlanetDeposits = new Dictionary<string,Dictionary<string,IBodyResources>>();
+        public Dictionary<string, Dictionary<string, GeodesicGrid.Cell.Set>> Scans = new Dictionary<string,Dictionary<string,GeodesicGrid.Cell.Set>>();
 
         public ICellResource GetDepositUnder(string resourceName, Vessel vessel)
         {
@@ -67,44 +67,38 @@ namespace Kethane
 
             var timer = System.Diagnostics.Stopwatch.StartNew();
 
-            Scans = KethaneController.ResourceDefinitions.ToDictionary(d => d.Resource, d => FlightGlobals.Bodies.ToDictionary(b => b.name, b => new GeodesicGrid.Cell.Set(5)));
+            PlanetDeposits.Clear();
+            Scans.Clear();
 
-            PlanetDeposits = KethaneController.ResourceDefinitions.ToDictionary(d => d.Resource, d => FlightGlobals.Bodies.ToDictionary(b => b.name, b =>
+            var resourceNodes = config.GetNodes("Resource");
+
+            foreach (var resource in KethaneController.ResourceDefinitions)
             {
-                ConfigNode dataNode = null;
-                var resourceNode = config.GetNodes("Resource").SingleOrDefault(n => n.GetValue("Resource") == d.Resource);
-                if (resourceNode != null)
-                {
-                    var bodyNode = resourceNode.GetNodes("Body").SingleOrDefault(n => n.GetValue("Name") == b.name);
-                    if (bodyNode != null)
-                    {
-                        dataNode = bodyNode.GetNode("GeneratorData");
-                    }
-                }
-                return (IBodyResources)new BodyDeposits(d.Generator.ForBody(b), dataNode);
-            }));
+                var resourceName = resource.Resource;
+                var resourceNode = resourceNodes.SingleOrDefault(n => n.GetValue("Resource") == resourceName) ?? new ConfigNode();
 
-            foreach (var resourceNode in config.GetNodes("Resource"))
-            {
-                var resourceName = resourceNode.GetValue("Resource");
-                if (!PlanetDeposits.ContainsKey(resourceName)) { continue; }
-                foreach (var body in PlanetDeposits[resourceName])
-                {
-                    var deposits = body.Value;
+                PlanetDeposits[resourceName] = new Dictionary<string, IBodyResources>();
+                Scans[resourceName] = new Dictionary<string, GeodesicGrid.Cell.Set>();
 
-                    var bodyNode = resourceNode.GetNodes("Body").Where(b => b.GetValue("Name") == body.Key).SingleOrDefault();
-                    if (bodyNode == null) { continue; }
+                var bodyNodes = resourceNode.GetNodes("Body");
+
+                foreach (var body in FlightGlobals.Bodies)
+                {
+                    var bodyNode = bodyNodes.SingleOrDefault(n => n.GetValue("Name") == body.name) ?? new ConfigNode();
+
+                    PlanetDeposits[resourceName][body.name] = new BodyDeposits(resource.Generator.ForBody(body), bodyNode.GetNode("GeneratorData"));
+                    Scans[resourceName][body.name] = new GeodesicGrid.Cell.Set(5);
 
                     var scanMask = bodyNode.GetValue("ScanMask");
                     if (scanMask != null)
                     {
                         try
                         {
-                            Scans[resourceName][body.Key] = new GeodesicGrid.Cell.Set(5, Convert.FromBase64String(scanMask.Replace('.', '/').Replace('%', '=')));
+                            Scans[resourceName][body.name] = new GeodesicGrid.Cell.Set(5, Convert.FromBase64String(scanMask.Replace('.', '/').Replace('%', '=')));
                         }
                         catch (FormatException e)
                         {
-                            Debug.LogError(String.Format("[Kethane] Failed to parse {0}/{1} scan string, resetting ({2})", body.Key, resourceName, e.Message));
+                            Debug.LogError(String.Format("[Kethane] Failed to parse {0}/{1} scan string, resetting ({2})", body.name, resourceName, e.Message));
                         }
                     }
                 }
