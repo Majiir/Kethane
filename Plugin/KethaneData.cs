@@ -71,13 +71,17 @@ namespace Kethane
 
             PlanetDeposits = KethaneController.ResourceDefinitions.ToDictionary(d => d.Resource, d => FlightGlobals.Bodies.ToDictionary(b => b.name, b =>
             {
-                ConfigNode bodyNode = null;
+                ConfigNode dataNode = null;
                 var resourceNode = config.GetNodes("Resource").SingleOrDefault(n => n.GetValue("Resource") == d.Resource);
                 if (resourceNode != null)
                 {
-                    bodyNode = resourceNode.GetNodes("Body").SingleOrDefault(n => n.GetValue("Name") == b.name);
+                    var bodyNode = resourceNode.GetNodes("Body").SingleOrDefault(n => n.GetValue("Name") == b.name);
+                    if (bodyNode != null)
+                    {
+                        dataNode = bodyNode.GetNode("GeneratorData");
+                    }
                 }
-                return new BodyDeposits(d.Generator.ForBody(b), bodyNode);
+                return new BodyDeposits(d.Generator.ForBody(b), dataNode);
             }));
 
             foreach (var resourceNode in config.GetNodes("Resource"))
@@ -136,7 +140,13 @@ namespace Kethane
                         }
                     }
 
-                    bodyNode.AddValue("Seed", depositSeed ^ bodySeed ^ (resourceName == "Kethane" ? 0 : resourceName.GetHashCode()));
+                    var dataNode = bodyNode.AddNode("GeneratorData");
+                    dataNode.AddValue("Seed", depositSeed ^ bodySeed ^ (resourceName == "Kethane" ? 0 : resourceName.GetHashCode()));
+                    foreach (var depositNode in bodyNode.GetNodes("Deposit"))
+                    {
+                        dataNode.AddNode(depositNode);
+                    }
+                    bodyNode.RemoveNodes("Deposit");
                 }
             }
 
@@ -165,9 +175,9 @@ namespace Kethane
                     }
 
                     var node = body.Value.Save();
-                    ConfigNode.Merge(node, bodyNode);
-
-                    resourceNode.AddNode(node);
+                    node.name = "GeneratorData";
+                    bodyNode.AddNode(node);
+                    resourceNode.AddNode(bodyNode);
                 }
 
                 configNode.AddNode(resourceNode);
