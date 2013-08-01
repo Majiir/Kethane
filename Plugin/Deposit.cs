@@ -38,11 +38,14 @@ namespace Kethane
     internal class BodyDeposits : IBodyResources
     {
         private readonly List<Deposit> deposits;
+        private readonly int seed;
 
         public BodyDeposits(GeneratorConfiguration resource, int seed)
         {
-            var random = new System.Random(seed);
             this.deposits = new List<Deposit>();
+            this.seed = seed;
+
+            var random = new System.Random(seed);
 
             for (int i = 0; i < resource.DepositCount; i++)
             {
@@ -87,6 +90,7 @@ namespace Kethane
         public ConfigNode Save()
         {
             var node = new ConfigNode();
+            node.AddValue("Seed", seed);
             foreach (var deposit in deposits)
             {
                 var depositNode = new ConfigNode("Deposit");

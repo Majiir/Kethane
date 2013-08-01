@@ -30,9 +30,6 @@ namespace Kethane
         public Dictionary<string, Dictionary<string, BodyDeposits>> PlanetDeposits;
         public Dictionary<string, Dictionary<string, GeodesicGrid.Cell.Set>> Scans;
 
-        private Dictionary<string, int> bodySeeds;
-        private int depositSeed;
-
         public Deposit GetDepositUnder(string resourceName, Vessel vessel)
         {
             return GetCellDeposit(resourceName, vessel.mainBody, MapOverlay.GetCellUnder(vessel.mainBody, vessel.transform.position));
@@ -45,16 +42,6 @@ namespace Kethane
             return PlanetDeposits[resourceName][body.name].GetDeposit(cell);
         }
 
-        public void GenerateKethaneDeposits(System.Random random = null)
-        {
-            Debug.LogWarning("Regenerating Kethane deposits");
-
-            if (random == null) { random = new System.Random(); }
-            depositSeed = random.Next();
-            bodySeeds = FlightGlobals.Bodies.ToDictionary(b => b.name, b => b.name.GetHashCode());
-            generateFromSeed();
-        }
-
         public override void OnLoad(ConfigNode config)
         {
             var oldPath = KSPUtil.ApplicationRootPath + "saves/" + HighLogic.SaveFolder + "/kethane.cfg";
@@ -65,28 +52,37 @@ namespace Kethane
                 System.IO.File.Delete(oldPath);
             }
 
+            if (!config.HasValue("Version"))
+            {
+                try
+                {
+                    config = upgradeConfig(config);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError("[Kethane] Error upgrading legacy data: " + e);
+                    config = new ConfigNode();
+                }
+            }
+
             var timer = System.Diagnostics.Stopwatch.StartNew();
 
             Scans = KethaneController.ResourceDefinitions.ToDictionary(d => d.Resource, d => FlightGlobals.Bodies.ToDictionary(b => b.name, b => new GeodesicGrid.Cell.Set(5)));
 
-            if (!int.TryParse(config.GetValue("Seed"), out depositSeed))
+            PlanetDeposits = KethaneController.ResourceDefinitions.ToDictionary(d => d.Resource, d => FlightGlobals.Bodies.ToDictionary(b => b.name, b =>
             {
-                GenerateKethaneDeposits();
-                return;
-            }
-
-            bodySeeds = FlightGlobals.Bodies.ToDictionary(b => b.name, b => b.name.GetHashCode());
-
-            foreach (var node in config.GetNodes("Resource").Where(r => r.GetValue("Resource") == "Kethane").SelectMany(r => r.GetNodes("Body")))
-            {
-                int seed;
-                if (int.TryParse(node.GetValue("SeedModifier"), out seed))
+                int seed = new System.Random().Next();
+                var resourceNode = config.GetNodes("Resource").SingleOrDefault(n => n.GetValue("Resource") == d.Resource);
+                if (resourceNode != null)
                 {
-                    bodySeeds[node.GetValue("Name")] = seed;
+                    var bodyNode = resourceNode.GetNodes("Body").SingleOrDefault(n => n.GetValue("Name") == b.name);
+                    if (bodyNode != null)
+                    {
+                        seed = Misc.Parse(bodyNode.GetValue("Seed"), seed);
+                    }
                 }
-            }
-
-            generateFromSeed();
+                return new BodyDeposits(d.Generator.ForBody(b), seed);
+            }));
 
             foreach (var resourceNode in config.GetNodes("Resource"))
             {
@@ -124,11 +120,45 @@ namespace Kethane
             Debug.LogWarning(String.Format("Kethane deposits loaded ({0}ms)", timer.ElapsedMilliseconds));
         }
 
+        private static ConfigNode upgradeConfig(ConfigNode oldConfig)
+        {
+            var config = oldConfig.CreateCopy();
+
+            var depositSeed = int.Parse(config.GetValue("Seed"));
+            config.RemoveValue("Seed");
+
+            foreach (var resourceNode in config.GetNodes("Resource"))
+            {
+                var resourceName = resourceNode.GetValue("Resource");
+                foreach (var bodyNode in resourceNode.GetNodes("Body"))
+                {
+                    var bodySeed = 0;
+
+                    if (resourceName == "Kethane")
+                    {
+                        if (int.TryParse(bodyNode.GetValue("SeedModifier"), out bodySeed))
+                        {
+                            bodyNode.RemoveValue("SeedModifier");
+                        }
+                        else
+                        {
+                            bodySeed = bodyNode.GetValue("Name").GetHashCode();
+                        }
+                    }
+
+                    bodyNode.AddValue("Seed", depositSeed ^ bodySeed ^ (resourceName == "Kethane" ? 0 : resourceName.GetHashCode()));
+                }
+            }
+
+            return config;
+        }
+
         public override void OnSave(ConfigNode configNode)
         {
             var timer = System.Diagnostics.Stopwatch.StartNew();
 
-            configNode.AddValue("Seed", depositSeed);
+            configNode.AddValue("Version", System.Reflection.Assembly.GetExecutingAssembly().GetInformationalVersion());
+
             foreach (var resource in PlanetDeposits)
             {
                 var resourceNode = new ConfigNode("Resource");
@@ -138,11 +168,6 @@ namespace Kethane
                 {
                     var bodyNode = new ConfigNode("Body");
                     bodyNode.AddValue("Name", body.Key);
-
-                    if (bodySeeds[body.Key] != body.Key.GetHashCode() && resource.Key == "Kethane")
-                    {
-                        bodyNode.AddValue("SeedModifier", bodySeeds[body.Key]);
-                    }
 
                     if (Scans.ContainsKey(resource.Key) && Scans[resource.Key].ContainsKey(body.Key))
                     {
@@ -160,11 +185,6 @@ namespace Kethane
 
             timer.Stop();
             Debug.LogWarning(String.Format("Kethane deposits saved ({0}ms)", timer.ElapsedMilliseconds));
-        }
-
-        private void generateFromSeed()
-        {
-            PlanetDeposits = KethaneController.ResourceDefinitions.ToDictionary(d => d.Resource, d => FlightGlobals.Bodies.ToDictionary(b => b.name, b => new BodyDeposits(d.Generator.ForBody(b), depositSeed ^ (d.Resource == "Kethane" ? bodySeeds[b.name] : 0) ^ (d.Resource == "Kethane" ? 0 : d.Resource.GetHashCode()))));
         }
     }
 }

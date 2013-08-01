@@ -170,5 +170,10 @@ namespace Kethane
         }
 
         #endregion
+
+        public static string GetInformationalVersion(this System.Reflection.Assembly assembly)
+        {
+            return System.Diagnostics.FileVersionInfo.GetVersionInfo(assembly.Location).ProductVersion;
+        }
     }
 }
