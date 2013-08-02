@@ -83,7 +83,12 @@ namespace Kethane
                 Scans[resourceName] = new Dictionary<string, GeodesicGrid.Cell.Set>();
 
                 generatorNodes[resourceName] = resourceNode.GetNode("Generator") ?? resource.Generator;
-                var generator = new LegacyResourceGenerator(generatorNodes[resourceName].CreateCopy());
+                var generator = createGenerator(generatorNodes[resourceName].CreateCopy());
+                if (generator == null)
+                {
+                    Debug.LogWarning("[Kethane] Defaulting to empty generator for " + resourceName);
+                    generator = new EmptyResourceGenerator();
+                }
 
                 var bodyNodes = resourceNode.GetNodes("Body");
 
@@ -111,6 +116,31 @@ namespace Kethane
 
             timer.Stop();
             Debug.LogWarning(String.Format("Kethane deposits loaded ({0}ms)", timer.ElapsedMilliseconds));
+        }
+
+        private static IResourceGenerator createGenerator(ConfigNode generatorNode)
+        {
+            var name = generatorNode.GetValue("name");
+            if (name == null) { Debug.LogError("[Kethane] Could not find generator name"); return null; }
+
+            var constructor = AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(a => a.GetTypes())
+                .Where(t => t.Name == name)
+                .Where(t => t.GetInterfaces().Any(i => i == typeof(IResourceGenerator)))
+                .Select(t => t.GetConstructor(new Type[] { typeof(ConfigNode) }))
+                .FirstOrDefault(c => c != null);
+
+            if (constructor == null) { Debug.LogError("[Kethane] Could not find appropriate constructor for " + name); return null; }
+
+            try
+            {
+                return (IResourceGenerator)constructor.Invoke(new object[] { generatorNode });
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("[Kethane] Could not instantiate " + name + ":\n" + e);
+                return null;
+            }
         }
 
         private static ConfigNode upgradeConfig(ConfigNode oldConfig)

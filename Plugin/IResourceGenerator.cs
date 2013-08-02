@@ -17,4 +17,28 @@ namespace Kethane
     {
         float Quantity { get; set; }
     }
+
+    internal class EmptyResourceGenerator : IResourceGenerator
+    {
+        private readonly IBodyResources bodyResources = new BodyResources();
+
+        public EmptyResourceGenerator() { }
+        public EmptyResourceGenerator(ConfigNode node) { }
+
+        public IBodyResources Load(CelestialBody body, ConfigNode node) { return bodyResources; }
+
+        private class BodyResources : IBodyResources
+        {
+            private readonly ICellResource cellResource = new CellResource();
+
+            public float MaxQuantity { get { return 0; } }
+            public ConfigNode Save() { return new ConfigNode(); }
+            public ICellResource GetResource(GeodesicGrid.Cell cell) { return cellResource; }
+        }
+
+        private class CellResource : ICellResource
+        {
+            public float Quantity { get; set; }
+        }
+    }
 }
