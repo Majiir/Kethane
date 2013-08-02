@@ -83,7 +83,7 @@ namespace Kethane
                 Scans[resourceName] = new Dictionary<string, GeodesicGrid.Cell.Set>();
 
                 generatorNodes[resourceName] = resourceNode.GetNode("Generator") ?? resource.Generator;
-                var generator = new ResourceGenerator(generatorNodes[resourceName].CreateCopy());
+                var generator = new LegacyResourceGenerator(generatorNodes[resourceName].CreateCopy());
 
                 var bodyNodes = resourceNode.GetNodes("Body");
 
