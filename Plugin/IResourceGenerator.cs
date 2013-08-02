@@ -29,16 +29,9 @@ namespace Kethane
 
         private class BodyResources : IBodyResources
         {
-            private readonly ICellResource cellResource = new CellResource();
-
             public float MaxQuantity { get { return 0; } }
             public ConfigNode Save() { return new ConfigNode(); }
-            public ICellResource GetResource(GeodesicGrid.Cell cell) { return cellResource; }
-        }
-
-        private class CellResource : ICellResource
-        {
-            public float Quantity { get; set; }
+            public ICellResource GetResource(GeodesicGrid.Cell cell) { return null; }
         }
     }
 }
