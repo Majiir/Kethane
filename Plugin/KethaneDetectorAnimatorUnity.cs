@@ -33,6 +33,7 @@ namespace Kethane
         {
             foreach (var state in deployStates)
             {
+                state.normalizedTime = Mathf.Clamp01(state.normalizedTime);
                 state.speed = (IsDetecting ? 1 : -1) * PowerRatio;
             }
 
