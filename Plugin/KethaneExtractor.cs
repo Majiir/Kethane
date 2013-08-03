@@ -35,6 +35,12 @@ namespace Kethane
         [KSPField(isPersistant = false)]
         public string TailTransform;
 
+        [KSPField(isPersistant = false)]
+        public float HeadOffset;
+
+        [KSPField(isPersistant = false)]
+        public float TailOffset;
+
         private Transform headTransform;
         private Transform tailTransform;
 
@@ -191,7 +197,7 @@ namespace Kethane
         {
             var mask = 1 << 15;
             var direction = headTransform.position - tailTransform.position;
-            return Physics.Raycast(tailTransform.position, direction, out hitInfo, direction.magnitude, mask);
+            return Physics.Raycast(tailTransform.position - direction.normalized * TailOffset, direction, out hitInfo, direction.magnitude + HeadOffset + TailOffset, mask);
         }
     }
 }
