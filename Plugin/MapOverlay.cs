@@ -157,6 +157,10 @@ namespace Kethane
         {
             if (HighLogic.LoadedScene != GameScenes.FLIGHT && HighLogic.LoadedScene != GameScenes.TRACKSTATION)
             {
+                if (HighLogic.LoadedScene != GameScenes.MAINMENU)
+                {
+                    gameObject.renderer.enabled = false;
+                }
                 return;
             }
 
