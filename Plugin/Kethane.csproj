@@ -52,6 +52,7 @@
     <Compile Include="HeatSinkAnimator.cs" />
     <Compile Include="IDetectorAnimator.cs" />
     <Compile Include="IExtractorAnimator.cs" />
+    <Compile Include="InstallChecker.cs" />
     <Compile Include="KethaneData.cs" />
     <Compile Include="KethaneDetectorAnimator.cs" />
     <Compile Include="KethaneDetectorAnimatorUnity.cs" />
