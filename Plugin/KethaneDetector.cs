@@ -136,7 +136,6 @@ namespace Kethane
 
         public override void OnFixedUpdate()
         {
-            var controller = KethaneController.GetInstance(this.vessel);
             double Altitude = Misc.GetTrueAltitude(vessel);
             if (IsDetecting && this.vessel != null && this.vessel.gameObject.activeSelf && Altitude <= this.DetectingHeight)
             {
@@ -151,11 +150,11 @@ namespace Kethane
                 {
                     var detected = false;
                     var cell = MapOverlay.GetCellUnder(vessel.mainBody, vessel.transform.position);
-                    if (resources.All(r => KethaneController.Scans[r][vessel.mainBody.name][cell])) { return; }
+                    if (resources.All(r => KethaneData.Current.Scans[r][vessel.mainBody.name][cell])) { return; }
                     foreach (var resource in resources)
                     {
-                        KethaneController.Scans[resource][vessel.mainBody.name][cell] = true;
-                        if (KethaneController.GetCellDeposit(resource, vessel.mainBody, cell) != null)
+                        KethaneData.Current.Scans[resource][vessel.mainBody.name][cell] = true;
+                        if (KethaneData.Current.GetCellDeposit(resource, vessel.mainBody, cell) != null)
                         {
                             detected = true;
                         }
@@ -172,11 +171,6 @@ namespace Kethane
             {
                 this.powerRatio = 0;
             }
-        }
-
-        public override void OnSave(ConfigNode node)
-        {
-            KethaneController.SaveKethaneDeposits();
         }
     }
 }

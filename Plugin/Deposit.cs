@@ -6,39 +6,18 @@ using UnityEngine;
 
 namespace Kethane
 {
-    internal class Point
-    {
-        public float x, y;
-        public Point(float X, float Y)
-        {
-            x = X;
-            y = Y;
-        }
-
-        public static Point operator /(Point c1, float n)
-        {
-            return new Point(c1.x / n, c1.y / n);
-        }
-
-        public static Point operator *(Point c1, int n)
-        {
-            return new Point(c1.x * n, c1.y * n);
-        }
-
-    }
-
     internal class Polygon
     {
-        private Point[] _vertices;
+        private Vector2[] _vertices;
 
-        public Polygon(Point[] vertices)
+        public Polygon(Vector2[] vertices)
         {
             _vertices = vertices.ToArray();
         }
 
-        public ReadOnlyCollection<Point> Vertices
+        public ReadOnlyCollection<Vector2> Vertices
         {
-            get { return new ReadOnlyCollection<Point>(_vertices); }
+            get { return new ReadOnlyCollection<Vector2>(_vertices); }
         }
 
         public bool PointInPolygon(Vector2 p)
@@ -74,7 +53,7 @@ namespace Kethane
         {
             var initialQuantity = random.Range(resource.MinQuantity, resource.MaxQuantity);
 
-            var vertices = new List<Point>();
+            var vertices = new List<Vector2>();
             int vertexCount = random.Next(resource.MinVertices, resource.MaxVertices);
             for (int i = 0; i < vertexCount; i++)
             {
@@ -83,7 +62,7 @@ namespace Kethane
                 float x = Pos.x + randomRadius * (float)Math.Cos(angle);
                 float z = Pos.y - randomRadius * (float)Math.Sin(angle);
 
-                vertices.Add(new Point(x, z));
+                vertices.Add(new Vector2(x, z));
             }
             var Shape = new Polygon(vertices.ToArray());
 

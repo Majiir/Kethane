@@ -52,6 +52,8 @@
     <Compile Include="HeatSinkAnimator.cs" />
     <Compile Include="IDetectorAnimator.cs" />
     <Compile Include="IExtractorAnimator.cs" />
+    <Compile Include="InstallChecker.cs" />
+    <Compile Include="KethaneData.cs" />
     <Compile Include="KethaneDetectorAnimator.cs" />
     <Compile Include="KethaneDetectorAnimatorUnity.cs" />
     <Compile Include="KethaneDrillAnimator.cs" />
@@ -71,9 +73,9 @@
     <Compile Include="OrthogonalIntake.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ResourceDefinition.cs" />
+    <Compile Include="ScaledSpaceFix.cs" />
     <Compile Include="SettingsManager.cs" />
     <Compile Include="TimedMovingAverage.cs" />
-    <Compile Include="WeakReference.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

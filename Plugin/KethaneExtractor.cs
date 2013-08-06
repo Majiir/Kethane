@@ -35,6 +35,12 @@ namespace Kethane
         [KSPField(isPersistant = false)]
         public string TailTransform;
 
+        [KSPField(isPersistant = false)]
+        public float HeadOffset;
+
+        [KSPField(isPersistant = false)]
+        public float TailOffset;
+
         private Transform headTransform;
         private Transform tailTransform;
 
@@ -145,7 +151,7 @@ namespace Kethane
                 {
                     if (animator.CurrentState == ExtractorState.Deployed)
                     {
-                        emitter.Emit = hit && KethaneController.GetInstance(this.vessel).GetDepositUnder("Kethane") != null;
+                        emitter.Emit = hit && KethaneData.Current.GetDepositUnder("Kethane", this.vessel) != null;
                     }
                     else
                     {
@@ -172,18 +178,13 @@ namespace Kethane
 
             foreach (var resource in resources)
             {
-                var deposit = KethaneController.GetInstance(this.vessel).GetDepositUnder(resource.Name);
+                var deposit = KethaneData.Current.GetDepositUnder(resource.Name, this.vessel);
                 if (deposit == null) { continue; }
 
                 var amount = TimeWarp.fixedDeltaTime * resource.Rate * energyRatio;
                 amount = Math.Min(amount, deposit.Quantity);
                 deposit.Quantity += this.part.RequestResource(resource.Name, -amount);
             }
-        }
-
-        public override void OnSave(ConfigNode node)
-        {
-            KethaneController.SaveKethaneDeposits();
         }
 
         private bool raycastGround()
@@ -196,7 +197,7 @@ namespace Kethane
         {
             var mask = 1 << 15;
             var direction = headTransform.position - tailTransform.position;
-            return Physics.Raycast(tailTransform.position, direction, out hitInfo, direction.magnitude, mask);
+            return Physics.Raycast(tailTransform.position - direction.normalized * TailOffset, direction, out hitInfo, direction.magnitude + HeadOffset + TailOffset, mask);
         }
     }
 }
