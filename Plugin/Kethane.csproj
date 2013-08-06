@@ -73,6 +73,7 @@
     <Compile Include="OrthogonalIntake.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ResourceDefinition.cs" />
+    <Compile Include="ScaledSpaceFix.cs" />
     <Compile Include="SettingsManager.cs" />
     <Compile Include="TimedMovingAverage.cs" />
   </ItemGroup>
