@@ -8,6 +8,7 @@ namespace Kethane
     {
         public void Start()
         {
+            if (ScaledSpace.Instance == null || ScaledSpace.Instance.scaledSpaceTransforms == null) { return; }
             ScaledSpace.Instance.scaledSpaceTransforms.RemoveAll(t => t == null);
             if (HighLogic.LoadedScene == GameScenes.MAINMENU)
             {
