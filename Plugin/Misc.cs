@@ -90,6 +90,16 @@ namespace Kethane
             return value;
         }
 
+        public static double Parse(string s, double defaultValue)
+        {
+            double value;
+            if (!double.TryParse(s, out value))
+            {
+                value = defaultValue;
+            }
+            return value;
+        }
+
         public static int Parse(string s, int defaultValue)
         {
             int value;
