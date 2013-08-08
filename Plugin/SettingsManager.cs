@@ -2,7 +2,7 @@
 
 namespace Kethane
 {
-    [KSPAddon(KSPAddon.Startup.Instantly, true)]
+    [KSPAddonFixed(KSPAddon.Startup.Instantly, true, typeof(SettingsManager))]
     internal class SettingsManager : MonoBehaviour
     {
         private static ConfigNode node;
