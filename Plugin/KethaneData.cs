@@ -17,6 +17,10 @@ namespace Kethane
                 if (!game.scenarios.Any(p => p.moduleName == typeof(KethaneData).Name))
                 {
                     var proto = game.AddProtoScenarioModule(typeof(KethaneData), GameScenes.FLIGHT, GameScenes.TRACKSTATION);
+                    if (proto.targetScenes.Contains(HighLogic.LoadedScene))
+                    {
+                        proto.Load(ScenarioRunner.fetch);
+                    }
                 }
 
                 return game.scenarios.Select(s => s.moduleRef).OfType<KethaneData>().SingleOrDefault();

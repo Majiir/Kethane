@@ -8,26 +8,37 @@ namespace Kethane
 {
     public class KethaneConverter : PartModule
     {
-        [KSPField(isPersistant = false)]
-        public string SourceResource;
+        private struct ResourceRate
+        {
+            public String Resource { get; private set; }
+            public double Rate { get; private set; }
+
+            public ResourceRate(String resource, double rate)
+                : this()
+            {
+                Resource = resource;
+                Rate = rate;
+            }
+
+            public static ResourceRate operator *(ResourceRate rate, double multiplier)
+            {
+                return new ResourceRate(rate.Resource, rate.Rate * multiplier);
+            }
+        }
 
         [KSPField(isPersistant = false)]
-        public string TargetResource;
-
-        [KSPField(isPersistant = false)]
-        public float ConversionEfficiency;
-
-        [KSPField(isPersistant = false)]
-        public float SourceConsumption;
-
-        [KSPField(isPersistant = false)]
-        public float PowerConsumption;
+        public String Label;
 
         [KSPField(isPersistant = false)]
         public float HeatProduction;
 
         [KSPField(isPersistant = true)]
         public bool IsEnabled;
+
+        public ConfigNode config;
+
+        private ResourceRate[] inputRates;
+        private ResourceRate[] outputRates;
 
         [KSPEvent(guiActive = true, guiName = "Activate Converter", active = true)]
         public void ActivateConverter()
@@ -61,14 +72,48 @@ namespace Kethane
 
         public override string GetInfo()
         {
-            return String.Format("{0}:\n- Conversion Efficiency: {1:P0}\n- {4} Consumption: {2:F1}L/s\n- Power Consumption: {3:F1}/s", TargetResource, ConversionEfficiency, SourceConsumption, PowerConsumption, SourceResource);
+            return String.Format("{0} Converter:\n> Inputs:\n", Label) + String.Join("\n", inputRates.Select(r => String.Format(" - {0}: {1:N2}/s", r.Resource, r.Rate)).ToArray()) + "\n> Outputs:\n" + String.Join("\n", outputRates.Select(r => String.Format(" - {0}: {1:N2}/s", r.Resource, r.Rate)).ToArray()) + "\n";
+        }
+
+        public override void OnLoad(ConfigNode config)
+        {
+            if (this.config == null)
+            {
+                this.config = new ConfigNode();
+                config.CopyTo(this.config);
+            }
+
+            loadConfig();
+        }
+
+        private void loadConfig()
+        {
+            var definitions = PartResourceLibrary.Instance.resourceDefinitions;
+
+            inputRates = loadRates(config.GetNode("InputRates")).ToArray();
+            var inputMassRate = inputRates.Sum(p => p.Rate * definitions[p.Resource].density);
+
+            outputRates = loadRates(config.GetNode("OutputRatios")).Select(r => r * (inputMassRate / definitions[r.Resource].density)).GroupBy(r => r.Resource).Select(g => new ResourceRate(g.Key, g.Sum(r => r.Rate))).Concat(loadRates(config.GetNode("OutputRates"))).ToArray();
+
+            if (Label == null)
+            {
+                Label = String.Join("/", outputRates.Select(r => r.Resource).ToArray());
+            }
+        }
+
+        private static IEnumerable<ResourceRate> loadRates(ConfigNode config)
+        {
+            return (config ?? new ConfigNode()).values.Cast<ConfigNode.Value>().Where(v => PartResourceLibrary.Instance.resourceDefinitions.Any(d => d.name == v.name)).Select(v => new ResourceRate(v.name, Misc.Parse(v.value, 0.0))).Where(r => r.Rate > 0);
         }
 
         public override void OnStart(PartModule.StartState state)
         {
-            Actions["ActivateConverterAction"].guiName = Events["ActivateConverter"].guiName = String.Format("Activate {0} Converter", TargetResource);
-            Actions["DeactivateConverterAction"].guiName = Events["DeactivateConverter"].guiName = String.Format("Deactivate {0} Converter", TargetResource);
-            Actions["ToggleConverterAction"].guiName = String.Format("Toggle {0} Converter", TargetResource);
+            loadConfig();
+
+            Actions["ActivateConverterAction"].guiName = Events["ActivateConverter"].guiName = String.Format("Activate {0} Converter", Label);
+            Actions["DeactivateConverterAction"].guiName = Events["DeactivateConverter"].guiName = String.Format("Deactivate {0} Converter", Label);
+            Actions["ToggleConverterAction"].guiName = String.Format("Toggle {0} Converter", Label);
+
             if (state == StartState.Editor) { return; }
             this.part.force_activate();
         }
@@ -83,24 +128,8 @@ namespace Kethane
         {
             if (!IsEnabled) { return; }
 
-            var conversionRatio = PartResourceLibrary.Instance.GetDefinition(SourceResource).density / PartResourceLibrary.Instance.GetDefinition(TargetResource).density;
-
-            double requestedSpace = SourceConsumption * conversionRatio * ConversionEfficiency * TimeWarp.fixedDeltaTime;
-            double requestedSource = SourceConsumption * TimeWarp.fixedDeltaTime;
-            double requestedEnergy = PowerConsumption * TimeWarp.fixedDeltaTime;
-
-            double availableSpace = 0;
-            var listPartResource = Misc.GetConnectedResources(this.part, TargetResource);
-            if (listPartResource.Count > 0)
-                availableSpace = listPartResource.Max(r => r.maxAmount - r.amount);
-            var availableSource = Misc.GetConnectedResources(this.part, SourceResource).Max(r => r.amount);
-            var availableEnergy = Misc.GetConnectedResources(this.part, "ElectricCharge").Max(r => r.amount);
-
-            var spaceRatio = availableSpace / requestedSpace;
-            var sourceRatio = availableSource / requestedSource;
-            var energyRatio = availableEnergy / requestedEnergy;
-
-            var ratio = Math.Min(Math.Min(Math.Min(spaceRatio, sourceRatio), energyRatio), 1);
+            var rates = outputRates.Select(r => r * -1).Concat(inputRates).Select(r => r * TimeWarp.fixedDeltaTime).ToArray();
+            var ratio = rates.Select(r => Misc.GetConnectedResources(this.part, r.Resource).Select(c => r.Rate > 0 ? c.amount : c.maxAmount - c.amount).DefaultIfEmpty().Max() / Math.Abs(r.Rate)).Prepend(1).Min();
 
             var heatsink = this.part.Modules.OfType<HeatSinkAnimator>().SingleOrDefault();
             if (heatsink != null)
@@ -109,19 +138,10 @@ namespace Kethane
                 ratio *= heatsink.AddHeat(heatRequest) / heatRequest;
             }
 
-            requestedSource *= ratio;
-
-            var drawnSource = this.part.RequestResource(SourceResource, requestedSource);
-
-            ratio *= drawnSource / requestedSource;
-            requestedEnergy *= ratio;
-
-            var drawnEnergy = this.part.RequestResource("ElectricCharge", requestedEnergy);
-
-            ratio *= drawnEnergy / requestedEnergy;
-            requestedSpace *= ratio;
-
-            this.part.RequestResource(TargetResource, -requestedSpace);
+            foreach (var rate in rates)
+            {
+                this.part.RequestResource(rate.Resource, rate.Rate * ratio);
+            }
         }
     }
 }

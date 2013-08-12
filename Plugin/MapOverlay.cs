@@ -213,24 +213,25 @@ namespace Kethane
         {
             if (body != this.body) { return; }
             var colors = mesh.colors32;
-            refreshCellColor(cell, body, colors);
+            refreshCellColor(cell, body, colors, KethaneData.Current);
             mesh.colors32 = colors;
         }
 
         private void refreshCellColors()
         {
             var colors = new Color32[mesh.vertexCount];
+            var data = KethaneData.Current;
             foreach (var cell in grid)
             {
-                refreshCellColor(cell, body, colors);
+                refreshCellColor(cell, body, colors, data);
             }
             mesh.colors32 = colors;
         }
 
-        private void refreshCellColor(GeodesicGrid.Cell cell, CelestialBody body, Color32[] colors)
+        private void refreshCellColor(GeodesicGrid.Cell cell, CelestialBody body, Color32[] colors, KethaneData data)
         {
-            var deposit = KethaneData.Current.GetCellDeposit(resource.Resource, body, cell);
-            var scanned = KethaneData.Current.Scans[resource.Resource][body.name][cell];
+            var deposit = data.GetCellDeposit(resource.Resource, body, cell);
+            var scanned = data.Scans[resource.Resource][body.name][cell];
             var color = (revealAll ? deposit != null : scanned) ? getDepositColor(resource, deposit) : colorUnknown;
             setCellColor(cell, color, colors);
         }
