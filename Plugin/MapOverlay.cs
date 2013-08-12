@@ -420,6 +420,18 @@ namespace Kethane
                         refreshCellColors();
                     }
 
+                    if (GUILayout.Button("Reset " + body.name + " Data"))
+                    {
+                        KethaneData.Current.ResetBodyData(resource, body);
+                        refreshCellColors();
+                    }
+
+                    if (GUILayout.Button("Reset Generator Config"))
+                    {
+                        KethaneData.Current.ResetGeneratorConfig(resource);
+                        refreshCellColors();
+                    }
+
                     if (GUILayout.Button("Export Data (" + (revealAll ? "All" : "Scanned") + ")"))
                     {
                         export();

@@ -118,6 +118,24 @@ namespace Kethane
             Debug.LogWarning(String.Format("Kethane deposits loaded ({0}ms)", timer.ElapsedMilliseconds));
         }
 
+        public void ResetBodyData(ResourceDefinition resource, CelestialBody body)
+        {
+            var resourceName = resource.Resource;
+            var generator = createGenerator(generatorNodes[resourceName]);
+            PlanetDeposits[resourceName][body.name] = generator.Load(body, null);
+        }
+
+        public void ResetGeneratorConfig(ResourceDefinition resource)
+        {
+            var resourceName = resource.Resource;
+            generatorNodes[resourceName] = resource.Generator;
+            var generator = createGenerator(generatorNodes[resourceName].CreateCopy());
+            foreach (var body in FlightGlobals.Bodies)
+            {
+                PlanetDeposits[resourceName][body.name] = generator.Load(body, null);
+            }
+        }
+
         private static IResourceGenerator createGenerator(ConfigNode generatorNode)
         {
             var name = generatorNode.GetValue("name");
