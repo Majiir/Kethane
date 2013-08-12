@@ -5,9 +5,12 @@ namespace Kethane
 {
     public class KethaneWetMassIndicator : PartModule
     {
+        [KSPField(isPersistant = false)]
+        public String Label;
+
         public override string GetInfo()
         {
-            return String.Format("Wet Mass: {0}", (float)this.part.Resources.Cast<PartResource>().Sum(r => r.maxAmount * PartResourceLibrary.Instance.GetDefinition(r.resourceName).density) + this.part.mass);
+            return String.Format("{0}: {1}", Label ?? "Wet Mass", (float)this.part.Resources.Cast<PartResource>().Sum(r => r.maxAmount * PartResourceLibrary.Instance.GetDefinition(r.resourceName).density) + this.part.mass);
         }
     }
 }
