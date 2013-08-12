@@ -11,7 +11,7 @@ namespace Kethane
     {
         protected void Start()
         {
-            var assemblies = AssemblyLoader.loadedAssemblies.Where(a => a.assembly == Assembly.GetExecutingAssembly()).Where(a => a.url != "Kethane/Plugins");
+            var assemblies = AssemblyLoader.loadedAssemblies.Where(a => a.assembly.GetName().Name == Assembly.GetExecutingAssembly().GetName().Name).Where(a => a.url != "Kethane/Plugins");
             if (assemblies.Any())
             {
                 var badPaths = assemblies.Select(a => a.path).Select(p => Uri.UnescapeDataString(new Uri(Path.GetFullPath(KSPUtil.ApplicationRootPath)).MakeRelativeUri(new Uri(p)).ToString().Replace('/', Path.DirectorySeparatorChar)));
