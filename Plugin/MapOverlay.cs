@@ -251,7 +251,7 @@ namespace Kethane
             Color32 color;
             if (deposit != null)
             {
-                var ratio = (deposit.Quantity / bodyResources.MaxQuantity);
+                var ratio = (float)(deposit.Quantity / bodyResources.MaxQuantity);
                 color = (Color32)(definition.ColorFull * ratio + definition.ColorEmpty * (1 - ratio));
             }
             else

@@ -24,8 +24,8 @@ namespace Kethane
         {
             public float MinRadius { get; private set; }
             public float MaxRadius { get; private set; }
-            public float MinQuantity { get; private set; }
-            public float MaxQuantity { get; private set; }
+            public double MinQuantity { get; private set; }
+            public double MaxQuantity { get; private set; }
             public int MinVertices { get; private set; }
             public int MaxVertices { get; private set; }
             public float RadiusVariance { get; private set; }
@@ -71,7 +71,7 @@ namespace Kethane
 
             private static System.Random seedGenerator = new System.Random();
 
-            public float MaxQuantity { get; private set; }
+            public double MaxQuantity { get; private set; }
 
             public BodyDeposits(GeneratorConfiguration resource, ConfigNode node)
             {
@@ -134,10 +134,10 @@ namespace Kethane
         {
             public Polygon Shape;
 
-            public float Quantity { get; set; }
-            public float InitialQuantity { get; set; }
+            public double Quantity { get; set; }
+            public double InitialQuantity { get; set; }
 
-            public Deposit(Polygon shape, float quantity, float initialQuantity)
+            public Deposit(Polygon shape, double quantity, double initialQuantity)
             {
                 Shape = shape;
                 Quantity = quantity;

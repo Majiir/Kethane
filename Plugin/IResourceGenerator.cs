@@ -10,12 +10,12 @@ namespace Kethane
     {
         ConfigNode Save();
         ICellResource GetResource(GeodesicGrid.Cell cell);
-        float MaxQuantity { get; }
+        double MaxQuantity { get; }
     }
 
     internal interface ICellResource
     {
-        float Quantity { get; set; }
+        double Quantity { get; set; }
     }
 
     internal class EmptyResourceGenerator : IResourceGenerator
@@ -29,7 +29,7 @@ namespace Kethane
 
         private class BodyResources : IBodyResources
         {
-            public float MaxQuantity { get { return 0; } }
+            public double MaxQuantity { get { return 0; } }
             public ConfigNode Save() { return new ConfigNode(); }
             public ICellResource GetResource(GeodesicGrid.Cell cell) { return null; }
         }
