@@ -54,7 +54,7 @@ namespace Kethane
                 System.IO.File.Delete(oldPath);
             }
 
-            if (!config.HasValue("Version"))
+            if (!config.HasValue("Version") && (config.CountNodes > 0 || config.CountValues > 2))
             {
                 try
                 {
