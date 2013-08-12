@@ -31,6 +31,7 @@ namespace Kethane
         public Dictionary<string, Dictionary<string, GeodesicGrid.Cell.Set>> Scans = new Dictionary<string,Dictionary<string,GeodesicGrid.Cell.Set>>();
 
         private Dictionary<string, ConfigNode> generatorNodes = new Dictionary<string, ConfigNode>();
+        private Dictionary<string, IResourceGenerator> generators = new Dictionary<string, IResourceGenerator>();
 
         public ICellResource GetDepositUnder(string resourceName, Vessel vessel)
         {
@@ -89,6 +90,7 @@ namespace Kethane
                     Debug.LogWarning("[Kethane] Defaulting to empty generator for " + resourceName);
                     generator = new EmptyResourceGenerator();
                 }
+                generators[resourceName] = generator;
 
                 var bodyNodes = resourceNode.GetNodes("Body");
 
@@ -121,8 +123,7 @@ namespace Kethane
         public void ResetBodyData(ResourceDefinition resource, CelestialBody body)
         {
             var resourceName = resource.Resource;
-            var generator = createGenerator(generatorNodes[resourceName]);
-            PlanetDeposits[resourceName][body.name] = generator.Load(body, null);
+            PlanetDeposits[resourceName][body.name] = generators[resourceName].Load(body, null);
         }
 
         public void ResetGeneratorConfig(ResourceDefinition resource)
@@ -130,6 +131,7 @@ namespace Kethane
             var resourceName = resource.Resource;
             generatorNodes[resourceName] = resource.Generator;
             var generator = createGenerator(generatorNodes[resourceName].CreateCopy());
+            generators[resourceName] = generator;
             foreach (var body in FlightGlobals.Bodies)
             {
                 PlanetDeposits[resourceName][body.name] = generator.Load(body, null);
