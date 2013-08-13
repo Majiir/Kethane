@@ -19,6 +19,18 @@ namespace Kethane
             }
         }
 
+        private class DefaultExtractorAnimator : IExtractorAnimator
+        {
+            public ExtractorState CurrentState { get; private set; }
+            public void Deploy() { CurrentState = ExtractorState.Deployed; }
+            public void Retract() { CurrentState = ExtractorState.Retracted; }
+
+            public DefaultExtractorAnimator()
+            {
+                CurrentState = ExtractorState.Retracted;
+            }
+        }
+
         private IExtractorAnimator animator;
 
         private List<Resource> resources;
@@ -49,7 +61,7 @@ namespace Kethane
         public override void OnStart(PartModule.StartState state)
         {
             this.part.force_activate();
-            animator = part.Modules.OfType<IExtractorAnimator>().Single();
+            animator = part.Modules.OfType<IExtractorAnimator>().SingleOrDefault() ?? new DefaultExtractorAnimator();
 
             headTransform = this.part.FindModelTransform(HeadTransform);
             tailTransform = this.part.FindModelTransform(TailTransform);

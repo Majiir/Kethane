@@ -34,12 +34,12 @@ namespace Kethane
             foreach (var state in deployStates)
             {
                 state.normalizedTime = Mathf.Clamp01(state.normalizedTime);
-                state.speed = (IsDetecting ? 1 : -1) * PowerRatio;
+                state.speed = IsDetecting ? PowerRatio : -1;
             }
 
             foreach (var state in runningStates)
             {
-                state.speed = IsDetecting ? 0 : PowerRatio;
+                state.speed = IsDetecting ? PowerRatio : 0;
             }
         }
     }
