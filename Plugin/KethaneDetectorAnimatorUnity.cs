@@ -18,8 +18,6 @@ namespace Kethane
 
         public override void OnStart(PartModule.StartState state)
         {
-            if (state == StartState.Editor) { return; }
-
             deployStates = Misc.SetUpAnimation(DeployAnimation, this.part);
             runningStates = Misc.SetUpAnimation(RunningAnimation, this.part);
 
