@@ -9,7 +9,7 @@ namespace Kethane
         Retracting,
     }
 
-    internal interface IExtractorAnimator
+    public interface IExtractorAnimator
     {
         ExtractorState CurrentState { get; }
         void Deploy();
