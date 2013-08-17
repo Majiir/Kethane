@@ -21,7 +21,7 @@ namespace Kethane
             var colorEmpty = node.GetValue("ColorEmpty");
             ColorEmpty = colorEmpty != null ? ConfigNode.ParseColor(colorEmpty) : Color.white;
 
-            Generator = node.GetNode("Generator");
+            Generator = node.GetNode("Generator") ?? new ConfigNode();
         }
     }
 }

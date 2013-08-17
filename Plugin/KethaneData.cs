@@ -224,7 +224,7 @@ namespace Kethane
                         bodyNode.AddValue("ScanMask", Convert.ToBase64String(Scans[resource.Key][body.Key].ToByteArray()).Replace('/', '.').Replace('=', '%'));
                     }
 
-                    var node = body.Value.Save();
+                    var node = body.Value.Save() ?? new ConfigNode();
                     node.name = "GeneratorData";
                     bodyNode.AddNode(node);
                     resourceNode.AddNode(bodyNode);
