@@ -106,7 +106,7 @@ namespace Kethane
                     {
                         try
                         {
-                            Scans[resourceName][body.name] = new GeodesicGrid.Cell.Set(5, Convert.FromBase64String(scanMask.Replace('.', '/').Replace('%', '=')));
+                            Scans[resourceName][body.name] = new GeodesicGrid.Cell.Set(5, Convert.FromBase64String(scanMask.Replace('.', '/').Replace('%', '=')).Decompress());
                         }
                         catch (FormatException e)
                         {
@@ -176,6 +176,19 @@ namespace Kethane
                 {
                     var bodySeed = 0;
 
+                    var scanMask = bodyNode.GetValue("ScanMask");
+                    if (scanMask != null)
+                    {
+                        try
+                        {
+                            bodyNode.SetValue("ScanMask", Convert.ToBase64String(Convert.FromBase64String(scanMask.Replace('.', '/').Replace('%', '=')).Compress()).Replace('/', '.').Replace('=', '%'));
+                        }
+                        catch (FormatException)
+                        {
+                            bodyNode.RemoveValue("ScanMask");
+                        }
+                    }
+
                     if (resourceName == "Kethane")
                     {
                         if (int.TryParse(bodyNode.GetValue("SeedModifier"), out bodySeed))
@@ -220,7 +233,7 @@ namespace Kethane
 
                     if (Scans.ContainsKey(resource.Key) && Scans[resource.Key].ContainsKey(body.Key))
                     {
-                        bodyNode.AddValue("ScanMask", Convert.ToBase64String(Scans[resource.Key][body.Key].ToByteArray()).Replace('/', '.').Replace('=', '%'));
+                        bodyNode.AddValue("ScanMask", Convert.ToBase64String(Scans[resource.Key][body.Key].ToByteArray().Compress()).Replace('/', '.').Replace('=', '%'));
                     }
 
                     var node = body.Value.Save() ?? new ConfigNode();

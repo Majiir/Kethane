@@ -1,6 +1,8 @@
 ﻿using System;
 using UnityEngine;
 using System.Collections.Generic;
+using System.IO;
+using Ionic.Zlib;
 
 namespace Kethane
 {
@@ -180,5 +182,37 @@ namespace Kethane
         {
             return System.Diagnostics.FileVersionInfo.GetVersionInfo(assembly.Location).ProductVersion;
         }
+
+        #region Stream extensions
+
+        public static byte[] ReadFully(this Stream input)
+        {
+            byte[] buffer = new byte[16 * 1024];
+            using (MemoryStream ms = new MemoryStream())
+            {
+                int read;
+                while ((read = input.Read(buffer, 0, buffer.Length)) > 0)
+                {
+                    ms.Write(buffer, 0, read);
+                }
+                return ms.ToArray();
+            }
+        }
+
+        #endregion
+
+        #region Byte compression
+
+        public static byte[] Compress(this byte[] data)
+        {
+            return new DeflateStream(new MemoryStream(data), CompressionMode.Compress).ReadFully();
+        }
+
+        public static byte[] Decompress(this byte[] data)
+        {
+            return new DeflateStream(new MemoryStream(data), CompressionMode.Decompress).ReadFully();
+        }
+
+        #endregion
     }
 }
