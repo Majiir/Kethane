@@ -130,11 +130,10 @@ namespace Kethane
         {
             var resourceName = resource.Resource;
             generatorNodes[resourceName] = resource.Generator;
-            var generator = createGenerator(generatorNodes[resourceName].CreateCopy());
-            generators[resourceName] = generator;
+            generators[resourceName] = createGenerator(generatorNodes[resourceName].CreateCopy());
             foreach (var body in FlightGlobals.Bodies)
             {
-                PlanetDeposits[resourceName][body.name] = generator.Load(body, null);
+                ResetBodyData(resource, body);
             }
         }
 
