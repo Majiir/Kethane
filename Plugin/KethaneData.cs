@@ -145,7 +145,7 @@ namespace Kethane
             var constructor = AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(a => a.GetTypes())
                 .Where(t => t.Name == name)
-                .Where(t => t.GetInterfaces().Any(i => i == typeof(IResourceGenerator)))
+                .Where(t => t.GetInterfaces().Contains(typeof(IResourceGenerator)))
                 .Select(t => t.GetConstructor(new Type[] { typeof(ConfigNode) }))
                 .FirstOrDefault(c => c != null);
 
