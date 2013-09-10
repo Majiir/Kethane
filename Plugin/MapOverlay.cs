@@ -573,7 +573,7 @@ namespace Kethane
             renderer.castShadows = false;
             renderer.receiveShadows = false;
 
-            var material = new Material(KSP.IO.File.ReadAllText<MapOverlay>("AlphaUnlitVertexColored.txt"));
+            var material = new Material(new System.IO.StreamReader(System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("Kethane.Resources.AlphaUnlitVertexColored.txt")).ReadToEnd());
 
             var color = Color.white;
             color.a = 0.4f;
