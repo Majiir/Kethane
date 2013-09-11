@@ -67,6 +67,7 @@
     <Compile Include="KethaneExtractor.cs" />
     <Compile Include="KethaneParticleEmitter.cs" />
     <Compile Include="KethaneParticleDynamics.cs" />
+    <Compile Include="KethaneScanningTutorial.cs" />
     <Compile Include="KethaneWetMassIndicator.cs" />
     <Compile Include="KSPAddonFixed.cs" />
     <Compile Include="MapOverlay.cs" />
