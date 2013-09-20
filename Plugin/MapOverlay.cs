@@ -203,20 +203,20 @@ namespace Kethane
 
             if (nextHoverFrame <= Time.frameCount)
             {
-            var lastHoverCell = hoverCell;
+                var lastHoverCell = hoverCell;
 
-            var ray = MapView.MapCamera.camera.ScreenPointToRay(Input.mousePosition);
-            RaycastHit hitInfo;
-            if (gridCollider.Raycast(ray, out hitInfo, float.PositiveInfinity))
-            {
-                hoverCell = grid.NearestCell(gameObject.transform.InverseTransformPoint(hitInfo.point));
-            }
-            else
-            {
-                hoverCell = null;
-            }
+                var ray = MapView.MapCamera.camera.ScreenPointToRay(Input.mousePosition);
+                RaycastHit hitInfo;
+                if (gridCollider.Raycast(ray, out hitInfo, float.PositiveInfinity))
+                {
+                    hoverCell = grid.NearestCell(gameObject.transform.InverseTransformPoint(hitInfo.point));
+                }
+                else
+                {
+                    hoverCell = null;
+                }
 
-            nextHoverFrame = Time.frameCount + (hoverCell == lastHoverCell ? 8 : 4);
+                nextHoverFrame = Time.frameCount + (hoverCell == lastHoverCell ? 8 : 4);
             }
         }
 
