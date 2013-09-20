@@ -622,7 +622,6 @@ namespace Kethane
             }
 
             mesh.vertices = vertices.ToArray();
-            mesh.normals = mesh.vertices;
 
             gridCollider.sharedMesh.vertices = grid.Select(c => adjustVertex(c.Position)).ToArray();
         }
