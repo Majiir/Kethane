@@ -44,69 +44,81 @@ namespace Kethane
 
             private void populateCells()
             {
-                this.cells = new GeodesicGrid.Cell.Map<ICellResource>(5);
-
                 var grid = new GeodesicGrid(5);
-                var simplexVals = new GeodesicGrid.Cell.Map<double>(5);
-                var elevation = new GeodesicGrid.Cell.Map<double>(5);
 
                 // * Configure simplex noise
 
-                var simplex = new Simplex(seed, Misc.Parse(config.GetValue("SimplexOctaves"), 1), Misc.Parse(config.GetValue("SimplexPersistence"), 0.5), Misc.Parse(config.GetValue("SimplexFrequency"), 1.0));
+                var simplexGen = new Simplex(seed, Misc.Parse(config.GetValue("SimplexOctaves"), 1), Misc.Parse(config.GetValue("SimplexPersistence"), 0.5), Misc.Parse(config.GetValue("SimplexFrequency"), 1.0));
 
                 // * Compute simplex noise and elevation for each cell
-
-                foreach (var cell in grid)
-                {
-                    simplexVals[cell] = simplex.noise(cell.Position);
-                    elevation[cell] = body.pqsController.GetSurfaceHeight(cell.Position) - body.pqsController.radius;
-                }
-
-                // * Normalize elevation to 0..1
-
-                var maxElevation = grid.Max(c => elevation[c]);
-                var minElevation = grid.Min(c => elevation[c]);
-
-                foreach (var cell in grid)
-                {
-                    elevation[cell] = (elevation[cell] - minElevation) / (maxElevation - minElevation);
-                }
-
-                // * Compute function between simplex and elevation (basically just a few scalings)
+                // * Compute function between simplex and elevation
 
                 var cellVals = new GeodesicGrid.Cell.Map<double>(5);
+                var terrainBivariate = new BivariateQuadratic(config.GetNode("TerrainBivariate") ?? new ConfigNode());
+                var preBlur = new Quadratic(config.GetNode("PreBlur") ?? new ConfigNode());
+                var postBlur = new Quadratic(config.GetNode("PostBlur") ?? new ConfigNode());
+                var final = new Quadratic(config.GetNode("Final") ?? new ConfigNode());
 
                 foreach (var cell in grid)
                 {
-                    var cutoff = Misc.Parse(config.GetValue("DeltaCutoff"), 0.0);
-                    cellVals[cell] = (cutoff - Math.Abs(simplexVals[cell] - (elevation[cell] - 0.5))) / cutoff;
+                    // TODO: Better elevation data with more samples
+                    var elevation = body.pqsController.GetSurfaceHeight(cell.Position) - body.pqsController.radius;
+
+                    var pos = cell.Position;
+                    var latitude = Math.Abs(Math.Atan2(pos.y, Math.Sqrt(pos.x * pos.x + pos.z * pos.z)));
+
+                    var terrain = terrainBivariate.Apply(elevation, latitude);
+                    var simplex = simplexGen.noise(cell.Position);
+
+                    cellVals[cell] = preBlur.Apply(Math.Abs(simplex - terrain));
                 }
 
                 // * Blur
 
-                var blurRounds = Misc.Parse(config.GetValue("BlurRounds"), 0);
-                var blurBias = Misc.Parse(config.GetValue("BlurBias"), 0.0);
-                for (int i = 0; i < blurRounds; i++)
-                {
-                    var newVals = new GeodesicGrid.Cell.Map<double>(5);
+                // TODO: Smarter one-pass blur?
 
-                    foreach (var cell in grid)
+                {
+                    var blurRounds = Misc.Parse(config.GetValue("BlurRounds"), 0);
+                    var blurBias = Misc.Parse(config.GetValue("BlurBias"), 0.0);
+                    for (int i = 0; i < blurRounds; i++)
                     {
-                        newVals[cell] = (1 - blurBias) * cellVals[cell] + blurBias * cell.Neighbors.Average(c => cellVals[c]);
+                        var newVals = new GeodesicGrid.Cell.Map<double>(5);
+
+                        foreach (var cell in grid)
+                        {
+                            newVals[cell] = (1 - blurBias) * cellVals[cell] + blurBias * cell.Neighbors.Average(c => cellVals[c]);
+                        }
+                        cellVals = newVals;
                     }
-                    cellVals = newVals;
                 }
 
                 // * Clean up small deposits
 
+                foreach (var cell in grid)
+                {
+                    cellVals[cell] = postBlur.Apply(cellVals[cell]);
+                }
+
                 depositCutoff(grid, cellVals, Misc.Parse(config.GetValue("DepositCutoff"), 0.0));
 
+                var constantCutoff = Misc.Parse(config.GetValue("ConstantCutoff"), 0.0);
+
                 // * Populate cells
+
+                this.cells = new GeodesicGrid.Cell.Map<ICellResource>(5);
 
                 foreach (var cell in grid)
                 {
                     var value = cellVals[cell];
-                    this.cells[cell] = value > 0 ? new CellResource(40000 * value + 10000) : null;
+                    if (value > constantCutoff)
+                    {
+                        value = final.Apply(value);
+                        this.cells[cell] = value > 0 ? new CellResource(value) : null;
+                    }
+                    else
+                    {
+                        this.cells[cell] = null;
+                    }
                 }
 
                 MaxQuantity = grid.Select(c => cells[c]).Where(c => c != null).Select(c => c.Quantity).DefaultIfEmpty(0).Max();
@@ -157,6 +169,52 @@ namespace Kethane
         {
             public CellResource(double quantity) { Quantity = quantity; }
             public double Quantity { get; set; }
+        }
+
+        private struct Quadratic
+        {
+            public double A { get; private set; }
+            public double B { get; private set; }
+            public double C { get; private set; }
+
+            public Quadratic(ConfigNode node)
+                : this()
+            {
+                A = Misc.Parse(node.GetValue("A"), 0.0);
+                B = Misc.Parse(node.GetValue("B"), 0.0);
+                C = Misc.Parse(node.GetValue("C"), 0.0);
+            }
+
+            public double Apply(double x)
+            {
+                return A * x * x + B * x + C;
+            }
+        }
+
+        private struct BivariateQuadratic
+        {
+            public double A { get; private set; }
+            public double B { get; private set; }
+            public double C { get; private set; }
+            public double D { get; private set; }
+            public double E { get; private set; }
+            public double F { get; private set; }
+
+            public BivariateQuadratic(ConfigNode node)
+                : this()
+            {
+                A = Misc.Parse(node.GetValue("A"), 0.0);
+                B = Misc.Parse(node.GetValue("B"), 0.0);
+                C = Misc.Parse(node.GetValue("C"), 0.0);
+                D = Misc.Parse(node.GetValue("D"), 0.0);
+                E = Misc.Parse(node.GetValue("E"), 0.0);
+                F = Misc.Parse(node.GetValue("F"), 0.0);
+            }
+
+            public double Apply(double x, double y)
+            {
+                return A * x * x + B * y * y + C * x + D * y + E * x * y + F;
+            }
         }
     }
 }
