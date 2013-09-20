@@ -22,6 +22,7 @@ namespace Kethane
         private ResourceDefinition resource;
         private MeshCollider gridCollider;
         private int nextHoverFrame = 0;
+        private int[] colliderTriangles;
 
         private static RenderingManager renderingManager;
         private static GUIStyle centeredStyle = null;
@@ -209,7 +210,7 @@ namespace Kethane
                 RaycastHit hitInfo;
                 if (gridCollider.Raycast(ray, out hitInfo, float.PositiveInfinity))
                 {
-                    hoverCell = grid.NearestCell(gameObject.transform.InverseTransformPoint(hitInfo.point));
+                    hoverCell = new GeodesicGrid.Cell(colliderTriangles[hitInfo.triangleIndex * 3 + barycentricIndex(hitInfo.barycentricCoordinate)], grid);
                 }
                 else
                 {
@@ -218,6 +219,16 @@ namespace Kethane
 
                 nextHoverFrame = Time.frameCount + (hoverCell == lastHoverCell ? 8 : 4);
             }
+        }
+
+        private static int barycentricIndex(Vector3 barycentric)
+        {
+            if (barycentric.x >= barycentric.y && barycentric.x >= barycentric.z)
+            { return 0; }
+            else if (barycentric.y >= barycentric.x && barycentric.y >= barycentric.z)
+            { return 1; }
+            else
+            { return 2; }
         }
 
         public void RefreshCellColor(GeodesicGrid.Cell cell, CelestialBody body)
@@ -576,6 +587,7 @@ namespace Kethane
                 };
             }).Select(c => c.GetHashCode()).ToArray();
             colliderMesh.Optimize();
+            colliderTriangles = colliderMesh.triangles;
 
             gridCollider = colliderObj.AddComponent<MeshCollider>();
             gridCollider.sharedMesh = colliderMesh;
