@@ -20,7 +20,8 @@ namespace Kethane
         private GUISkin skin;
         private GeodesicGrid.Cell? hoverCell;
         private ResourceDefinition resource;
-        private SphereCollider gridCollider;
+        private MeshCollider gridCollider;
+        private int nextHoverFrame = 0;
 
         private static RenderingManager renderingManager;
         private static GUIStyle centeredStyle = null;
@@ -184,6 +185,9 @@ namespace Kethane
             if (bodyChanged)
             {
                 body = newBody;
+
+                refreshMesh();
+
                 var radius = bodyRadii.ContainsKey(body) ? bodyRadii[body] : 1.025;
                 gameObject.transform.parent = ScaledSpace.Instance.scaledSpaceTransforms.Single(t => t.name == body.name);
                 gameObject.transform.localScale = Vector3.one * 1000f * (float)radius;
@@ -197,6 +201,10 @@ namespace Kethane
                 refreshCellColors();
             }
 
+            if (nextHoverFrame <= Time.frameCount)
+            {
+            var lastHoverCell = hoverCell;
+
             var ray = MapView.MapCamera.camera.ScreenPointToRay(Input.mousePosition);
             RaycastHit hitInfo;
             if (gridCollider.Raycast(ray, out hitInfo, float.PositiveInfinity))
@@ -206,6 +214,9 @@ namespace Kethane
             else
             {
                 hoverCell = null;
+            }
+
+            nextHoverFrame = Time.frameCount + (hoverCell == lastHoverCell ? 8 : 4);
             }
         }
 
@@ -509,28 +520,13 @@ namespace Kethane
 
         private void setUpMesh()
         {
-            var vertices = new List<UnityEngine.Vector3>();
             var triangles = new List<int>();
 
             foreach (var cell in grid)
             {
-                var neighbors = cell.Neighbors.ToArray();
-
-                for (var i = 0; i < neighbors.Length; i++)
-                {
-                    var a = neighbors[i];
-                    var b = neighbors[i == neighbors.Length - 1 ? 0 : (i + 1)];
-
-                    var center = (a.Position + b.Position + cell.Position).normalized;
-
-                    var blend = 0.08f;
-                    vertices.Add((cell.Position * blend + center * (1 - blend)).normalized);
-                }
-
+                var t = cell.GetHashCode() * 6;
                 if (cell.IsPentagon)
                 {
-                    vertices.Add(cell.Position);
-                    var t = vertices.Count - 6;
                     for (var i = 0; i < 5; i++)
                     {
                         triangles.Add(t + 5, t + (i + 1) % 5, t + i);
@@ -538,7 +534,6 @@ namespace Kethane
                 }
                 else
                 {
-                    var t = vertices.Count - 6;
                     triangles.Add(t + 2, t + 1, t, t + 4, t + 3, t + 2, t, t + 5, t + 4, t + 4, t + 2, t);
                 }
             }
@@ -546,10 +541,9 @@ namespace Kethane
             mesh = gameObject.AddComponent<MeshFilter>().mesh;
             var renderer = gameObject.AddComponent<MeshRenderer>();
 
-            mesh.vertices = vertices.ToArray();
+            mesh.vertices = new Vector3[grid.Count * 6];
             mesh.triangles = triangles.ToArray();
-            mesh.normals = mesh.vertices;
-            mesh.colors32 = Enumerable.Repeat(colorUnknown, vertices.Count).ToArray();
+            mesh.colors32 = Enumerable.Repeat(colorUnknown, mesh.vertexCount).ToArray();
             mesh.Optimize();
 
             renderer.enabled = false;
@@ -567,9 +561,64 @@ namespace Kethane
             var colliderObj = new GameObject("MapOverlay collider");
             colliderObj.layer = LayerMask.NameToLayer("Ignore Raycast");
             colliderObj.transform.parent = gameObject.transform;
-            gridCollider = colliderObj.AddComponent<SphereCollider>();
-            gridCollider.radius = 1;
+
+            var colliderMesh = new Mesh();
+            colliderMesh.vertices = new Vector3[grid.Count];
+            colliderMesh.triangles = grid.Where(c => !(c.IsNorth || c.IsSouth)).SelectMany(c =>
+            {
+                return new GeodesicGrid.Cell[] {
+                    c,
+                    new GeodesicGrid.Cell(c.X, c.Y - 1, c.Z + 1, grid),
+                    new GeodesicGrid.Cell(c.X, c.Y - 1, c.Z, grid),
+                    c,
+                    new GeodesicGrid.Cell(c.X, c.Y, c.Z + 1, grid),
+                    new GeodesicGrid.Cell(c.X, c.Y - 1, c.Z + 1, grid),
+                };
+            }).Select(c => c.GetHashCode()).ToArray();
+            colliderMesh.Optimize();
+
+            gridCollider = colliderObj.AddComponent<MeshCollider>();
+            gridCollider.sharedMesh = colliderMesh;
             gridCollider.isTrigger = true;
+
+            refreshMesh();
+        }
+
+        private void refreshMesh()
+        {
+            var vertices = new List<UnityEngine.Vector3>();
+
+            foreach (var cell in grid)
+            {
+                var neighbors = cell.Neighbors.ToArray();
+
+                for (var i = 0; i < neighbors.Length; i++)
+                {
+                    var a = neighbors[i];
+                    var b = neighbors[i == neighbors.Length - 1 ? 0 : (i + 1)];
+
+                    var center = (a.Position + b.Position + cell.Position).normalized;
+
+                    var blend = 0.08f;
+                    vertices.Add(adjustVertex((cell.Position * blend + center * (1 - blend)).normalized));
+                }
+
+                if (cell.IsPentagon)
+                {
+                    vertices.Add(adjustVertex(cell.Position));
+                }
+            }
+
+            mesh.vertices = vertices.ToArray();
+            mesh.normals = mesh.vertices;
+
+            gridCollider.sharedMesh.vertices = grid.Select(c => adjustVertex(c.Position)).ToArray();
+        }
+
+        private Vector3 adjustVertex(Vector3 position)
+        {
+            if (body == null || body.pqsController == null) { return position; }
+            return position * (float)(body.pqsController.GetSurfaceHeight(position) / body.pqsController.radius);
         }
     }
 }
