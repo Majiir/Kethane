@@ -10,6 +10,37 @@ namespace Kethane
     [KSPAddon(KSPAddon.Startup.EveryScene, false)]
     internal class MapOverlay : MonoBehaviour
     {
+        private struct CellTriple : IEquatable<CellTriple>
+        {
+            private readonly int first;
+            private readonly int second;
+            private readonly int third;
+
+            public CellTriple(GeodesicGrid.Cell first, GeodesicGrid.Cell second, GeodesicGrid.Cell third)
+            {
+                var cells = new GeodesicGrid.Cell[] { first, second, third }.Select(c => c.GetHashCode()).OrderBy(i => i).ToArray();
+                this.first = cells[0];
+                this.second = cells[1];
+                this.third = cells[2];
+            }
+
+            public override bool Equals(object obj)
+            {
+                if (obj is CellTriple) { return Equals((CellTriple)obj); }
+                return false;
+            }
+
+            public bool Equals(CellTriple other)
+            {
+                return (first == other.first) && (second == other.second) && (third == other.third);
+            }
+
+            public override int GetHashCode()
+            {
+                return (first.GetHashCode() * 31) ^ (second.GetHashCode() * 37) ^ (third.GetHashCode() * 41);
+            }
+        }
+
         public static MapOverlay Instance { get; private set; }
 
         private static GeodesicGrid grid = new GeodesicGrid(5);
@@ -23,6 +54,8 @@ namespace Kethane
         private MeshCollider gridCollider;
         private int nextHoverFrame = 0;
         private int[] colliderTriangles;
+        private Dictionary<string, Dictionary<CellTriple, float>> tripleCache = new Dictionary<string, Dictionary<CellTriple, float>>();
+        private Dictionary<string, GeodesicGrid.Cell.Map<float>> cellCache = new Dictionary<string, GeodesicGrid.Cell.Map<float>>();
 
         private static RenderingManager renderingManager;
         private static GUIStyle centeredStyle = null;
@@ -600,6 +633,26 @@ namespace Kethane
         {
             var vertices = new List<UnityEngine.Vector3>();
 
+            var bodyName = body != null ? body.name : "NULL";
+
+            if (!cellCache.ContainsKey(bodyName))
+            {
+                var cache = new GeodesicGrid.Cell.Map<float>(5);
+                cellCache[bodyName] = cache;
+                foreach (var cell in grid)
+                {
+                    cache[cell] = pqsRatioAt(cell.Position);
+                }
+            }
+
+            if (!tripleCache.ContainsKey(bodyName))
+            {
+                tripleCache[bodyName] = new Dictionary<CellTriple, float>();
+            }
+
+            var cCache = cellCache[bodyName];
+            var tCache = tripleCache[bodyName];
+
             foreach (var cell in grid)
             {
                 var neighbors = cell.Neighbors.ToArray();
@@ -611,25 +664,28 @@ namespace Kethane
 
                     var center = (a.Position + b.Position + cell.Position).normalized;
 
+                    var triple = new CellTriple(a, b, cell);
+                    if (!tCache.ContainsKey(triple)) { tCache[triple] = pqsRatioAt(center); }
+
                     var blend = 0.08f;
-                    vertices.Add(adjustVertex((cell.Position * blend + center * (1 - blend)).normalized));
+                    vertices.Add(tCache[triple] * (cell.Position * blend + center * (1 - blend)).normalized);
                 }
 
                 if (cell.IsPentagon)
                 {
-                    vertices.Add(adjustVertex(cell.Position));
+                    vertices.Add(cell.Position * cCache[cell]);
                 }
             }
 
             mesh.vertices = vertices.ToArray();
 
-            gridCollider.sharedMesh.vertices = grid.Select(c => adjustVertex(c.Position)).ToArray();
+            gridCollider.sharedMesh.vertices = grid.Select(c => c.Position * cCache[c]).ToArray();
         }
 
-        private Vector3 adjustVertex(Vector3 position)
+        private float pqsRatioAt(Vector3 position)
         {
-            if (body == null || body.pqsController == null) { return position; }
-            return position * (float)(body.pqsController.GetSurfaceHeight(position) / body.pqsController.radius);
+            if (body == null || body.pqsController == null) { return 1; }
+            return (float)Math.Max(1, body.pqsController.GetSurfaceHeight(position) / body.pqsController.radius);
         }
     }
 }
