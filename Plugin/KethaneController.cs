@@ -7,12 +7,6 @@ namespace Kethane
 {
     internal class KethaneController
     {
-        public static bool ScanningSound
-        {
-            get { return Misc.Parse(SettingsManager.GetValue("ScanningSound"), true); }
-            set { SettingsManager.SetValue("ScanningSound", value); }
-        }
-
         private static SortedDictionary<String, ResourceDefinition> resourceDefinitions = null;
 
         public static ResourceDefinition[] ResourceDefinitions
