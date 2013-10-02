@@ -40,6 +40,13 @@ namespace Kethane
         private ResourceRate[] inputRates;
         private ResourceRate[] outputRates;
 
+        private Dictionary<string, double> resourceActivity = new Dictionary<string, double>();
+
+        public Dictionary<string, double> ResourceActivity
+        {
+            get { return new Dictionary<string, double>(resourceActivity); }
+        }
+
         [KSPEvent(guiActive = true, guiName = "Activate Converter", active = true)]
         public void ActivateConverter()
         {
@@ -126,6 +133,7 @@ namespace Kethane
 
         public override void OnFixedUpdate()
         {
+            resourceActivity.Clear();
             if (!IsEnabled) { return; }
 
             var rates = outputRates.Select(r => r * -1).Concat(inputRates).Select(r => r * TimeWarp.fixedDeltaTime).ToArray();
@@ -140,7 +148,7 @@ namespace Kethane
 
             foreach (var rate in rates)
             {
-                this.part.RequestResource(rate.Resource, rate.Rate * ratio);
+                resourceActivity[rate.Resource] = this.part.RequestResource(rate.Resource, rate.Rate * ratio);
             }
         }
     }
