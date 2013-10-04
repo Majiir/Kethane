@@ -27,6 +27,9 @@ namespace Kethane
         }
 
         [KSPField(isPersistant = false)]
+        public bool AlwaysActive;
+
+        [KSPField(isPersistant = false)]
         public String Label;
 
         [KSPField(isPersistant = false)]
@@ -121,6 +124,8 @@ namespace Kethane
             Actions["DeactivateConverterAction"].guiName = Events["DeactivateConverter"].guiName = String.Format("Deactivate {0} Converter", Label);
             Actions["ToggleConverterAction"].guiName = String.Format("Toggle {0} Converter", Label);
 
+            Events["ActivateConverter"].guiActive = Events["DeactivateConverter"].guiActive = !AlwaysActive;
+
             if (state == StartState.Editor) { return; }
             this.part.force_activate();
         }
@@ -134,7 +139,7 @@ namespace Kethane
         public override void OnFixedUpdate()
         {
             resourceActivity.Clear();
-            if (!IsEnabled) { return; }
+            if (!IsEnabled && !AlwaysActive) { return; }
 
             var rates = outputRates.Select(r => r * -1).Concat(inputRates).Select(r => r * TimeWarp.fixedDeltaTime).ToArray();
             var ratio = rates.Select(r => Misc.GetConnectedResources(this.part, r.Resource).Select(c => r.Rate > 0 ? c.amount : c.maxAmount - c.amount).DefaultIfEmpty().Max() / Math.Abs(r.Rate)).Prepend(1).Min();
