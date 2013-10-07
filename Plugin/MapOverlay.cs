@@ -169,7 +169,7 @@ namespace Kethane
 
         private void updateMapView()
         {
-            if (!MapView.MapIsEnabled || !showOverlay || MapView.MapCamera == null)
+            if (!MapView.MapIsEnabled || !showOverlay || MapView.MapCamera == null || KethaneData.Current == null)
             {
                 gameObject.renderer.enabled = false;
                 return;
@@ -193,7 +193,7 @@ namespace Kethane
 
             if (bodyChanged || resource == null || resource.Resource != KethaneController.SelectedResource)
             {
-                resource = KethaneController.ResourceDefinitions.Where(r => r.Resource == KethaneController.SelectedResource).Single().ForBody(body);
+                resource = KethaneController.ResourceDefinitions.Where(r => r.Resource == KethaneController.SelectedResource).Single();
                 refreshCellColors();
             }
 
@@ -232,7 +232,8 @@ namespace Kethane
         {
             var deposit = data.GetCellDeposit(resource.Resource, body, cell);
             var scanned = data.Scans[resource.Resource][body.name][cell];
-            var color = (revealAll ? deposit != null : scanned) ? getDepositColor(resource, deposit) : colorUnknown;
+            var bodyResources = data.PlanetDeposits[resource.Resource][body.name];
+            var color = (revealAll ? deposit != null : scanned) ? getDepositColor(resource, bodyResources, deposit) : colorUnknown;
             setCellColor(cell, color, colors);
         }
 
@@ -245,12 +246,12 @@ namespace Kethane
             }
         }
 
-        private static Color32 getDepositColor(ResourceDefinition definition, Deposit deposit)
+        private static Color32 getDepositColor(ResourceDefinition definition, IBodyResources bodyResources, ICellResource deposit)
         {
             Color32 color;
             if (deposit != null)
             {
-                var ratio = (deposit.Quantity / definition.MaxQuantity);
+                var ratio = (float)(deposit.Quantity / bodyResources.MaxQuantity);
                 color = (Color32)(definition.ColorFull * ratio + definition.ColorEmpty * (1 - ratio));
             }
             else
@@ -345,7 +346,7 @@ namespace Kethane
             GUILayout.Label(String.Format("{0:F1} {1}, {2:F1} {3}", Math.Abs(lat), lat < 0 ? "S" : "N", Math.Abs(lon), lon < 0 ? "W" : "E"));
             GUILayout.EndHorizontal();
 
-            foreach (var definition in KethaneController.ResourceDefinitions.Select(d => d.ForBody(body)))
+            foreach (var definition in KethaneController.ResourceDefinitions)
             {
                 GUILayout.BeginHorizontal();
 
@@ -419,34 +420,17 @@ namespace Kethane
                         refreshCellColors();
                     }
 
-                    GUI.enabled = vessel != null;
-                    if (GUILayout.Button("Generate Under Vessel"))
+                    if (GUILayout.Button("Reset " + body.name + " Data"))
                     {
-                        var random = new System.Random();
-
-                        do
-                        {
-                            KethaneData.Current.GenerateKethaneDeposits(random);
-                        }
-                        while (KethaneData.Current.GetCellDeposit(resource.Resource, body, GetCellUnder(body, vessel.transform.position)) == null);
-
-                        refreshCellColors();
-                    }
-                    GUI.enabled = true;
-
-                    if (GUILayout.Button("Generate All Bodies"))
-                    {
-                        KethaneData.Current.GenerateKethaneDeposits();
+                        KethaneData.Current.ResetBodyData(resource, body);
                         refreshCellColors();
                     }
 
-                    GUI.enabled = deposit != null;
-                    if (GUILayout.Button("Refill Deposit"))
+                    if (GUILayout.Button("Reset Generator Config"))
                     {
-                        deposit.Quantity = deposit.InitialQuantity;
+                        KethaneData.Current.ResetGeneratorConfig(resource);
                         refreshCellColors();
                     }
-                    GUI.enabled = true;
 
                     if (GUILayout.Button("Export Data (" + (revealAll ? "All" : "Scanned") + ")"))
                     {
@@ -475,7 +459,7 @@ namespace Kethane
                 cells[cell] = String.Format(CultureInfo.InvariantCulture, "{0},{1},{2},{3},{4},{5},", cell.GetHashCode(), lat, lon, pos.x, pos.y, pos.z);
             }
 
-            sb.AppendLine("body,resource,cellId,lat,lon,x,y,z,scanned,quantity,initialQuantity,depositIndex");
+            sb.AppendLine("body,resource,cellId,lat,lon,x,y,z,scanned,quantity");
 
             foreach (var body in FlightGlobals.Bodies)
             {
@@ -485,18 +469,17 @@ namespace Kethane
                     {
                         var scanned = KethaneData.Current.Scans[resource.Resource][body.name][cell];
                         var deposit = KethaneData.Current.GetCellDeposit(resource.Resource, body, cell);
-                        var index = deposit == null ? -1 : KethaneData.Current.PlanetDeposits[resource.Resource][body.name].IndexOf(deposit);
 
                         sb.Append(String.Format("{0},{1},", body.name, resource.Resource));
                         sb.Append(cells[cell]);
                         sb.Append(scanned ? "true" : "false");
                         if ((revealAll || scanned) && deposit != null)
                         {
-                            sb.Append(String.Format(CultureInfo.InvariantCulture, ",{0},{1},{2}", deposit.Quantity, deposit.InitialQuantity, index));
+                            sb.Append(String.Format(CultureInfo.InvariantCulture, ",{0}", deposit.Quantity));
                         }
                         else
                         {
-                            sb.Append(",,,");
+                            sb.Append(",");
                         }
                         sb.AppendLine();
                     }

@@ -27,47 +27,22 @@ namespace Kethane
             }
         }
 
-        public Dictionary<string, Dictionary<string, List<Deposit>>> PlanetDeposits;
-        public Dictionary<string, Dictionary<string, GeodesicGrid.Cell.Set>> Scans;
+        public Dictionary<string, Dictionary<string, IBodyResources>> PlanetDeposits = new Dictionary<string,Dictionary<string,IBodyResources>>();
+        public Dictionary<string, Dictionary<string, GeodesicGrid.Cell.Set>> Scans = new Dictionary<string,Dictionary<string,GeodesicGrid.Cell.Set>>();
 
-        private Dictionary<string, int> bodySeeds;
-        private int depositSeed;
+        private Dictionary<string, ConfigNode> generatorNodes = new Dictionary<string, ConfigNode>();
+        private Dictionary<string, IResourceGenerator> generators = new Dictionary<string, IResourceGenerator>();
 
-        public Deposit GetDepositUnder(string resourceName, Vessel vessel)
+        public ICellResource GetDepositUnder(string resourceName, Vessel vessel)
         {
             return GetCellDeposit(resourceName, vessel.mainBody, MapOverlay.GetCellUnder(vessel.mainBody, vessel.transform.position));
         }
 
-        public Deposit GetCellDeposit(string resourceName, CelestialBody body, GeodesicGrid.Cell cell)
+        public ICellResource GetCellDeposit(string resourceName, CelestialBody body, GeodesicGrid.Cell cell)
         {
             if (resourceName == null || body == null || !PlanetDeposits.ContainsKey(resourceName) || !PlanetDeposits[resourceName].ContainsKey(body.name)) { return null; }
 
-            var pos = cell.Position;
-            var lat = (float)(Math.Atan2(pos.y, Math.Sqrt(pos.x * pos.x + pos.z * pos.z)) * 180 / Math.PI);
-            var lon = (float)(Math.Atan2(pos.z, pos.x) * 180 / Math.PI);
-
-            var x = lon + 180f;
-            var y = 90f - lat;
-
-            foreach (Deposit deposit in PlanetDeposits[resourceName][body.name])
-            {
-                if (deposit.Shape.PointInPolygon(new Vector2(x, y)))
-                {
-                    return deposit;
-                }
-            }
-
-            return null;
-        }
-
-        public void GenerateKethaneDeposits(System.Random random = null)
-        {
-            Debug.LogWarning("Regenerating Kethane deposits");
-
-            if (random == null) { random = new System.Random(); }
-            depositSeed = random.Next();
-            bodySeeds = FlightGlobals.Bodies.ToDictionary(b => b.name, b => b.name.GetHashCode());
-            generateFromSeed();
+            return PlanetDeposits[resourceName][body.name].GetResource(cell);
         }
 
         public override void OnLoad(ConfigNode config)
@@ -80,70 +55,177 @@ namespace Kethane
                 System.IO.File.Delete(oldPath);
             }
 
-            var timer = System.Diagnostics.Stopwatch.StartNew();
-
-            Scans = KethaneController.ResourceDefinitions.ToDictionary(d => d.Resource, d => FlightGlobals.Bodies.ToDictionary(b => b.name, b => new GeodesicGrid.Cell.Set(5)));
-
-            if (!int.TryParse(config.GetValue("Seed"), out depositSeed))
+            if (!config.HasValue("Version") && (config.CountNodes > 0 || config.CountValues > 2))
             {
-                GenerateKethaneDeposits();
-                return;
-            }
-
-            bodySeeds = FlightGlobals.Bodies.ToDictionary(b => b.name, b => b.name.GetHashCode());
-
-            foreach (var node in config.GetNodes("Resource").Where(r => r.GetValue("Resource") == "Kethane").SelectMany(r => r.GetNodes("Body")))
-            {
-                int seed;
-                if (int.TryParse(node.GetValue("SeedModifier"), out seed))
+                try
                 {
-                    bodySeeds[node.GetValue("Name")] = seed;
+                    config = upgradeConfig(config);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError("[Kethane] Error upgrading legacy data: " + e);
+                    config = new ConfigNode();
                 }
             }
 
-            generateFromSeed();
+            var timer = System.Diagnostics.Stopwatch.StartNew();
 
-            foreach (var resourceNode in config.GetNodes("Resource"))
+            PlanetDeposits.Clear();
+            Scans.Clear();
+
+            var resourceNodes = config.GetNodes("Resource");
+
+            foreach (var resource in KethaneController.ResourceDefinitions)
             {
-                loadBodyDeposits(resourceNode, resourceNode.GetValue("Resource"));
+                var resourceName = resource.Resource;
+                var resourceNode = resourceNodes.SingleOrDefault(n => n.GetValue("Resource") == resourceName) ?? new ConfigNode();
+
+                PlanetDeposits[resourceName] = new Dictionary<string, IBodyResources>();
+                Scans[resourceName] = new Dictionary<string, GeodesicGrid.Cell.Set>();
+
+                generatorNodes[resourceName] = resourceNode.GetNode("Generator") ?? resource.Generator;
+                var generator = createGenerator(generatorNodes[resourceName].CreateCopy());
+                if (generator == null)
+                {
+                    Debug.LogWarning("[Kethane] Defaulting to empty generator for " + resourceName);
+                    generator = new EmptyResourceGenerator();
+                }
+                generators[resourceName] = generator;
+
+                var bodyNodes = resourceNode.GetNodes("Body");
+
+                foreach (var body in FlightGlobals.Bodies)
+                {
+                    var bodyNode = bodyNodes.SingleOrDefault(n => n.GetValue("Name") == body.name) ?? new ConfigNode();
+
+                    PlanetDeposits[resourceName][body.name] = generator.Load(body, bodyNode.GetNode("GeneratorData"));
+                    Scans[resourceName][body.name] = new GeodesicGrid.Cell.Set(5);
+
+                    var scanMask = bodyNode.GetValue("ScanMask");
+                    if (scanMask != null)
+                    {
+                        try
+                        {
+                            Scans[resourceName][body.name] = new GeodesicGrid.Cell.Set(5, Convert.FromBase64String(scanMask.Replace('.', '/').Replace('%', '=')));
+                        }
+                        catch (FormatException e)
+                        {
+                            Debug.LogError(String.Format("[Kethane] Failed to parse {0}/{1} scan string, resetting ({2})", body.name, resourceName, e.Message));
+                        }
+                    }
+                }
             }
 
             timer.Stop();
             Debug.LogWarning(String.Format("Kethane deposits loaded ({0}ms)", timer.ElapsedMilliseconds));
         }
 
+        public void ResetBodyData(ResourceDefinition resource, CelestialBody body)
+        {
+            var resourceName = resource.Resource;
+            PlanetDeposits[resourceName][body.name] = generators[resourceName].Load(body, null);
+        }
+
+        public void ResetGeneratorConfig(ResourceDefinition resource)
+        {
+            var resourceName = resource.Resource;
+            generatorNodes[resourceName] = resource.Generator;
+            generators[resourceName] = createGenerator(generatorNodes[resourceName].CreateCopy());
+            foreach (var body in FlightGlobals.Bodies)
+            {
+                ResetBodyData(resource, body);
+            }
+        }
+
+        private static IResourceGenerator createGenerator(ConfigNode generatorNode)
+        {
+            var name = generatorNode.GetValue("name");
+            if (name == null) { Debug.LogError("[Kethane] Could not find generator name"); return null; }
+
+            var constructor = AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(a => a.GetTypes())
+                .Where(t => t.Name == name)
+                .Where(t => t.GetInterfaces().Contains(typeof(IResourceGenerator)))
+                .Select(t => t.GetConstructor(new Type[] { typeof(ConfigNode) }))
+                .FirstOrDefault(c => c != null);
+
+            if (constructor == null) { Debug.LogError("[Kethane] Could not find appropriate constructor for " + name); return null; }
+
+            try
+            {
+                return (IResourceGenerator)constructor.Invoke(new object[] { generatorNode });
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("[Kethane] Could not instantiate " + name + ":\n" + e);
+                return null;
+            }
+        }
+
+        private static ConfigNode upgradeConfig(ConfigNode oldConfig)
+        {
+            var config = oldConfig.CreateCopy();
+
+            var depositSeed = int.Parse(config.GetValue("Seed"));
+            config.RemoveValue("Seed");
+
+            foreach (var resourceNode in config.GetNodes("Resource"))
+            {
+                var resourceName = resourceNode.GetValue("Resource");
+                foreach (var bodyNode in resourceNode.GetNodes("Body"))
+                {
+                    var bodySeed = 0;
+
+                    if (resourceName == "Kethane")
+                    {
+                        if (int.TryParse(bodyNode.GetValue("SeedModifier"), out bodySeed))
+                        {
+                            bodyNode.RemoveValue("SeedModifier");
+                        }
+                        else
+                        {
+                            bodySeed = bodyNode.GetValue("Name").GetHashCode();
+                        }
+                    }
+
+                    var dataNode = bodyNode.AddNode("GeneratorData");
+                    dataNode.AddValue("Seed", depositSeed ^ bodySeed ^ (resourceName == "Kethane" ? 0 : resourceName.GetHashCode()));
+                    foreach (var depositNode in bodyNode.GetNodes("Deposit"))
+                    {
+                        dataNode.AddValue("Deposit", depositNode.GetValue("Quantity"));
+                    }
+                    bodyNode.RemoveNodes("Deposit");
+                }
+            }
+
+            return config;
+        }
+
         public override void OnSave(ConfigNode configNode)
         {
             var timer = System.Diagnostics.Stopwatch.StartNew();
 
-            configNode.AddValue("Seed", depositSeed);
+            configNode.AddValue("Version", System.Reflection.Assembly.GetExecutingAssembly().GetInformationalVersion());
+
             foreach (var resource in PlanetDeposits)
             {
                 var resourceNode = new ConfigNode("Resource");
                 resourceNode.AddValue("Resource", resource.Key);
+                resourceNode.AddNode(generatorNodes[resource.Key]);
 
                 foreach (var body in resource.Value)
                 {
                     var bodyNode = new ConfigNode("Body");
                     bodyNode.AddValue("Name", body.Key);
 
-                    if (bodySeeds[body.Key] != body.Key.GetHashCode() && resource.Key == "Kethane")
-                    {
-                        bodyNode.AddValue("SeedModifier", bodySeeds[body.Key]);
-                    }
-
                     if (Scans.ContainsKey(resource.Key) && Scans[resource.Key].ContainsKey(body.Key))
                     {
                         bodyNode.AddValue("ScanMask", Convert.ToBase64String(Scans[resource.Key][body.Key].ToByteArray()).Replace('/', '.').Replace('=', '%'));
                     }
 
-                    foreach (var deposit in body.Value)
-                    {
-                        var depositNode = new ConfigNode("Deposit");
-                        depositNode.AddValue("Quantity", deposit.Quantity);
-                        bodyNode.AddNode(depositNode);
-                    }
-
+                    var node = body.Value.Save() ?? new ConfigNode();
+                    node.name = "GeneratorData";
+                    bodyNode.AddNode(node);
                     resourceNode.AddNode(bodyNode);
                 }
 
@@ -152,66 +234,6 @@ namespace Kethane
 
             timer.Stop();
             Debug.LogWarning(String.Format("Kethane deposits saved ({0}ms)", timer.ElapsedMilliseconds));
-        }
-
-        private void generateFromSeed()
-        {
-            PlanetDeposits = KethaneController.ResourceDefinitions.ToDictionary(d => d.Resource, d => FlightGlobals.Bodies.ToDictionary(b => b.name, b => generate(b, d.ForBody(b))));
-        }
-
-        private List<Deposit> generate(CelestialBody body, ResourceDefinition resource)
-        {
-            var random = new System.Random(depositSeed ^ (resource.Resource == "Kethane" ? bodySeeds[body.name] : 0) ^ resource.SeedModifier);
-
-            var deposits = new List<Deposit>();
-
-            for (int i = 0; i < resource.DepositCount; i++)
-            {
-                float R = random.Range(resource.MinRadius, resource.MaxRadius);
-                for (int j = 0; j < resource.NumberOfTries; j++)
-                {
-                    Vector2 Pos = new Vector2(random.Range(R, 360 - R), random.Range(R, 180 - R));
-                    var deposit = Deposit.Generate(Pos, R, random, resource);
-                    if (!deposits.Any(d => d.Shape.Vertices.Any(v => deposit.Shape.PointInPolygon(new Vector2(v.x, v.y)))) && !deposit.Shape.Vertices.Any(v => deposits.Any(d => d.Shape.PointInPolygon(new Vector2(v.x, v.y)))))
-                    {
-                        deposits.Add(deposit);
-                        break;
-                    }
-                }
-            }
-
-            return deposits;
-        }
-
-        private void loadBodyDeposits(ConfigNode config, string resourceName)
-        {
-            if (!PlanetDeposits.ContainsKey(resourceName)) { return; }
-            foreach (var body in PlanetDeposits[resourceName])
-            {
-                var deposits = body.Value;
-
-                var bodyNode = config.GetNodes("Body").Where(b => b.GetValue("Name") == body.Key).SingleOrDefault();
-                if (bodyNode == null) { continue; }
-
-                var scanMask = bodyNode.GetValue("ScanMask");
-                if (scanMask != null)
-                {
-                    try
-                    {
-                        Scans[resourceName][body.Key] = new GeodesicGrid.Cell.Set(5, Convert.FromBase64String(scanMask.Replace('.', '/').Replace('%', '=')));
-                    }
-                    catch (FormatException e)
-                    {
-                        Debug.LogError(String.Format("[Kethane] Failed to parse {0}/{1} scan string, resetting ({2})", body.Key, resourceName, e.Message));
-                    }
-                }
-
-                var depositNodes = bodyNode.GetNodes("Deposit");
-                for (int i = 0; i < Math.Min(deposits.Count, depositNodes.Length); i++)
-                {
-                    deposits[i].Quantity = Misc.Parse(depositNodes[i].GetValue("Quantity"), deposits[i].InitialQuantity);
-                }
-            }
         }
     }
 }
