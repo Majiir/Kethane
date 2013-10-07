@@ -10,37 +10,6 @@ namespace Kethane
     [KSPAddon(KSPAddon.Startup.EveryScene, false)]
     internal class MapOverlay : MonoBehaviour
     {
-        private struct CellTriple : IEquatable<CellTriple>
-        {
-            private readonly int first;
-            private readonly int second;
-            private readonly int third;
-
-            public CellTriple(GeodesicGrid.Cell first, GeodesicGrid.Cell second, GeodesicGrid.Cell third)
-            {
-                var cells = new GeodesicGrid.Cell[] { first, second, third }.Select(c => c.GetHashCode()).OrderBy(i => i).ToArray();
-                this.first = cells[0];
-                this.second = cells[1];
-                this.third = cells[2];
-            }
-
-            public override bool Equals(object obj)
-            {
-                if (obj is CellTriple) { return Equals((CellTriple)obj); }
-                return false;
-            }
-
-            public bool Equals(CellTriple other)
-            {
-                return (first == other.first) && (second == other.second) && (third == other.third);
-            }
-
-            public override int GetHashCode()
-            {
-                return (first.GetHashCode() * 31) ^ (second.GetHashCode() * 37) ^ (third.GetHashCode() * 41);
-            }
-        }
-
         public static MapOverlay Instance { get; private set; }
 
         private static GeodesicGrid grid = new GeodesicGrid(5);
@@ -54,7 +23,6 @@ namespace Kethane
         private MeshCollider gridCollider;
         private int nextHoverFrame = 0;
         private int[] colliderTriangles;
-        private Dictionary<string, Dictionary<CellTriple, float>> tripleCache = new Dictionary<string, Dictionary<CellTriple, float>>();
         private Dictionary<string, GeodesicGrid.Cell.Map<float>> cellCache = new Dictionary<string, GeodesicGrid.Cell.Map<float>>();
 
         private static RenderingManager renderingManager;
@@ -645,13 +613,7 @@ namespace Kethane
                 }
             }
 
-            if (!tripleCache.ContainsKey(bodyName))
-            {
-                tripleCache[bodyName] = new Dictionary<CellTriple, float>();
-            }
-
             var cCache = cellCache[bodyName];
-            var tCache = tripleCache[bodyName];
 
             foreach (var cell in grid)
             {
@@ -663,12 +625,10 @@ namespace Kethane
                     var b = neighbors[i == neighbors.Length - 1 ? 0 : (i + 1)];
 
                     var center = (a.Position + b.Position + cell.Position).normalized;
-
-                    var triple = new CellTriple(a, b, cell);
-                    if (!tCache.ContainsKey(triple)) { tCache[triple] = pqsRatioAt(center); }
+                    var centerRatio = (cCache[a] + cCache[b] + cCache[cell]) / 3;
 
                     var blend = 0.08f;
-                    vertices.Add(tCache[triple] * (cell.Position * blend + center * (1 - blend)).normalized);
+                    vertices.Add(centerRatio * (cell.Position * blend + center * (1 - blend)).normalized);
                 }
 
                 if (cell.IsPentagon)
