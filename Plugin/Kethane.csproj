@@ -76,6 +76,7 @@
     <Compile Include="ResourceDefinition.cs" />
     <Compile Include="ScaledSpaceFix.cs" />
     <Compile Include="SettingsManager.cs" />
+    <Compile Include="TerrainData.cs" />
     <Compile Include="TimedMovingAverage.cs" />
   </ItemGroup>
   <ItemGroup>

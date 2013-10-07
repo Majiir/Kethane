@@ -23,7 +23,6 @@ namespace Kethane
         private MeshCollider gridCollider;
         private int nextHoverFrame = 0;
         private int[] colliderTriangles;
-        private Dictionary<string, GeodesicGrid.Cell.Map<float>> cellCache = new Dictionary<string, GeodesicGrid.Cell.Map<float>>();
 
         private static RenderingManager renderingManager;
         private static GUIStyle centeredStyle = null;
@@ -601,19 +600,17 @@ namespace Kethane
         {
             var vertices = new List<UnityEngine.Vector3>();
 
-            var bodyName = body != null ? body.name : "NULL";
+            Func<GeodesicGrid.Cell, float> heightRatioAt;
 
-            if (!cellCache.ContainsKey(bodyName))
+            try
             {
-                var cache = new GeodesicGrid.Cell.Map<float>(5);
-                cellCache[bodyName] = cache;
-                foreach (var cell in grid)
-                {
-                    cache[cell] = pqsRatioAt(cell.Position);
-                }
+                var bodyTerrain = TerrainData.ForBody(body);
+                heightRatioAt = c => Math.Max(1, bodyTerrain.GetHeightRatio(c));
             }
-
-            var cCache = cellCache[bodyName];
+            catch (ArgumentException)
+            {
+                heightRatioAt = c => 1;
+            }
 
             foreach (var cell in grid)
             {
@@ -625,7 +622,7 @@ namespace Kethane
                     var b = neighbors[i == neighbors.Length - 1 ? 0 : (i + 1)];
 
                     var center = (a.Position + b.Position + cell.Position).normalized;
-                    var centerRatio = (cCache[a] + cCache[b] + cCache[cell]) / 3;
+                    var centerRatio = (heightRatioAt(a) + heightRatioAt(b) + heightRatioAt(cell)) / 3;
 
                     var blend = 0.08f;
                     vertices.Add(centerRatio * (cell.Position * blend + center * (1 - blend)).normalized);
@@ -633,19 +630,13 @@ namespace Kethane
 
                 if (cell.IsPentagon)
                 {
-                    vertices.Add(cell.Position * cCache[cell]);
+                    vertices.Add(cell.Position * heightRatioAt(cell));
                 }
             }
 
             mesh.vertices = vertices.ToArray();
 
-            gridCollider.sharedMesh.vertices = grid.Select(c => c.Position * cCache[c]).ToArray();
-        }
-
-        private float pqsRatioAt(Vector3 position)
-        {
-            if (body == null || body.pqsController == null) { return 1; }
-            return (float)Math.Max(1, body.pqsController.GetSurfaceHeight(position) / body.pqsController.radius);
+            gridCollider.sharedMesh.vertices = grid.Select(c => c.Position * heightRatioAt(c)).ToArray();
         }
     }
 }
