@@ -113,7 +113,17 @@ namespace Kethane
 
         private static IEnumerable<ResourceRate> loadRates(ConfigNode config)
         {
-            return (config ?? new ConfigNode()).values.Cast<ConfigNode.Value>().Where(v => PartResourceLibrary.Instance.resourceDefinitions.Any(d => d.name == v.name)).Select(v => new ResourceRate(v.name, Misc.Parse(v.value, 0.0))).Where(r => r.Rate > 0);
+            if (config == null) { yield break; }
+
+            foreach (var entry in config.values.Cast<ConfigNode.Value>())
+            {
+                var name = entry.name;
+                var rate = Misc.Parse(entry.value, 0.0);
+                if (PartResourceLibrary.Instance.resourceDefinitions.Any(d => d.name == name) && rate > 0)
+                {
+                    yield return new ResourceRate(name, rate);
+                }
+            }
         }
 
         public override void OnStart(PartModule.StartState state)
