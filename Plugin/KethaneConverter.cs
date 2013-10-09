@@ -82,7 +82,7 @@ namespace Kethane
 
         public override string GetInfo()
         {
-            return String.Format("{0} Converter:\n> Inputs:\n", Label) + String.Join("\n", inputRates.Select(r => String.Format(" - {0}: {1:N2}/s", r.Resource, r.Rate)).ToArray()) + "\n> Outputs:\n" + String.Join("\n", outputRates.Select(r => String.Format(" - {0}: {1:N2}/s", r.Resource, r.Rate)).ToArray()) + "\n";
+            return String.Format("{0} Converter:\n", Label) + String.Join("\n", inputRates.Select(r => String.Format(" IN: {0}: {1:N2}/s", r.Resource, r.Rate)).ToArray()) + "\n" + String.Join("\n", outputRates.Select(r => String.Format(" OUT: {0}: {1:N2}/s", r.Resource, r.Rate)).ToArray()) + "\n";
         }
 
         public override void OnLoad(ConfigNode config)
