@@ -12,17 +12,21 @@ namespace Kethane
         {
             public String Resource { get; private set; }
             public double Rate { get; private set; }
+            public bool Optional { get; private set; }
 
-            public ResourceRate(String resource, double rate)
+            public ResourceRate(String resource, double rate) : this(resource, rate, false) { }
+
+            public ResourceRate(String resource, double rate, bool optional)
                 : this()
             {
                 Resource = resource;
                 Rate = rate;
+                Optional = Optional;
             }
 
             public static ResourceRate operator *(ResourceRate rate, double multiplier)
             {
-                return new ResourceRate(rate.Resource, rate.Rate * multiplier);
+                return new ResourceRate(rate.Resource, rate.Rate * multiplier, rate.Optional);
             }
         }
 
@@ -118,10 +122,15 @@ namespace Kethane
             foreach (var entry in config.values.Cast<ConfigNode.Value>())
             {
                 var name = entry.name;
+                bool optional = name.EndsWith("*");
+                if (optional)
+                {
+                    name = name.Substring(0, name.Length - 1);
+                }
                 var rate = Misc.Parse(entry.value, 0.0);
                 if (PartResourceLibrary.Instance.resourceDefinitions.Any(d => d.name == name) && rate > 0)
                 {
-                    yield return new ResourceRate(name, rate);
+                    yield return new ResourceRate(name, rate, optional);
                 }
             }
         }
@@ -152,7 +161,7 @@ namespace Kethane
             if (!IsEnabled && !AlwaysActive) { return; }
 
             var rates = outputRates.Select(r => r * -1).Concat(inputRates).Select(r => r * TimeWarp.fixedDeltaTime).ToArray();
-            var ratio = rates.Select(r => Misc.GetConnectedResources(this.part, r.Resource).Select(c => r.Rate > 0 ? c.amount : c.maxAmount - c.amount).DefaultIfEmpty().Max() / Math.Abs(r.Rate)).Prepend(1).Min();
+            var ratio = rates.Where(r => !r.Optional).Select(r => Misc.GetConnectedResources(this.part, r.Resource).Select(c => r.Rate > 0 ? c.amount : c.maxAmount - c.amount).DefaultIfEmpty().Max() / Math.Abs(r.Rate)).Prepend(1).Min();
 
             var heatsink = this.part.Modules.OfType<HeatSinkAnimator>().SingleOrDefault();
             if (heatsink != null)
