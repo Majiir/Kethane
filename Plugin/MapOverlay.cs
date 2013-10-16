@@ -11,6 +11,7 @@ namespace Kethane
     internal class MapOverlay : MonoBehaviour
     {
         public static MapOverlay Instance { get; private set; }
+        public static bool ShowOverlay { get; set; }
 
         private static GeodesicGrid grid = new GeodesicGrid(5);
 
@@ -20,14 +21,15 @@ namespace Kethane
         private GUISkin skin;
         private GeodesicGrid.Cell? hoverCell;
         private ResourceDefinition resource;
-        private SphereCollider gridCollider;
+        private MeshCollider gridCollider;
+        private int nextHoverFrame = 0;
+        private int[] colliderTriangles;
 
         private static RenderingManager renderingManager;
         private static GUIStyle centeredStyle = null;
         private static GUIStyle minMaxStyle = null;
         private static GUISkin defaultSkin = null;
         private static Rect controlWindowPos = new Rect(0, 0, 160, 0);
-        private static bool showOverlay = Misc.Parse(SettingsManager.GetValue("ShowOverlay"), true);
         private static bool revealAll = false;
         private static bool expandWindow = true;
 
@@ -39,6 +41,7 @@ namespace Kethane
         {
             controlWindowPos.x = Misc.Parse(SettingsManager.GetValue("WindowLeft"), 200f);
             controlWindowPos.y = Misc.Parse(SettingsManager.GetValue("WindowTop"), 200f);
+            ShowOverlay = Misc.Parse(SettingsManager.GetValue("ShowOverlay"), true);
         }
 
         public static GeodesicGrid.Cell GetCellUnder(CelestialBody body, Vector3 worldPosition)
@@ -147,7 +150,7 @@ namespace Kethane
 
         public void OnDestroy()
         {
-            SettingsManager.SetValue("ShowOverlay", showOverlay);
+            SettingsManager.SetValue("ShowOverlay", ShowOverlay);
             SettingsManager.SetValue("WindowLeft", MapOverlay.controlWindowPos.x);
             SettingsManager.SetValue("WindowTop", MapOverlay.controlWindowPos.y);
             SettingsManager.Save();
@@ -169,7 +172,7 @@ namespace Kethane
 
         private void updateMapView()
         {
-            if (!MapView.MapIsEnabled || !showOverlay || MapView.MapCamera == null)
+            if (!MapView.MapIsEnabled || !ShowOverlay || MapView.MapCamera == null || KethaneData.Current == null)
             {
                 gameObject.renderer.enabled = false;
                 return;
@@ -184,6 +187,9 @@ namespace Kethane
             if (bodyChanged)
             {
                 body = newBody;
+
+                refreshMesh();
+
                 var radius = bodyRadii.ContainsKey(body) ? bodyRadii[body] : 1.025;
                 gameObject.transform.parent = ScaledSpace.Instance.scaledSpaceTransforms.Single(t => t.name == body.name);
                 gameObject.transform.localScale = Vector3.one * 1000f * (float)radius;
@@ -193,20 +199,37 @@ namespace Kethane
 
             if (bodyChanged || resource == null || resource.Resource != KethaneController.SelectedResource)
             {
-                resource = KethaneController.ResourceDefinitions.Where(r => r.Resource == KethaneController.SelectedResource).Single().ForBody(body);
+                resource = KethaneController.ResourceDefinitions.Where(r => r.Resource == KethaneController.SelectedResource).Single();
                 refreshCellColors();
             }
 
-            var ray = MapView.MapCamera.camera.ScreenPointToRay(Input.mousePosition);
-            RaycastHit hitInfo;
-            if (gridCollider.Raycast(ray, out hitInfo, float.PositiveInfinity))
+            if (nextHoverFrame <= Time.frameCount)
             {
-                hoverCell = grid.NearestCell(gameObject.transform.InverseTransformPoint(hitInfo.point));
+                var lastHoverCell = hoverCell;
+
+                var ray = MapView.MapCamera.camera.ScreenPointToRay(Input.mousePosition);
+                RaycastHit hitInfo;
+                if (gridCollider.Raycast(ray, out hitInfo, float.PositiveInfinity))
+                {
+                    hoverCell = new GeodesicGrid.Cell(colliderTriangles[hitInfo.triangleIndex * 3 + barycentricIndex(hitInfo.barycentricCoordinate)], grid);
+                }
+                else
+                {
+                    hoverCell = null;
+                }
+
+                nextHoverFrame = Time.frameCount + (hoverCell == lastHoverCell ? 8 : 4);
             }
+        }
+
+        private static int barycentricIndex(Vector3 barycentric)
+        {
+            if (barycentric.x >= barycentric.y && barycentric.x >= barycentric.z)
+            { return 0; }
+            else if (barycentric.y >= barycentric.x && barycentric.y >= barycentric.z)
+            { return 1; }
             else
-            {
-                hoverCell = null;
-            }
+            { return 2; }
         }
 
         public void RefreshCellColor(GeodesicGrid.Cell cell, CelestialBody body)
@@ -232,7 +255,8 @@ namespace Kethane
         {
             var deposit = data.GetCellDeposit(resource.Resource, body, cell);
             var scanned = data.Scans[resource.Resource][body.name][cell];
-            var color = (revealAll ? deposit != null : scanned) ? getDepositColor(resource, deposit) : colorUnknown;
+            var bodyResources = data.PlanetDeposits[resource.Resource][body.name];
+            var color = (revealAll ? deposit != null : scanned) ? getDepositColor(resource, bodyResources, deposit) : colorUnknown;
             setCellColor(cell, color, colors);
         }
 
@@ -245,12 +269,12 @@ namespace Kethane
             }
         }
 
-        private static Color32 getDepositColor(ResourceDefinition definition, Deposit deposit)
+        private static Color32 getDepositColor(ResourceDefinition definition, IBodyResources bodyResources, ICellResource deposit)
         {
             Color32 color;
             if (deposit != null)
             {
-                var ratio = (deposit.Quantity / definition.MaxQuantity);
+                var ratio = (float)(deposit.Quantity / bodyResources.MaxQuantity);
                 color = (Color32)(definition.ColorFull * ratio + definition.ColorEmpty * (1 - ratio));
             }
             else
@@ -296,7 +320,7 @@ namespace Kethane
 
             GUI.skin = skin;
 
-            if (hoverCell != null && showOverlay)
+            if (hoverCell != null && ShowOverlay)
             {
                 var mouse = Event.current.mousePosition;
                 var position = new Rect(mouse.x + 16, mouse.y + 4, 160, 32);
@@ -345,7 +369,7 @@ namespace Kethane
             GUILayout.Label(String.Format("{0:F1} {1}, {2:F1} {3}", Math.Abs(lat), lat < 0 ? "S" : "N", Math.Abs(lon), lon < 0 ? "W" : "E"));
             GUILayout.EndHorizontal();
 
-            foreach (var definition in KethaneController.ResourceDefinitions.Select(d => d.ForBody(body)))
+            foreach (var definition in KethaneController.ResourceDefinitions)
             {
                 GUILayout.BeginHorizontal();
 
@@ -403,7 +427,7 @@ namespace Kethane
 
                 GUILayout.EndHorizontal();
 
-                showOverlay = GUILayout.Toggle(showOverlay, "Show Grid Overlay");
+                ShowOverlay = GUILayout.Toggle(ShowOverlay, "Show Grid Overlay");
 
                 if (debugEnabled)
                 {
@@ -419,34 +443,17 @@ namespace Kethane
                         refreshCellColors();
                     }
 
-                    GUI.enabled = vessel != null;
-                    if (GUILayout.Button("Generate Under Vessel"))
+                    if (GUILayout.Button("Reset " + body.name + " Data"))
                     {
-                        var random = new System.Random();
-
-                        do
-                        {
-                            KethaneData.Current.GenerateKethaneDeposits(random);
-                        }
-                        while (KethaneData.Current.GetCellDeposit(resource.Resource, body, GetCellUnder(body, vessel.transform.position)) == null);
-
-                        refreshCellColors();
-                    }
-                    GUI.enabled = true;
-
-                    if (GUILayout.Button("Generate All Bodies"))
-                    {
-                        KethaneData.Current.GenerateKethaneDeposits();
+                        KethaneData.Current.ResetBodyData(resource, body);
                         refreshCellColors();
                     }
 
-                    GUI.enabled = deposit != null;
-                    if (GUILayout.Button("Refill Deposit"))
+                    if (GUILayout.Button("Reset Generator Config"))
                     {
-                        deposit.Quantity = deposit.InitialQuantity;
+                        KethaneData.Current.ResetGeneratorConfig(resource);
                         refreshCellColors();
                     }
-                    GUI.enabled = true;
 
                     if (GUILayout.Button("Export Data (" + (revealAll ? "All" : "Scanned") + ")"))
                     {
@@ -475,7 +482,7 @@ namespace Kethane
                 cells[cell] = String.Format(CultureInfo.InvariantCulture, "{0},{1},{2},{3},{4},{5},", cell.GetHashCode(), lat, lon, pos.x, pos.y, pos.z);
             }
 
-            sb.AppendLine("body,resource,cellId,lat,lon,x,y,z,scanned,quantity,initialQuantity,depositIndex");
+            sb.AppendLine("body,resource,cellId,lat,lon,x,y,z,scanned,quantity");
 
             foreach (var body in FlightGlobals.Bodies)
             {
@@ -485,18 +492,17 @@ namespace Kethane
                     {
                         var scanned = KethaneData.Current.Scans[resource.Resource][body.name][cell];
                         var deposit = KethaneData.Current.GetCellDeposit(resource.Resource, body, cell);
-                        var index = deposit == null ? -1 : KethaneData.Current.PlanetDeposits[resource.Resource][body.name].IndexOf(deposit);
 
                         sb.Append(String.Format("{0},{1},", body.name, resource.Resource));
                         sb.Append(cells[cell]);
                         sb.Append(scanned ? "true" : "false");
                         if ((revealAll || scanned) && deposit != null)
                         {
-                            sb.Append(String.Format(CultureInfo.InvariantCulture, ",{0},{1},{2}", deposit.Quantity, deposit.InitialQuantity, index));
+                            sb.Append(String.Format(CultureInfo.InvariantCulture, ",{0}", deposit.Quantity));
                         }
                         else
                         {
-                            sb.Append(",,,");
+                            sb.Append(",");
                         }
                         sb.AppendLine();
                     }
@@ -526,8 +532,86 @@ namespace Kethane
 
         private void setUpMesh()
         {
-            var vertices = new List<UnityEngine.Vector3>();
             var triangles = new List<int>();
+
+            foreach (var cell in grid)
+            {
+                var t = cell.GetHashCode() * 6;
+                if (cell.IsPentagon)
+                {
+                    for (var i = 0; i < 5; i++)
+                    {
+                        triangles.Add(t + 5, t + (i + 1) % 5, t + i);
+                    }
+                }
+                else
+                {
+                    triangles.Add(t + 2, t + 1, t, t + 4, t + 3, t + 2, t, t + 5, t + 4, t + 4, t + 2, t);
+                }
+            }
+
+            mesh = gameObject.AddComponent<MeshFilter>().mesh;
+            var renderer = gameObject.AddComponent<MeshRenderer>();
+
+            mesh.vertices = new Vector3[grid.Count * 6];
+            mesh.triangles = triangles.ToArray();
+            mesh.colors32 = Enumerable.Repeat(colorUnknown, mesh.vertexCount).ToArray();
+            mesh.Optimize();
+
+            renderer.enabled = false;
+            renderer.castShadows = false;
+            renderer.receiveShadows = false;
+
+            var material = new Material(new System.IO.StreamReader(System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("Kethane.Resources.AlphaUnlitVertexColored.txt")).ReadToEnd());
+
+            var color = Color.white;
+            color.a = 0.4f;
+            material.color = color;
+
+            renderer.material = material;
+
+            var colliderObj = new GameObject("MapOverlay collider");
+            colliderObj.layer = LayerMask.NameToLayer("Ignore Raycast");
+            colliderObj.transform.parent = gameObject.transform;
+
+            var colliderMesh = new Mesh();
+            colliderMesh.vertices = new Vector3[grid.Count];
+            colliderMesh.triangles = grid.Where(c => !(c.IsNorth || c.IsSouth)).SelectMany(c =>
+            {
+                return new GeodesicGrid.Cell[] {
+                    c,
+                    new GeodesicGrid.Cell(c.X, c.Y - 1, c.Z + 1, grid),
+                    new GeodesicGrid.Cell(c.X, c.Y - 1, c.Z, grid),
+                    c,
+                    new GeodesicGrid.Cell(c.X, c.Y, c.Z + 1, grid),
+                    new GeodesicGrid.Cell(c.X, c.Y - 1, c.Z + 1, grid),
+                };
+            }).Select(c => c.GetHashCode()).ToArray();
+            colliderMesh.Optimize();
+            colliderTriangles = colliderMesh.triangles;
+
+            gridCollider = colliderObj.AddComponent<MeshCollider>();
+            gridCollider.sharedMesh = colliderMesh;
+            gridCollider.isTrigger = true;
+
+            refreshMesh();
+        }
+
+        private void refreshMesh()
+        {
+            var vertices = new List<UnityEngine.Vector3>();
+
+            Func<GeodesicGrid.Cell, float> heightRatioAt;
+
+            try
+            {
+                var bodyTerrain = TerrainData.ForBody(body);
+                heightRatioAt = c => Math.Max(1, bodyTerrain.GetHeightRatio(c));
+            }
+            catch (ArgumentException)
+            {
+                heightRatioAt = c => 1;
+            }
 
             foreach (var cell in grid)
             {
@@ -539,54 +623,21 @@ namespace Kethane
                     var b = neighbors[i == neighbors.Length - 1 ? 0 : (i + 1)];
 
                     var center = (a.Position + b.Position + cell.Position).normalized;
+                    var centerRatio = (heightRatioAt(a) + heightRatioAt(b) + heightRatioAt(cell)) / 3;
 
                     var blend = 0.08f;
-                    vertices.Add((cell.Position * blend + center * (1 - blend)).normalized);
+                    vertices.Add(centerRatio * (cell.Position * blend + center * (1 - blend)).normalized);
                 }
 
                 if (cell.IsPentagon)
                 {
-                    vertices.Add(cell.Position);
-                    var t = vertices.Count - 6;
-                    for (var i = 0; i < 5; i++)
-                    {
-                        triangles.Add(t + 5, t + (i + 1) % 5, t + i);
-                    }
-                }
-                else
-                {
-                    var t = vertices.Count - 6;
-                    triangles.Add(t + 2, t + 1, t, t + 4, t + 3, t + 2, t, t + 5, t + 4, t + 4, t + 2, t);
+                    vertices.Add(cell.Position * heightRatioAt(cell));
                 }
             }
 
-            mesh = gameObject.AddComponent<MeshFilter>().mesh;
-            var renderer = gameObject.AddComponent<MeshRenderer>();
-
             mesh.vertices = vertices.ToArray();
-            mesh.triangles = triangles.ToArray();
-            mesh.normals = mesh.vertices;
-            mesh.colors32 = Enumerable.Repeat(colorUnknown, vertices.Count).ToArray();
-            mesh.Optimize();
 
-            renderer.enabled = false;
-            renderer.castShadows = false;
-            renderer.receiveShadows = false;
-
-            var material = new Material(KSP.IO.File.ReadAllText<MapOverlay>("AlphaUnlitVertexColored.txt"));
-
-            var color = Color.white;
-            color.a = 0.4f;
-            material.color = color;
-
-            renderer.material = material;
-
-            var colliderObj = new GameObject("MapOverlay collider");
-            colliderObj.layer = LayerMask.NameToLayer("Ignore Raycast");
-            colliderObj.transform.parent = gameObject.transform;
-            gridCollider = colliderObj.AddComponent<SphereCollider>();
-            gridCollider.radius = 1;
-            gridCollider.isTrigger = true;
+            gridCollider.sharedMesh.vertices = grid.Select(c => c.Position * heightRatioAt(c)).ToArray();
         }
     }
 }

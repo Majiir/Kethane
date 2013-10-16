@@ -7,6 +7,12 @@ namespace Kethane
 {
     public class KethaneDetector : PartModule
     {
+        public static bool ScanningSound
+        {
+            get { return Misc.Parse(SettingsManager.GetValue("ScanningSound"), true); }
+            set { SettingsManager.SetValue("ScanningSound", value); }
+        }
+
         [KSPField(isPersistant = false)]
         public float DetectingPeriod;
 
@@ -61,13 +67,13 @@ namespace Kethane
         [KSPEvent(guiActive = true, guiName = "Enable Scan Tone", active = true)]
         public void EnableSounds()
         {
-            KethaneController.ScanningSound = true;
+            ScanningSound = true;
         }
 
         [KSPEvent(guiActive = true, guiName = "Disable Scan Tone", active = false)]
         public void DisableSounds()
         {
-            KethaneController.ScanningSound = false;
+            ScanningSound = false;
         }
 
         [KSPField(isPersistant = false, guiActive = true, guiName = "Status")]
@@ -108,8 +114,8 @@ namespace Kethane
         {
             Events["EnableDetection"].active = !IsDetecting;
             Events["DisableDetection"].active = IsDetecting;
-            Events["EnableSounds"].active = !KethaneController.ScanningSound;
-            Events["DisableSounds"].active = KethaneController.ScanningSound;
+            Events["EnableSounds"].active = !ScanningSound;
+            Events["DisableSounds"].active = ScanningSound;
 
             if (Misc.GetTrueAltitude(vessel) <= this.DetectingHeight)
             {
@@ -161,7 +167,7 @@ namespace Kethane
                     }
                     MapOverlay.Instance.RefreshCellColor(cell, vessel.mainBody);
                     TimerEcho = 0;
-                    if (vessel == FlightGlobals.ActiveVessel && KethaneController.ScanningSound)
+                    if (vessel == FlightGlobals.ActiveVessel && ScanningSound)
                     {
                         (detected ? PingDeposit : PingEmpty).Play();
                     }

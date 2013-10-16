@@ -46,10 +46,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Deposit.cs" />
+    <Compile Include="LegacyResourceGenerator.cs" />
     <Compile Include="EnumerableExtensions.cs" />
     <Compile Include="GeodesicGrid.cs" />
     <Compile Include="HeatSinkAnimator.cs" />
+    <Compile Include="IResourceGenerator.cs" />
     <Compile Include="IDetectorAnimator.cs" />
     <Compile Include="IExtractorAnimator.cs" />
     <Compile Include="InstallChecker.cs" />
@@ -66,6 +67,7 @@
     <Compile Include="KethaneExtractor.cs" />
     <Compile Include="KethaneParticleEmitter.cs" />
     <Compile Include="KethaneParticleDynamics.cs" />
+    <Compile Include="KethaneScanningTutorial.cs" />
     <Compile Include="KethaneWetMassIndicator.cs" />
     <Compile Include="KSPAddonFixed.cs" />
     <Compile Include="MapOverlay.cs" />
@@ -75,7 +77,12 @@
     <Compile Include="ResourceDefinition.cs" />
     <Compile Include="ScaledSpaceFix.cs" />
     <Compile Include="SettingsManager.cs" />
+    <Compile Include="TerrainData.cs" />
     <Compile Include="TimedMovingAverage.cs" />
+    <Compile Include="TutorialInstaller.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\AlphaUnlitVertexColored.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

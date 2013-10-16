@@ -12,19 +12,26 @@ namespace Kethane
         {
             public String Resource { get; private set; }
             public double Rate { get; private set; }
+            public bool Optional { get; private set; }
 
-            public ResourceRate(String resource, double rate)
+            public ResourceRate(String resource, double rate) : this(resource, rate, false) { }
+
+            public ResourceRate(String resource, double rate, bool optional)
                 : this()
             {
                 Resource = resource;
                 Rate = rate;
+                Optional = Optional;
             }
 
             public static ResourceRate operator *(ResourceRate rate, double multiplier)
             {
-                return new ResourceRate(rate.Resource, rate.Rate * multiplier);
+                return new ResourceRate(rate.Resource, rate.Rate * multiplier, rate.Optional);
             }
         }
+
+        [KSPField(isPersistant = false)]
+        public bool AlwaysActive;
 
         [KSPField(isPersistant = false)]
         public String Label;
@@ -39,6 +46,13 @@ namespace Kethane
 
         private ResourceRate[] inputRates;
         private ResourceRate[] outputRates;
+
+        private Dictionary<string, double> resourceActivity = new Dictionary<string, double>();
+
+        public Dictionary<string, double> ResourceActivity
+        {
+            get { return new Dictionary<string, double>(resourceActivity); }
+        }
 
         [KSPEvent(guiActive = true, guiName = "Activate Converter", active = true)]
         public void ActivateConverter()
@@ -72,7 +86,7 @@ namespace Kethane
 
         public override string GetInfo()
         {
-            return String.Format("{0} Converter:\n> Inputs:\n", Label) + String.Join("\n", inputRates.Select(r => String.Format(" - {0}: {1:N2}/s", r.Resource, r.Rate)).ToArray()) + "\n> Outputs:\n" + String.Join("\n", outputRates.Select(r => String.Format(" - {0}: {1:N2}/s", r.Resource, r.Rate)).ToArray()) + "\n";
+            return String.Format("{0} Converter:\n", Label) + String.Join("\n", inputRates.Select(r => String.Format(" IN: {0}: {1:N2}/s", r.Resource, r.Rate)).ToArray()) + "\n" + String.Join("\n", outputRates.Select(r => String.Format(" OUT: {0}: {1:N2}/s", r.Resource, r.Rate)).ToArray()) + "\n";
         }
 
         public override void OnLoad(ConfigNode config)
@@ -103,7 +117,22 @@ namespace Kethane
 
         private static IEnumerable<ResourceRate> loadRates(ConfigNode config)
         {
-            return (config ?? new ConfigNode()).values.Cast<ConfigNode.Value>().Where(v => PartResourceLibrary.Instance.resourceDefinitions.Any(d => d.name == v.name)).Select(v => new ResourceRate(v.name, Misc.Parse(v.value, 0.0))).Where(r => r.Rate > 0);
+            if (config == null) { yield break; }
+
+            foreach (var entry in config.values.Cast<ConfigNode.Value>())
+            {
+                var name = entry.name;
+                bool optional = name.EndsWith("*");
+                if (optional)
+                {
+                    name = name.Substring(0, name.Length - 1);
+                }
+                var rate = Misc.Parse(entry.value, 0.0);
+                if (PartResourceLibrary.Instance.resourceDefinitions.Any(d => d.name == name) && rate > 0)
+                {
+                    yield return new ResourceRate(name, rate, optional);
+                }
+            }
         }
 
         public override void OnStart(PartModule.StartState state)
@@ -113,6 +142,8 @@ namespace Kethane
             Actions["ActivateConverterAction"].guiName = Events["ActivateConverter"].guiName = String.Format("Activate {0} Converter", Label);
             Actions["DeactivateConverterAction"].guiName = Events["DeactivateConverter"].guiName = String.Format("Deactivate {0} Converter", Label);
             Actions["ToggleConverterAction"].guiName = String.Format("Toggle {0} Converter", Label);
+
+            Events["ActivateConverter"].guiActive = Events["DeactivateConverter"].guiActive = !AlwaysActive;
 
             if (state == StartState.Editor) { return; }
             this.part.force_activate();
@@ -126,10 +157,11 @@ namespace Kethane
 
         public override void OnFixedUpdate()
         {
-            if (!IsEnabled) { return; }
+            resourceActivity.Clear();
+            if (!IsEnabled && !AlwaysActive) { return; }
 
             var rates = outputRates.Select(r => r * -1).Concat(inputRates).Select(r => r * TimeWarp.fixedDeltaTime).ToArray();
-            var ratio = rates.Select(r => Misc.GetConnectedResources(this.part, r.Resource).Select(c => r.Rate > 0 ? c.amount : c.maxAmount - c.amount).DefaultIfEmpty().Max() / Math.Abs(r.Rate)).Prepend(1).Min();
+            var ratio = rates.Where(r => !r.Optional).Select(r => Misc.GetConnectedResources(this.part, r.Resource).Select(c => r.Rate > 0 ? c.amount : c.maxAmount - c.amount).DefaultIfEmpty().Max() / Math.Abs(r.Rate)).Prepend(1).Min();
 
             var heatsink = this.part.Modules.OfType<HeatSinkAnimator>().SingleOrDefault();
             if (heatsink != null)
@@ -140,7 +172,7 @@ namespace Kethane
 
             foreach (var rate in rates)
             {
-                this.part.RequestResource(rate.Resource, rate.Rate * ratio);
+                resourceActivity[rate.Resource] = this.part.RequestResource(rate.Resource, rate.Rate * ratio);
             }
         }
     }
