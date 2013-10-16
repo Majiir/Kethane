@@ -11,6 +11,7 @@ namespace Kethane
     internal class MapOverlay : MonoBehaviour
     {
         public static MapOverlay Instance { get; private set; }
+        public static bool ShowOverlay { get; set; }
 
         private static GeodesicGrid grid = new GeodesicGrid(5);
 
@@ -29,7 +30,6 @@ namespace Kethane
         private static GUIStyle minMaxStyle = null;
         private static GUISkin defaultSkin = null;
         private static Rect controlWindowPos = new Rect(0, 0, 160, 0);
-        private static bool showOverlay = Misc.Parse(SettingsManager.GetValue("ShowOverlay"), true);
         private static bool revealAll = false;
         private static bool expandWindow = true;
 
@@ -41,6 +41,7 @@ namespace Kethane
         {
             controlWindowPos.x = Misc.Parse(SettingsManager.GetValue("WindowLeft"), 200f);
             controlWindowPos.y = Misc.Parse(SettingsManager.GetValue("WindowTop"), 200f);
+            ShowOverlay = Misc.Parse(SettingsManager.GetValue("ShowOverlay"), true);
         }
 
         public static GeodesicGrid.Cell GetCellUnder(CelestialBody body, Vector3 worldPosition)
@@ -149,7 +150,7 @@ namespace Kethane
 
         public void OnDestroy()
         {
-            SettingsManager.SetValue("ShowOverlay", showOverlay);
+            SettingsManager.SetValue("ShowOverlay", ShowOverlay);
             SettingsManager.SetValue("WindowLeft", MapOverlay.controlWindowPos.x);
             SettingsManager.SetValue("WindowTop", MapOverlay.controlWindowPos.y);
             SettingsManager.Save();
@@ -171,7 +172,7 @@ namespace Kethane
 
         private void updateMapView()
         {
-            if (!MapView.MapIsEnabled || !showOverlay || MapView.MapCamera == null || KethaneData.Current == null)
+            if (!MapView.MapIsEnabled || !ShowOverlay || MapView.MapCamera == null || KethaneData.Current == null)
             {
                 gameObject.renderer.enabled = false;
                 return;
@@ -319,7 +320,7 @@ namespace Kethane
 
             GUI.skin = skin;
 
-            if (hoverCell != null && showOverlay)
+            if (hoverCell != null && ShowOverlay)
             {
                 var mouse = Event.current.mousePosition;
                 var position = new Rect(mouse.x + 16, mouse.y + 4, 160, 32);
@@ -426,7 +427,7 @@ namespace Kethane
 
                 GUILayout.EndHorizontal();
 
-                showOverlay = GUILayout.Toggle(showOverlay, "Show Grid Overlay");
+                ShowOverlay = GUILayout.Toggle(ShowOverlay, "Show Grid Overlay");
 
                 if (debugEnabled)
                 {
