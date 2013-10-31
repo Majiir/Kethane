@@ -67,8 +67,6 @@ namespace Kethane
 
             Instance = this;
 
-            setUpMesh();
-
             if (HighLogic.LoadedScene == GameScenes.MAINMENU)
             {
                 gameObject.renderer.enabled = startMenuOverlay();
@@ -81,6 +79,8 @@ namespace Kethane
 
         private void startMapOverlay()
         {
+            setUpMesh();
+            setUpCollider();
             gameObject.layer = 10;
 
             var node = ConfigNode.Load(KSPUtil.ApplicationRootPath + "GameData/Kethane/Grid.cfg");
@@ -98,6 +98,8 @@ namespace Kethane
         private bool startMenuOverlay()
         {
             if (!Misc.Parse(SettingsManager.GetValue("ShowInMenu"), true)) { return false; }
+
+            setUpMesh();
 
             var objects = GameObject.FindSceneObjectsOfType(typeof(GameObject));
             if (objects.Any(o => o.name == "LoadingBuffer")) { return false; }
@@ -189,6 +191,7 @@ namespace Kethane
                 body = newBody;
 
                 refreshMesh();
+                refreshCollider();
 
                 var radius = bodyRadii.ContainsKey(body) ? bodyRadii[body] : 1.025;
                 gameObject.transform.parent = ScaledSpace.Instance.scaledSpaceTransforms.Single(t => t.name == body.name);
@@ -570,6 +573,11 @@ namespace Kethane
 
             renderer.material = material;
 
+            refreshMesh();
+        }
+
+        private void setUpCollider()
+        {
             var colliderObj = new GameObject("MapOverlay collider");
             colliderObj.layer = LayerMask.NameToLayer("Ignore Raycast");
             colliderObj.transform.parent = gameObject.transform;
@@ -594,13 +602,11 @@ namespace Kethane
             gridCollider.sharedMesh = colliderMesh;
             gridCollider.isTrigger = true;
 
-            refreshMesh();
+            refreshCollider();
         }
 
-        private void refreshMesh()
+        private Func<GeodesicGrid.Cell, float> getHeightRatioMap()
         {
-            var vertices = new List<UnityEngine.Vector3>();
-
             Func<GeodesicGrid.Cell, float> heightRatioAt;
 
             try
@@ -612,6 +618,15 @@ namespace Kethane
             {
                 heightRatioAt = c => 1;
             }
+
+            return heightRatioAt;
+        }
+
+        private void refreshMesh()
+        {
+            var vertices = new List<UnityEngine.Vector3>();
+
+            var heightRatioAt = getHeightRatioMap();
 
             foreach (var cell in grid)
             {
@@ -636,7 +651,11 @@ namespace Kethane
             }
 
             mesh.vertices = vertices.ToArray();
+        }
 
+        private void refreshCollider()
+        {
+            var heightRatioAt = getHeightRatioMap();
             gridCollider.sharedMesh.vertices = grid.Select(c => c.Position * heightRatioAt(c)).ToArray();
         }
     }
