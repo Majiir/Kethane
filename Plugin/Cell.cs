@@ -83,7 +83,7 @@ namespace Kethane
                 {
                     return new Vector3(0, -1, 0);
                 }
-                else if (index < 12)
+                else if (IsPentagon)
                 {
                     var lat = Math.Atan(0.5);
                     var lon = index * Math.PI / 5;
@@ -427,7 +427,7 @@ namespace Kethane
                 yield return this.getNeighbor(ChildType.Straight, level);
                 yield return this.getNeighbor(ChildType.Down, level);
 
-                var root = index < 12;
+                var root = IsPentagon;
 
                 if (!(root && index % 2 != 0))
                 {
@@ -456,7 +456,7 @@ namespace Kethane
         {
             get
             {
-                if (index < 12) { throw new InvalidOperationException("Top-level cells don't have a subindex"); }
+                if (IsPentagon) { throw new InvalidOperationException("Top-level cells don't have a subindex"); }
                 return index - CountAtLevel(Level - 1);
             }
         }
@@ -591,11 +591,11 @@ namespace Kethane
 
         private bool checkTraverse(Cell other)
         {
-            if (other.index < 12) { return other.index < 2; }
+            if (other.IsPentagon) { return other.index < 2; }
 
             var dir = other.direction;
             other = other.getFirstParent();
-            while (other.index >= 12)
+            while (!other.IsPentagon)
             {
                 if (other.direction != dir) { return false; }
                 other = other.getFirstParent();
@@ -666,7 +666,7 @@ namespace Kethane
                     var seam = this.isPolarSeam();
 
                     var commonDir = thisDir;
-                    if (first.index < 12 && ((thisDir == ChildType.Down) != (first.index % 2 == 0)))
+                    if (first.IsPentagon && ((thisDir == ChildType.Down) != (first.index % 2 == 0)))
                     {
                         commonDir = ChildType.Straight;
                     }
@@ -688,7 +688,7 @@ namespace Kethane
         // O(n)
         private bool isPolarSeam()
         {
-            if (this.index < 12) { return true; }
+            if (this.IsPentagon) { return true; }
 
             var dir = this.direction;
             var cell = this.getFirstParent();
