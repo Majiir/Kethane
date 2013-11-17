@@ -574,15 +574,10 @@ namespace Kethane
 
             foreach (var cell in Cell.AtLevel(MapOverlay.GridLevel))
             {
-                var neighbors = cell.GetNeighbors(MapOverlay.GridLevel).ToArray();
-
-                for (var i = 0; i < neighbors.Length; i++)
+                foreach (var pair in cell.GetNeighbors(MapOverlay.GridLevel).AdjacentPairs())
                 {
-                    var a = neighbors[i];
-                    var b = neighbors[i == neighbors.Length - 1 ? 0 : (i + 1)];
-
-                    var center = (a.Position + b.Position + cell.Position).normalized;
-                    var centerRatio = (heightRatioAt(a) + heightRatioAt(b) + heightRatioAt(cell)) / 3;
+                    var center = (pair.First.Position + pair.Second.Position + cell.Position).normalized;
+                    var centerRatio = (heightRatioAt(pair.First) + heightRatioAt(pair.Second) + heightRatioAt(cell)) / 3;
 
                     var blend = 0.08f;
                     vertices.Add(centerRatio * (cell.Position * blend + center * (1 - blend)).normalized);
