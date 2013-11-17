@@ -156,7 +156,6 @@ namespace Kethane
                     foreach (var mid in cell.GetNeighbors(level).AdjacentPairs().Select(p => ((cell.Position * heightAt(cell)) + (p.First.Position * heightAt(p.First)) + (p.Second.Position * heightAt(p.Second))).magnitude / 3))
                     {
                         if (mid < min) { min = mid; }
-                        if (mid > max) { max = mid; }
                     }
 
                     minVals[level][cell] = min;
