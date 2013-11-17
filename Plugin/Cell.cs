@@ -137,9 +137,8 @@ namespace Kethane
 
             private readonly Map<CellBound>[] maps;
 
-            public BoundsMap(Map<float> heights)
+            public BoundsMap(Func<Cell, float> heightAt, int level)
             {
-                var level = heights.Level;
                 maps = new Map<CellBound>[level + 1];
 
                 for (var i = 0; i <= level; i++)
@@ -154,17 +153,17 @@ namespace Kethane
 
                     foreach (var pair in cell.GetNeighbors(level).AdjacentPairs())
                     {
-                        var height = heights[pair.First] + heights[pair.Second];
+                        var height = heightAt(pair.First) + heightAt(pair.Second);
                         if (height < min) { min = height; }
                         if (height > max) { max = height; }
                     }
 
-                    var current = heights[cell];
+                    var current = heightAt(cell);
 
                     min = Math.Min((min + current) / 3, current);
                     max = Math.Max((max + current) / 3, current);
 
-                    foreach (var mid in cell.GetNeighbors(level).AdjacentPairs().Select(p => ((cell.Position * heights[cell]) + (p.First.Position * heights[p.First]) + (p.Second.Position * heights[p.Second])).magnitude / 3))
+                    foreach (var mid in cell.GetNeighbors(level).AdjacentPairs().Select(p => ((cell.Position * heightAt(cell)) + (p.First.Position * heightAt(p.First)) + (p.Second.Position * heightAt(p.Second))).magnitude / 3))
                     {
                         if (mid < min) { min = mid; }
                         if (mid > max) { max = mid; }
@@ -190,12 +189,12 @@ namespace Kethane
             }
         }
 
-        public static Cell? Raycast(Ray ray, int level, BoundsMap bounds, Map<float> heightAt, Transform gridTransform)
+        public static Cell? Raycast(Ray ray, int level, BoundsMap bounds, Func<Cell, float> heightAt, Transform gridTransform)
         {
             return Raycast(new Ray(gridTransform.InverseTransformPoint(ray.origin), gridTransform.InverseTransformDirection(ray.direction)), level, bounds, heightAt);
         }
 
-        public static Cell? Raycast(Ray ray, int level, BoundsMap bounds, Map<float> heightAt)
+        public static Cell? Raycast(Ray ray, int level, BoundsMap bounds, Func<Cell, float> heightAt)
         {
             var candidates = new HashSet<Cell>(Cell.AtLevel(0));
 
@@ -310,14 +309,14 @@ namespace Kethane
             return r;
         }
 
-        private static float? intersectCellTriangles(Ray ray, Cell cell, int level, Map<float> heightAt)
+        private static float? intersectCellTriangles(Ray ray, Cell cell, int level, Func<Cell, float> heightAt)
         {
             var position = cell.Position;
-            var height = heightAt[cell];
+            var height = heightAt(cell);
 
             var vertices = cell
                 .GetNeighbors(level)
-                .Select(c => new { Position = c.Position, Height = heightAt[c] })
+                .Select(c => new { Position = c.Position, Height = heightAt(c) })
                 .AdjacentPairs()
                 .Select(p => (position + p.First.Position + p.Second.Position).normalized * (height + p.First.Height + p.Second.Height) / 3);
 
