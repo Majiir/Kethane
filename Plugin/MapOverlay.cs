@@ -21,7 +21,6 @@ namespace Kethane
         private GUISkin skin;
         private Cell? hoverCell;
         private ResourceDefinition resource;
-        private int nextHoverFrame = 0;
         private Cell.Map<float> heights;
         private Cell.BoundsMap bounds;
 
@@ -205,15 +204,8 @@ namespace Kethane
                 refreshCellColors();
             }
 
-            if (nextHoverFrame <= Time.frameCount)
-            {
-                var lastHoverCell = hoverCell;
-
-                var ray = MapView.MapCamera.camera.ScreenPointToRay(Input.mousePosition);
-                hoverCell = Cell.Raycast(ray, MapOverlay.GridLevel, bounds, heights, gameObject.transform);
-
-                nextHoverFrame = Time.frameCount + (hoverCell == lastHoverCell ? 8 : 4);
-            }
+            var ray = MapView.MapCamera.camera.ScreenPointToRay(Input.mousePosition);
+            hoverCell = Cell.Raycast(ray, MapOverlay.GridLevel, bounds, heights, gameObject.transform);
         }
 
         public void RefreshCellColor(Cell cell, CelestialBody body)
