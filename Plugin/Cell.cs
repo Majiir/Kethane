@@ -22,7 +22,7 @@ namespace Kethane
             this.index = index;
         }
 
-        public Cell(uint subindex, int level) : this(subindex + CountAtLevel(level)) { }
+        private Cell(uint subindex, int level) : this(subindex + CountAtLevel(level)) { }
 
         public uint Index
         {
@@ -329,7 +329,7 @@ namespace Kethane
                 .FirstOrDefault();
         }
 
-        public IEnumerable<Vector3> getVertices(int level)
+        private IEnumerable<Vector3> getVertices(int level)
         {
             var position = this.Position;
             return this.GetNeighbors(level).Select(c => c.Position).AdjacentPairs().Select(p => (position + p.First + p.Second).normalized);
