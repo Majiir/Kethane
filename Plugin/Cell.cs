@@ -122,28 +122,18 @@ namespace Kethane
 
         public class BoundsMap
         {
-            public struct CellBound
-            {
-                public float Min { get; private set; }
-                public float Max { get; private set; }
-
-                public CellBound(float min, float max)
-                    : this()
-                {
-                    Min = min;
-                    Max = max;
-                }
-            }
-
-            private readonly Map<CellBound>[] maps;
+            private readonly Map<float>[] minVals;
+            private readonly Map<float>[] maxVals;
 
             public BoundsMap(Func<Cell, float> heightAt, int level)
             {
-                maps = new Map<CellBound>[level + 1];
+                minVals = new Map<float>[level + 1];
+                maxVals = new Map<float>[level + 1];
 
                 for (var i = 0; i <= level; i++)
                 {
-                    maps[i] = new Map<CellBound>(i);
+                    minVals[i] = new Map<float>(i);
+                    maxVals[i] = new Map<float>(i);
                 }
 
                 foreach (var cell in Cell.AtLevel(level))
@@ -169,23 +159,28 @@ namespace Kethane
                         if (mid > max) { max = mid; }
                     }
 
-                    maps[level][cell] = new CellBound(min, max);
+                    minVals[level][cell] = min;
+                    maxVals[level][cell] = max;
                 }
 
                 for (int i = level - 1; i >= 0; i--)
                 {
                     foreach (var cell in Cell.AtLevel(i))
                     {
-                        var min = cell.GetNeighbors(i + 1).Prepend(cell).Min(c => maps[i + 1][c].Min);
-                        var max = cell.GetNeighbors(i + 1).Prepend(cell).Max(c => maps[i + 1][c].Max);
-                        maps[i][cell] = new CellBound(min, max);
+                        minVals[i][cell] = cell.GetNeighbors(i + 1).Prepend(cell).Min(c => minVals[i + 1][c]);
+                        maxVals[i][cell] = cell.GetNeighbors(i + 1).Prepend(cell).Max(c => maxVals[i + 1][c]);
                     }
                 }
             }
 
-            public CellBound this[Cell cell, int level]
+            public float GetMin(Cell cell, int level)
             {
-                get { return maps[level][cell]; }
+                return minVals[level][cell];
+            }
+
+            public float GetMax(Cell cell, int level)
+            {
+                return maxVals[level][cell];
             }
         }
 
@@ -200,14 +195,14 @@ namespace Kethane
 
             for (int i = 0; i <= level; i++)
             {
-                var sorted = candidates.OrderByDescending(c => bounds[c, i].Max).ToList();
+                var sorted = candidates.OrderByDescending(c => bounds.GetMax(c, i)).ToList();
                 candidates.Clear();
                 foreach (var cell in sorted)
                 {
                     Vector3? point;
-                    if (!sphereIntersection(ray, bounds[cell, i].Max, out point)) { break; }
+                    if (!sphereIntersection(ray, bounds.GetMax(cell, i), out point)) { break; }
 
-                    if (intersectsCell(ray, cell, i, bounds[cell, i].Min, bounds[cell, i].Max, point))
+                    if (intersectsCell(ray, cell, i, bounds.GetMin(cell, i), bounds.GetMax(cell, i), point))
                     {
                         candidates.Add(cell);
                         if (i < level)
