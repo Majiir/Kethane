@@ -9,7 +9,7 @@ namespace Kethane
     internal interface IBodyResources
     {
         ConfigNode Save();
-        ICellResource GetResource(GeodesicGrid.Cell cell);
+        ICellResource GetResource(Cell cell);
         double MaxQuantity { get; }
     }
 
@@ -31,7 +31,7 @@ namespace Kethane
         {
             public double MaxQuantity { get { return 0; } }
             public ConfigNode Save() { return new ConfigNode(); }
-            public ICellResource GetResource(GeodesicGrid.Cell cell) { return null; }
+            public ICellResource GetResource(Cell cell) { return null; }
         }
     }
 }

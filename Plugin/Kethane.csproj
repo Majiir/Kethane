@@ -46,9 +46,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Cell.cs" />
     <Compile Include="LegacyResourceGenerator.cs" />
     <Compile Include="EnumerableExtensions.cs" />
-    <Compile Include="GeodesicGrid.cs" />
     <Compile Include="HeatSinkAnimator.cs" />
     <Compile Include="IResourceGenerator.cs" />
     <Compile Include="IDetectorAnimator.cs" />
