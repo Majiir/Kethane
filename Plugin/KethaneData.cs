@@ -99,14 +99,14 @@ namespace Kethane
                     var bodyNode = bodyNodes.SingleOrDefault(n => n.GetValue("Name") == body.name) ?? new ConfigNode();
 
                     PlanetDeposits[resourceName][body.name] = generator.Load(body, bodyNode.GetNode("GeneratorData"));
-                    Scans[resourceName][body.name] = new Cell.Set(5);
+                    Scans[resourceName][body.name] = new Cell.Set(MapOverlay.GridLevel);
 
                     var scanMask = bodyNode.GetValue("ScanMask");
                     if (scanMask != null)
                     {
                         try
                         {
-                            Scans[resourceName][body.name] = new Cell.Set(5, Convert.FromBase64String(scanMask.Replace('.', '/').Replace('%', '=')));
+                            Scans[resourceName][body.name] = new Cell.Set(MapOverlay.GridLevel, Convert.FromBase64String(scanMask.Replace('.', '/').Replace('%', '=')));
                         }
                         catch (FormatException e)
                         {

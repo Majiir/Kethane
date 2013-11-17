@@ -27,7 +27,7 @@ namespace Kethane
         private TerrainData(CelestialBody body)
         {
             if (body.pqsController == null) { throw new ArgumentException("Body doesn't have a PQS controller"); }
-            heightRatios = new Cell.Map<float>(5, c => (float)(body.pqsController.GetSurfaceHeight(c.Position) / body.pqsController.radius));
+            heightRatios = new Cell.Map<float>(MapOverlay.GridLevel, c => (float)(body.pqsController.GetSurfaceHeight(c.Position) / body.pqsController.radius));
         }
 
         public float GetHeightRatio(Cell cell)

@@ -185,7 +185,7 @@ namespace Kethane
 
             timewarp.OnUpdate = () =>
             {
-                surfaceCoverage = (float)Cell.AtLevel(5).Count(c => KethaneData.Current.Scans["Kethane"][FlightGlobals.currentMainBody.name][c]) / Cell.CountAtLevel(5);
+                surfaceCoverage = (float)Cell.AtLevel(MapOverlay.GridLevel).Count(c => KethaneData.Current.Scans["Kethane"][FlightGlobals.currentMainBody.name][c]) / Cell.CountAtLevel(MapOverlay.GridLevel);
                 if (surfaceCoverage >= 0.02f)
                 {
                     Tutorial.GoToNextPage();
