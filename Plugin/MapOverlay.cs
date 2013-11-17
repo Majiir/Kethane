@@ -570,14 +570,14 @@ namespace Kethane
         {
             var vertices = new List<UnityEngine.Vector3>();
 
-            var heightRatioAt = getHeightRatioMap();
+            heightAt = getHeightRatioMap();
 
             foreach (var cell in Cell.AtLevel(MapOverlay.GridLevel))
             {
                 foreach (var pair in cell.GetNeighbors(MapOverlay.GridLevel).AdjacentPairs())
                 {
                     var center = (pair.First.Position + pair.Second.Position + cell.Position).normalized;
-                    var centerRatio = (heightRatioAt(pair.First) + heightRatioAt(pair.Second) + heightRatioAt(cell)) / 3;
+                    var centerRatio = (heightAt(pair.First) + heightAt(pair.Second) + heightAt(cell)) / 3;
 
                     var blend = 0.08f;
                     vertices.Add(centerRatio * (cell.Position * blend + center * (1 - blend)).normalized);
@@ -585,7 +585,7 @@ namespace Kethane
 
                 if (cell.IsPentagon)
                 {
-                    vertices.Add(cell.Position * heightRatioAt(cell));
+                    vertices.Add(cell.Position * heightAt(cell));
                 }
             }
 
@@ -594,7 +594,6 @@ namespace Kethane
 
         private void refreshCollider()
         {
-            heightAt = getHeightRatioMap();
             bounds = new Cell.BoundsMap(heightAt, MapOverlay.GridLevel);
         }
     }
