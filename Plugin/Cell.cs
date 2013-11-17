@@ -679,7 +679,6 @@ namespace Kethane
             }
         }
 
-        // O(n)
         private bool isPolarSeam()
         {
             if (this.IsPentagon) { return true; }
