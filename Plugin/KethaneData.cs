@@ -28,7 +28,7 @@ namespace Kethane
         }
 
         public Dictionary<string, Dictionary<string, IBodyResources>> PlanetDeposits = new Dictionary<string,Dictionary<string,IBodyResources>>();
-        public Dictionary<string, Dictionary<string, GeodesicGrid.Cell.Set>> Scans = new Dictionary<string,Dictionary<string,GeodesicGrid.Cell.Set>>();
+        public Dictionary<string, Dictionary<string, Cell.Set>> Scans = new Dictionary<string,Dictionary<string,Cell.Set>>();
 
         private Dictionary<string, ConfigNode> generatorNodes = new Dictionary<string, ConfigNode>();
         private Dictionary<string, IResourceGenerator> generators = new Dictionary<string, IResourceGenerator>();
@@ -38,7 +38,7 @@ namespace Kethane
             return GetCellDeposit(resourceName, vessel.mainBody, MapOverlay.GetCellUnder(vessel.mainBody, vessel.transform.position));
         }
 
-        public ICellResource GetCellDeposit(string resourceName, CelestialBody body, GeodesicGrid.Cell cell)
+        public ICellResource GetCellDeposit(string resourceName, CelestialBody body, Cell cell)
         {
             if (resourceName == null || body == null || !PlanetDeposits.ContainsKey(resourceName) || !PlanetDeposits[resourceName].ContainsKey(body.name)) { return null; }
 
@@ -81,7 +81,7 @@ namespace Kethane
                 var resourceNode = resourceNodes.SingleOrDefault(n => n.GetValue("Resource") == resourceName) ?? new ConfigNode();
 
                 PlanetDeposits[resourceName] = new Dictionary<string, IBodyResources>();
-                Scans[resourceName] = new Dictionary<string, GeodesicGrid.Cell.Set>();
+                Scans[resourceName] = new Dictionary<string, Cell.Set>();
 
                 generatorNodes[resourceName] = resourceNode.GetNode("Generator") ?? resource.Generator;
                 var generator = createGenerator(generatorNodes[resourceName].CreateCopy());
@@ -99,19 +99,41 @@ namespace Kethane
                     var bodyNode = bodyNodes.SingleOrDefault(n => n.GetValue("Name") == body.name) ?? new ConfigNode();
 
                     PlanetDeposits[resourceName][body.name] = generator.Load(body, bodyNode.GetNode("GeneratorData"));
-                    Scans[resourceName][body.name] = new GeodesicGrid.Cell.Set(5);
+                    Scans[resourceName][body.name] = new Cell.Set(MapOverlay.GridLevel);
 
                     var scanMask = bodyNode.GetValue("ScanMask");
                     if (scanMask != null)
                     {
                         try
                         {
-                            Scans[resourceName][body.name] = new GeodesicGrid.Cell.Set(5, Convert.FromBase64String(scanMask.Replace('.', '/').Replace('%', '=')));
+                            Scans[resourceName][body.name] = new Cell.Set(MapOverlay.GridLevel, Convert.FromBase64String(scanMask.Replace('.', '/').Replace('%', '=')));
                         }
                         catch (FormatException e)
                         {
                             Debug.LogError(String.Format("[Kethane] Failed to parse {0}/{1} scan string, resetting ({2})", body.name, resourceName, e.Message));
                         }
+                    }
+                }
+            }
+
+            if (!config.HasValue("Version") || config.GetValue("Version") == "0.8")
+            {
+                var str = new System.IO.StreamReader(System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("Kethane.Resources.GridIndices.txt")).ReadToEnd();
+                var map = str.Split(',').Select(s => new Cell(uint.Parse(s))).ToArray();
+
+                foreach (var resource in KethaneController.ResourceDefinitions)
+                {
+                    foreach (var body in FlightGlobals.Bodies)
+                    {
+                        var old = Scans[resource.Resource][body.name];
+                        var set = new Cell.Set(MapOverlay.GridLevel);
+
+                        foreach (var cell in Cell.AtLevel(MapOverlay.GridLevel))
+                        {
+                            set[cell] = old[map[cell.Index]];
+                        }
+
+                        Scans[resource.Resource][body.name] = set;
                     }
                 }
             }

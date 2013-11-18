@@ -46,9 +46,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Cell.cs" />
     <Compile Include="LegacyResourceGenerator.cs" />
     <Compile Include="EnumerableExtensions.cs" />
-    <Compile Include="GeodesicGrid.cs" />
     <Compile Include="HeatSinkAnimator.cs" />
     <Compile Include="IResourceGenerator.cs" />
     <Compile Include="IDetectorAnimator.cs" />
@@ -83,6 +83,9 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\AlphaUnlitVertexColored.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\GridIndices.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

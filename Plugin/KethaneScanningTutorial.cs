@@ -14,7 +14,6 @@ namespace Kethane
         private const string lockName = "KethaneScanningTutorialLock";
 
         private float surfaceCoverage = 0;
-        private GeodesicGrid mapgrid = new GeodesicGrid(5);
         private GUIStyle boldStyle = null;
 
         protected override void OnTutorialSetup()
@@ -186,7 +185,7 @@ namespace Kethane
 
             timewarp.OnUpdate = () =>
             {
-                surfaceCoverage = (float)mapgrid.Count(c => KethaneData.Current.Scans["Kethane"][FlightGlobals.currentMainBody.name][c]) / mapgrid.Count;
+                surfaceCoverage = (float)Cell.AtLevel(MapOverlay.GridLevel).Count(c => KethaneData.Current.Scans["Kethane"][FlightGlobals.currentMainBody.name][c]) / Cell.CountAtLevel(MapOverlay.GridLevel);
                 if (surfaceCoverage >= 0.02f)
                 {
                     Tutorial.GoToNextPage();
