@@ -584,7 +584,7 @@ namespace Kethane
                 var blend = 0.08f;
                 center *= blend;
 
-                foreach (var vertex in cell.GetVertices(MapOverlay.GridLevel))
+                foreach (var vertex in cell.GetVertices(MapOverlay.GridLevel, heightAt))
                 {
                     vertices.Add(center + vertex * (1 - blend));
                 }
