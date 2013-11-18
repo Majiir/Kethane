@@ -116,6 +116,28 @@ namespace Kethane
                 }
             }
 
+            if (!config.HasValue("Version") || config.GetValue("Version") == "0.8")
+            {
+                var str = new System.IO.StreamReader(System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("Kethane.Resources.GridIndices.txt")).ReadToEnd();
+                var map = str.Split(',').Select(s => new Cell(uint.Parse(s))).ToArray();
+
+                foreach (var resource in KethaneController.ResourceDefinitions)
+                {
+                    foreach (var body in FlightGlobals.Bodies)
+                    {
+                        var old = Scans[resource.Resource][body.name];
+                        var set = new Cell.Set(MapOverlay.GridLevel);
+
+                        foreach (var cell in Cell.AtLevel(MapOverlay.GridLevel))
+                        {
+                            set[cell] = old[map[cell.Index]];
+                        }
+
+                        Scans[resource.Resource][body.name] = set;
+                    }
+                }
+            }
+
             timer.Stop();
             Debug.LogWarning(String.Format("Kethane deposits loaded ({0}ms)", timer.ElapsedMilliseconds));
         }
