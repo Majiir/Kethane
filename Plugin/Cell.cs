@@ -153,10 +153,8 @@ namespace Kethane
                     min = Math.Min((min + current) / 3, current);
                     max = Math.Max((max + current) / 3, current);
 
-                    foreach (var mid in cell.GetNeighbors(level).AdjacentPairs().Select(p => ((cell.Position * heightAt(cell)) + (p.First.Position * heightAt(p.First)) + (p.Second.Position * heightAt(p.Second))).magnitude / 3))
-                    {
-                        if (mid < min) { min = mid; }
-                    }
+                    var mid = cell.GetVertices(level, heightAt).AdjacentPairs().Select(p => (p.First + p.Second).magnitude).Min() / 2;
+                    if (mid < min) { min = mid; }
 
                     minVals[level][cell] = min;
                     maxVals[level][cell] = max;
