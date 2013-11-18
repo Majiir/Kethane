@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Kethane
 {
-    internal class KethaneData : ScenarioModule
+    public class KethaneData : ScenarioModule
     {
         public static KethaneData Current
         {
@@ -27,7 +27,7 @@ namespace Kethane
             }
         }
 
-        public Dictionary<string, Dictionary<string, IBodyResources>> PlanetDeposits = new Dictionary<string,Dictionary<string,IBodyResources>>();
+        internal Dictionary<string, Dictionary<string, IBodyResources>> PlanetDeposits = new Dictionary<string,Dictionary<string,IBodyResources>>();
         public Dictionary<string, Dictionary<string, Cell.Set>> Scans = new Dictionary<string,Dictionary<string,Cell.Set>>();
 
         private Dictionary<string, ConfigNode> generatorNodes = new Dictionary<string, ConfigNode>();
@@ -142,13 +142,13 @@ namespace Kethane
             Debug.LogWarning(String.Format("Kethane deposits loaded ({0}ms)", timer.ElapsedMilliseconds));
         }
 
-        public void ResetBodyData(ResourceDefinition resource, CelestialBody body)
+        internal void ResetBodyData(ResourceDefinition resource, CelestialBody body)
         {
             var resourceName = resource.Resource;
             PlanetDeposits[resourceName][body.name] = generators[resourceName].Load(body, null);
         }
 
-        public void ResetGeneratorConfig(ResourceDefinition resource)
+        internal void ResetGeneratorConfig(ResourceDefinition resource)
         {
             var resourceName = resource.Resource;
             generatorNodes[resourceName] = resource.Generator;

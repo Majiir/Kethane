@@ -1,19 +1,19 @@
 ﻿
 namespace Kethane
 {
-    internal interface IResourceGenerator
+    public interface IResourceGenerator
     {
         IBodyResources Load(CelestialBody body, ConfigNode node);
     }
 
-    internal interface IBodyResources
+    public interface IBodyResources
     {
         ConfigNode Save();
         ICellResource GetResource(Cell cell);
         double MaxQuantity { get; }
     }
 
-    internal interface ICellResource
+    public interface ICellResource
     {
         double Quantity { get; set; }
     }
