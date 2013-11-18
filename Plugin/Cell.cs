@@ -243,7 +243,7 @@ namespace Kethane
                 if ((radius >= min) && cell.Contains(ray.origin, level)) { return true; }
             }
 
-            return cell.getVertices(level).AdjacentPairs().Any(p => intersectsFace(ray, p.Second, p.First, min, max));
+            return cell.GetVertices(level).AdjacentPairs().Any(p => intersectsFace(ray, p.Second, p.First, min, max));
         }
 
         private static bool intersectsFace(Ray ray, Vector3 a, Vector3 b, float min, float max)
@@ -305,28 +305,28 @@ namespace Kethane
 
         private static float? intersectCellTriangles(Ray ray, Cell cell, int level, Func<Cell, float> heightAt)
         {
-            var position = cell.Position;
-            var height = heightAt(cell);
-
-            var vertices = cell
-                .GetNeighbors(level)
-                .Select(c => new { Position = c.Position, Height = heightAt(c) })
+            var center = cell.Position * heightAt(cell);
+            return cell.GetVertices(level, heightAt)
                 .AdjacentPairs()
-                .Select(p => (position + p.First.Position + p.Second.Position).normalized * (height + p.First.Height + p.Second.Height) / 3);
-
-            var adjustedPosition = position * height;
-
-            return vertices
-                .AdjacentPairs()
-                .Select(p => intersectTriangle(ray, p.First, p.Second, adjustedPosition))
+                .Select(p => intersectTriangle(ray, p.First, p.Second, center))
                 .Where(d => d.HasValue)
                 .FirstOrDefault();
         }
 
-        private IEnumerable<Vector3> getVertices(int level)
+        public IEnumerable<Vector3> GetVertices(int level)
         {
             var position = this.Position;
             return this.GetNeighbors(level).Select(c => c.Position).AdjacentPairs().Select(p => (position + p.First + p.Second).normalized);
+        }
+
+        public IEnumerable<Vector3> GetVertices(int level, Func<Cell, float> heightAt)
+        {
+            var position = this.Position;
+            var height = heightAt(this);
+            foreach (var pair in this.GetNeighbors(level).AdjacentPairs())
+            {
+                yield return (position + pair.First.Position + pair.Second.Position).normalized * (height + heightAt(pair.First) + heightAt(pair.Second)) / 3;
+            }
         }
 
         /// <summary>

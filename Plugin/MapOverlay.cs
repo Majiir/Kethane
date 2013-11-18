@@ -574,18 +574,19 @@ namespace Kethane
 
             foreach (var cell in Cell.AtLevel(MapOverlay.GridLevel))
             {
-                foreach (var pair in cell.GetNeighbors(MapOverlay.GridLevel).AdjacentPairs())
-                {
-                    var center = (pair.First.Position + pair.Second.Position + cell.Position).normalized;
-                    var centerRatio = (heightAt(pair.First) + heightAt(pair.Second) + heightAt(cell)) / 3;
-
-                    var blend = 0.08f;
-                    vertices.Add(centerRatio * (cell.Position * blend + center * (1 - blend)).normalized);
-                }
+                var center = cell.Position * heightAt(cell);
 
                 if (cell.IsPentagon)
                 {
-                    vertices.Add(cell.Position * heightAt(cell));
+                    vertices.Add(center);
+                }
+
+                var blend = 0.08f;
+                center *= blend;
+
+                foreach (var vertex in cell.GetVertices(MapOverlay.GridLevel))
+                {
+                    vertices.Add(center + vertex * (1 - blend));
                 }
             }
 
