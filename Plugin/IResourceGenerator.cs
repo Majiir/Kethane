@@ -1,19 +1,19 @@
 ﻿
 namespace Kethane
 {
-    internal interface IResourceGenerator
+    public interface IResourceGenerator
     {
         IBodyResources Load(CelestialBody body, ConfigNode node);
     }
 
-    internal interface IBodyResources
+    public interface IBodyResources
     {
         ConfigNode Save();
-        ICellResource GetResource(GeodesicGrid.Cell cell);
+        ICellResource GetResource(Cell cell);
         double MaxQuantity { get; }
     }
 
-    internal interface ICellResource
+    public interface ICellResource
     {
         double Quantity { get; set; }
     }
@@ -31,7 +31,7 @@ namespace Kethane
         {
             public double MaxQuantity { get { return 0; } }
             public ConfigNode Save() { return new ConfigNode(); }
-            public ICellResource GetResource(GeodesicGrid.Cell cell) { return null; }
+            public ICellResource GetResource(Cell cell) { return null; }
         }
     }
 }

@@ -106,7 +106,7 @@ namespace Kethane
                 MaxQuantity = resource.MaxQuantity;
             }
 
-            public ICellResource GetResource(GeodesicGrid.Cell cell)
+            public ICellResource GetResource(Cell cell)
             {
                 var pos = cell.Position;
                 var lat = (float)(Math.Atan2(pos.y, Math.Sqrt(pos.x * pos.x + pos.z * pos.z)) * 180 / Math.PI);
