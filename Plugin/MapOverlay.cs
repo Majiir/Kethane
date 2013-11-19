@@ -68,7 +68,8 @@ namespace Kethane
 
             if (HighLogic.LoadedScene == GameScenes.MAINMENU)
             {
-                gameObject.renderer.enabled = startMenuOverlay();
+                var success = startMenuOverlay();
+                gameObject.renderer.enabled = success;
             }
             else if (HighLogic.LoadedScene == GameScenes.FLIGHT || HighLogic.LoadedScene == GameScenes.TRACKSTATION)
             {
