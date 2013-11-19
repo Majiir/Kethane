@@ -516,9 +516,9 @@ namespace Kethane
                 var t = (int)cell.Index * 6;
                 if (cell.IsPentagon)
                 {
-                    for (var i = 1; i < 6; i++)
+                    for (var i = 0; i < 5; i++)
                     {
-                        triangles.Add(t + i, t + (i + 1) % 5, t);
+                        triangles.Add(t + 1 + i, t + 1 + (i + 1) % 5, t);
                     }
                 }
                 else
