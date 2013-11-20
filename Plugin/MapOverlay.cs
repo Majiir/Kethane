@@ -592,6 +592,7 @@ namespace Kethane
             }
 
             mesh.vertices = vertices.ToArray();
+            mesh.RecalculateBounds();
         }
 
         private void refreshCollider()
