@@ -727,17 +727,14 @@ namespace Kethane
         public class Set : IEnumerable<Cell>
         {
             private readonly BitArray set;
-            private readonly int level;
 
             public Set(int level)
             {
-                this.level = level;
                 this.set = new BitArray((int)Cell.CountAtLevel(level));
             }
 
             public Set(int level, byte[] array)
             {
-                this.level = level;
                 this.set = new BitArray(array);
                 this.set.Length = (int)Cell.CountAtLevel(level);
             }
@@ -746,19 +743,25 @@ namespace Kethane
             {
                 get
                 {
-                    if (cell.Index >= Cell.CountAtLevel(level)) { throw new ArgumentException(); }
+                    if (cell.Index >= set.Count) { throw new ArgumentException(); }
                     return set[(int)cell.Index];
                 }
                 set
                 {
-                    if (cell.Index >= Cell.CountAtLevel(level)) { throw new ArgumentException(); }
+                    if (cell.Index >= set.Count) { throw new ArgumentException(); }
                     set[(int)cell.Index] = value;
                 }
             }
 
             public IEnumerator<Cell> GetEnumerator()
             {
-                return Cell.AtLevel(level).Where(c => set[(int)c.Index]).GetEnumerator();
+                for (var i = 0; i < set.Count; i++)
+                {
+                    if (set[i])
+                    {
+                        yield return new Cell((uint)i);
+                    }
+                }
             }
 
             IEnumerator IEnumerable.GetEnumerator() { return GetEnumerator(); }
