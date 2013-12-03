@@ -30,9 +30,9 @@ namespace Kethane
             if (DrillDeploymentState != DeployState.Idle)
             {
                 float Rotation = dt * 3.75f;
-                Cyl1Transform.RotateAroundLocal(new Vector3(0, 1, 0), Rotation);
-                Cyl2Transform.RotateAroundLocal(new Vector3(0, 1, 0), Rotation);
-                Cyl3Transform.RotateAroundLocal(new Vector3(0, 1, 0), Rotation);
+                Cyl1Transform.Rotate(new Vector3(0, 1, 0), Rotation);
+                Cyl2Transform.Rotate(new Vector3(0, 1, 0), Rotation);
+                Cyl3Transform.Rotate(new Vector3(0, 1, 0), Rotation);
             }
 
             switch (DrillDeploymentState)
