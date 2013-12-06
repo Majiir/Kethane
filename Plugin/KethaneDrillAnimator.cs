@@ -65,10 +65,6 @@ namespace Kethane
         {
             if (CurrentState != ExtractorState.Retracted) { return; }
             CurrentState = ExtractorState.Deploying;
-            foreach (var state in deployStates)
-            {
-                state.speed = 1;
-            }
         }
 
         public void Retract()
@@ -81,20 +77,11 @@ namespace Kethane
                 state.normalizedTime = 0;
                 state.speed = 0;
             }
-            foreach (var state in deployStates)
-            {
-                state.speed = -1;
-            }
         }
 
         public void Update()
         {
-            foreach (var deployState in deployStates)
-            {
-                deployState.normalizedTime = Mathf.Clamp01(deployState.normalizedTime);
-            }
-
-            if (CurrentState == ExtractorState.Deploying && deployStates.All(s => s.normalizedTime == 1))
+            if (CurrentState == ExtractorState.Deploying && deployStates.All(s => s.normalizedTime >= 1))
             {
                 CurrentState = ExtractorState.Deployed;
                 foreach (var state in drillStates)
@@ -104,9 +91,17 @@ namespace Kethane
                     state.speed = 1;
                 }
             }
-            else if (CurrentState == ExtractorState.Retracting && deployStates.All(s => s.normalizedTime == 0))
+            else if (CurrentState == ExtractorState.Retracting && deployStates.All(s => s.normalizedTime <= 0))
             {
                 CurrentState = ExtractorState.Retracted;
+            }
+
+            foreach (var deployState in deployStates)
+            {
+                var time = Mathf.Clamp01(deployState.normalizedTime);
+                deployState.normalizedTime = time;
+                var speed = HighLogic.LoadedSceneIsEditor ? 1 - 10 * (time - 1) * time : 1;
+                deployState.speed = (CurrentState == ExtractorState.Deploying || CurrentState == ExtractorState.Deployed) ? speed : -speed;
             }
         }
     }
