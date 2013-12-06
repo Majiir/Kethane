@@ -87,7 +87,7 @@ namespace Kethane
             }
         }
 
-        public override void OnUpdate()
+        public void Update()
         {
             foreach (var deployState in deployStates)
             {

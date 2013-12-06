@@ -22,7 +22,7 @@ namespace Kethane
 
         public DeployState DrillDeploymentState = DeployState.Idle;
 
-        public override void OnUpdate()
+        public void Update()
         {
             var dt = Time.deltaTime;
             var down = ArmWantToGoDown;
@@ -145,8 +145,6 @@ namespace Kethane
 
         public override void OnStart(PartModule.StartState state)
         {
-            if (state == StartState.Editor) { return; }
-
             BaseTransform = this.part.transform.FindChild("model").FindChild("Kethane Small Miner").FindChild("Main Box");
             Cyl3Transform = BaseTransform.FindChild("1 Cyl");
             Cyl2Transform = Cyl3Transform.FindChild("2 Cyl");
