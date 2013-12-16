@@ -543,15 +543,15 @@ namespace Kethane
                             var first = cell.getFirstParent();
                             if (thisDir == dir)
                             {
-                                cache[j, k] = first.getNeighbor(dir, level - 1);
+                                cache[j, k] = first.getNeighbor(dir, cacheLevel - 1);
                             }
                             else if ((thisDir == ChildType.Down && dir == ChildType.Up) || (thisDir == ChildType.Up && dir == ChildType.Down))
                             {
-                                cache[j, k] = first.getNeighbor(ChildType.Straight, level);
+                                cache[j, k] = first.getNeighbor(ChildType.Straight, cacheLevel);
                             }
                             else
                             {
-                                cache[j, k] = first.traverse(thisDir == ChildType.Down || dir == ChildType.Down, level);
+                                cache[j, k] = first.traverse(thisDir == ChildType.Down || dir == ChildType.Down, cacheLevel);
                             }
                         }
                     }
