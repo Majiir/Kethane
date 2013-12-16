@@ -527,11 +527,11 @@ namespace Kethane
             }
             else if (level == thisLevel)
             {
-                for (var i = neighborCache.Count; i < thisLevel; i++)
+                for (var cacheLevel = neighborCache.Count + 1; cacheLevel <= thisLevel; cacheLevel++)
                 {
-                    var cache = new Cell[30 << (2 * i), 3];
+                    var cache = new Cell[30 << (2 * (cacheLevel - 1)), 3];
 
-                    var count = CountAtLevel(i);
+                    var count = CountAtLevel(cacheLevel - 1);
                     for (uint j = 0; j < cache.GetLength(0); j++)
                     {
                         for (byte k = 0; k < 3; k++)
