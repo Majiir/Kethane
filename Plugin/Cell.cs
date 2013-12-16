@@ -351,6 +351,104 @@ namespace Kethane
 
         #endregion
 
+        #region Triangulation
+
+        public struct Triangle
+        {
+            private enum FaceDirection
+            {
+                Up = 0,
+                Down = 1,
+            }
+
+            private readonly uint index;
+
+            public uint Index
+            {
+                get { return this.index; }
+            }
+
+            private Triangle(Cell cell, FaceDirection direction)
+            {
+                if (cell.Index < 2) { throw new ArgumentException("Cannot root a triangle at a polar cell"); }
+                this.index = (cell.Index - 2) * 2 + (uint)direction;
+            }
+
+            private Triangle(uint index)
+            {
+                this.index = index;
+            }
+
+            private Cell getRoot()
+            {
+                return new Cell(2 + this.index / 2);
+            }
+
+            private FaceDirection getDirection()
+            {
+                return (FaceDirection)(this.index % 2);
+            }
+
+            public static uint CountAtLevel(int level)
+            {
+                return (Cell.CountAtLevel(level) - 2) * 2;
+            }
+
+            public static IEnumerable<Triangle> AtLevel(int level)
+            {
+                for (uint i = 0; i < CountAtLevel(level); i++)
+                {
+                    yield return new Triangle(i);
+                }
+            }
+
+            public Triangle GetParent(int level)
+            {
+                var cell = this.getRoot();
+                while (level < cell.Level)
+                {
+                    cell = cell.getFirstParent();
+                }
+                return new Triangle(cell, this.getDirection());
+            }
+
+            public IEnumerable<Triangle> GetChildren(int level)
+            {
+                var root = this.getRoot();
+                if (level <= root.Level) { throw new ArgumentException("Cannot find triangle children at level index not higher than the root cell"); }
+
+                var dir = this.getDirection();
+
+                yield return this;
+                yield return new Triangle(root.getNeighbor(ChildType.Straight, level), dir);
+
+                var cell = root.getNeighbor(dir == FaceDirection.Down ? ChildType.Down : ChildType.Up, level);
+                yield return new Triangle(cell, FaceDirection.Down);
+                yield return new Triangle(cell, FaceDirection.Up);
+            }
+
+            public IEnumerable<Cell> GetVertices(int level)
+            {
+                var root = this.getRoot();
+                if (level < root.Level) { throw new ArgumentException("Cannot find triangle vertices at a level lower than the root cell"); }
+
+                yield return root;
+
+                if (this.getDirection() == FaceDirection.Up)
+                {
+                    yield return root.getNeighbor(ChildType.Up, level);
+                    yield return root.getNeighbor(ChildType.Straight, level);
+                }
+                else
+                {
+                    yield return root.getNeighbor(ChildType.Straight, level);
+                    yield return root.getNeighbor(ChildType.Down, level);
+                }
+            }
+        }
+
+        #endregion
+
         #region Searching
 
         /// <summary>
