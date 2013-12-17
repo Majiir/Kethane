@@ -61,7 +61,17 @@ namespace Kethane
         public override void OnStart(PartModule.StartState state)
         {
             this.part.force_activate();
-            animator = part.Modules.OfType<IExtractorAnimator>().SingleOrDefault() ?? new DefaultExtractorAnimator();
+            animator = part.Modules.OfType<IExtractorAnimator>().SingleOrDefault();
+
+            if (animator == null)
+            {
+                animator = new DefaultExtractorAnimator();
+            }
+            else
+            {
+                Events["DeployDrill"].guiActiveEditor = true;
+                Events["RetractDrill"].guiActiveEditor = true;
+            }
 
             headTransform = this.part.FindModelTransform(HeadTransform);
             tailTransform = this.part.FindModelTransform(TailTransform);
@@ -127,7 +137,7 @@ namespace Kethane
             return String.Concat(resources.Select(r => String.Format("{0} Rate: {1:F2}L/s\n", r.Name, r.Rate)).ToArray()) + String.Format("Power Consumption: {0:F2}/s", PowerConsumption);
         }
 
-        public override void OnUpdate()
+        public void Update()
         {
             var retracted = (animator.CurrentState == ExtractorState.Retracted);
             var deployed = (animator.CurrentState == ExtractorState.Deployed);
@@ -141,6 +151,8 @@ namespace Kethane
                 }
             }
             Status = animator.CurrentState.ToString();
+
+            if (!HighLogic.LoadedSceneIsFlight) { return; }
 
             if (animator.CurrentState != ExtractorState.Retracted)
             {

@@ -5,7 +5,7 @@ Shader "Kethane/AlphaUnlitVertexColored" {
     }
 
     SubShader {
-	    Tags {"Queue"="Transparent" "IgnoreProjector"="True" "RenderType"="Transparent"}
+	    Tags {"Queue"="Transparent+100" "IgnoreProjector"="True" "RenderType"="Transparent"}
 	    LOD 100
 
 	    ZWrite Off

@@ -86,7 +86,30 @@ namespace Kethane
 
         public override string GetInfo()
         {
-            return String.Format("{0} Converter:\n", Label) + String.Join("\n", inputRates.Select(r => String.Format(" IN: {0}: {1:N2}/s", r.Resource, r.Rate)).ToArray()) + "\n" + String.Join("\n", outputRates.Select(r => String.Format(" OUT: {0}: {1:N2}/s", r.Resource, r.Rate)).ToArray()) + "\n";
+            var sb = new StringBuilder();
+            if (HeatProduction > 0)
+            {
+                sb.AppendFormat("<b>Waste heat production:</b> {0:F1}", HeatProduction);
+                sb.AppendLine();
+            }
+            getRateGroupInfo(sb, "Inputs", inputRates);
+            getRateGroupInfo(sb, "Outputs", outputRates);
+            return sb.ToString();
+        }
+
+        private static void getRateGroupInfo(StringBuilder sb, String heading, IEnumerable<ResourceRate> rates)
+        {
+            sb.Append("<b><color=#99ff00ff>");
+            sb.Append(heading);
+            sb.AppendLine(":</color></b>");
+            foreach (var rate in rates)
+            {
+                sb.AppendFormat("- <b>{0}</b>: {1:N2}/s", rate.Resource, rate.Rate);
+                if (rate.Optional) {
+                    sb.Append(" (optional)");
+                }
+                sb.AppendLine();
+            }
         }
 
         public override void OnLoad(ConfigNode config)

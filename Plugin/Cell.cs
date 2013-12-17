@@ -122,193 +122,87 @@ namespace Kethane
 
         public class BoundsMap
         {
-            private readonly Map<float>[] minVals;
-            private readonly Map<float>[] maxVals;
+            private readonly float[][] minVals;
+            private readonly float[][] maxVals;
 
             public BoundsMap(Func<Cell, float> heightAt, int level)
             {
-                minVals = new Map<float>[level + 1];
-                maxVals = new Map<float>[level + 1];
+                minVals = new float[level + 1][];
+                maxVals = new float[level + 1][];
 
                 for (var i = 0; i <= level; i++)
                 {
-                    minVals[i] = new Map<float>(i);
-                    maxVals[i] = new Map<float>(i);
+                    var count = Triangle.CountAtLevel(i);
+                    minVals[i] = new float[count];
+                    maxVals[i] = new float[count];
                 }
 
-                foreach (var cell in Cell.AtLevel(level))
+                var mins = minVals[level];
+                var maxs = maxVals[level];
+
+                foreach (var triangle in Triangle.AtLevel(level))
                 {
-                    float min = float.PositiveInfinity;
-                    float max = 0;
+                    maxs[triangle.Index] = triangle.GetVertices(level).Max(heightAt);
 
-                    foreach (var pair in cell.GetNeighbors(level).AdjacentPairs())
-                    {
-                        var height = heightAt(pair.First) + heightAt(pair.Second);
-                        if (height < min) { min = height; }
-                        if (height > max) { max = height; }
-                    }
-
-                    var current = heightAt(cell);
-
-                    min = Math.Min((min + current) / 3, current);
-                    max = Math.Max((max + current) / 3, current);
-
-                    var mid = cell.GetVertices(level, heightAt).AdjacentPairs().Select(p => (p.First + p.Second).magnitude).Min() / 2;
-                    if (mid < min) { min = mid; }
-
-                    minVals[level][cell] = min;
-                    maxVals[level][cell] = max;
+                    var min = Mathf.Sqrt(triangle.GetVertices(level).AdjacentPairs().Min(e => (e.First.Position * heightAt(e.First) + e.Second.Position * heightAt(e.Second)).sqrMagnitude)) / 2;
+                    mins[triangle.Index] = Math.Min(min, triangle.GetVertices(level).Min(heightAt));
                 }
 
                 for (int i = level - 1; i >= 0; i--)
                 {
-                    foreach (var cell in Cell.AtLevel(i))
+                    var childMins = mins;
+                    var childMaxs = maxs;
+                    mins = minVals[i];
+                    maxs = maxVals[i];
+
+                    foreach (var triangle in Triangle.AtLevel(i))
                     {
-                        minVals[i][cell] = cell.GetNeighbors(i + 1).Prepend(cell).Min(c => minVals[i + 1][c]);
-                        maxVals[i][cell] = cell.GetNeighbors(i + 1).Prepend(cell).Max(c => maxVals[i + 1][c]);
-                    }
-                }
-            }
+                        var min = float.PositiveInfinity;
+                        var max = 0f;
 
-            public float GetMin(Cell cell, int level)
-            {
-                return minVals[level][cell];
-            }
-
-            public float GetMax(Cell cell, int level)
-            {
-                return maxVals[level][cell];
-            }
-        }
-
-        public static Cell? Raycast(Ray ray, int level, BoundsMap bounds, Func<Cell, float> heightAt, Transform gridTransform)
-        {
-            return Raycast(new Ray(gridTransform.InverseTransformPoint(ray.origin), gridTransform.InverseTransformDirection(ray.direction)), level, bounds, heightAt);
-        }
-
-        public static Cell? Raycast(Ray ray, int level, BoundsMap bounds, Func<Cell, float> heightAt)
-        {
-            var candidates = new HashSet<Cell>(Cell.AtLevel(0));
-
-            for (int i = 0; i <= level; i++)
-            {
-                var sorted = candidates.OrderByDescending(c => bounds.GetMax(c, i)).ToList();
-                candidates.Clear();
-                foreach (var cell in sorted)
-                {
-                    Vector3? point;
-                    if (!sphereIntersection(ray, bounds.GetMax(cell, i), out point)) { break; }
-
-                    if (intersectsCell(ray, cell, i, bounds.GetMin(cell, i), bounds.GetMax(cell, i), point))
-                    {
-                        candidates.Add(cell);
-                        if (i < level)
+                        foreach (var child in triangle.GetChildren(i + 1))
                         {
-                            candidates.UnionWith(cell.GetNeighbors(i + 1));
+                            min = Math.Min(min, childMins[child.Index]);
+                            max = Math.Max(max, childMaxs[child.Index]);
                         }
+
+                        mins[triangle.Index] = min;
+                        maxs[triangle.Index] = max;
                     }
                 }
             }
 
-            Cell? closest = null;
-            float distance = float.PositiveInfinity;
-
-            foreach (var candidate in candidates)
+            public float GetMin(Triangle triangle, int level)
             {
-                var d = intersectCellTriangles(ray, candidate, level, heightAt);
-                if (d.HasValue)
-                {
-                    if (d.Value < distance)
-                    {
-                        distance = d.Value;
-                        closest = candidate;
-                    }
-                }
+                return minVals[level][triangle.Index];
             }
 
-            return closest;
+            public float GetMax(Triangle triangle, int level)
+            {
+                return maxVals[level][triangle.Index];
+            }
         }
 
-        private static bool intersectsCell(Ray ray, Cell cell, int level, float min, float max, Vector3? first)
+        public static Cell? Raycast(Ray ray, int level, BoundsMap bounds, Func<Cell, float> heightAt, Transform gridTransform = null)
         {
-            var radius = ray.origin.magnitude;
-            if (radius >= max)
+            var hit = Triangle.Raycast(ray, level, bounds, heightAt, gridTransform);
+            if (!hit.HasValue) { return null; }
+
+            var barycentric = hit.Value.BarycentricCoordinate;
+            var triangle = hit.Value.Triangle;
+
+            if ((barycentric.x >= barycentric.y) && (barycentric.x >= barycentric.z))
             {
-                if (first.HasValue && cell.Contains(first.Value, level)) { return true; }
+                return triangle.GetVertices(level).ElementAt(0);
+            }
+            else if ((barycentric.y >= barycentric.x) && (barycentric.y >= barycentric.z))
+            {
+                return triangle.GetVertices(level).ElementAt(1);
             }
             else
             {
-                if ((radius >= min) && cell.Contains(ray.origin, level)) { return true; }
+                return triangle.GetVertices(level).ElementAt(2);
             }
-
-            return cell.GetVertices(level).AdjacentPairs().Any(p => intersectsFace(ray, p.Second, p.First, min, max));
-        }
-
-        private static bool intersectsFace(Ray ray, Vector3 a, Vector3 b, float min, float max)
-        {
-            var normal = Vector3.Cross(a, b);
-
-            var denominator = Vector3.Dot(ray.direction, normal);
-            if (denominator >= 0) { return false; }
-
-            var distance = -Vector3.Dot(ray.origin, normal) / denominator;
-            var point = ray.origin + distance * ray.direction;
-
-            var length = point.magnitude;
-            if (length > max) { return false; }
-            if (length < min) { return false; }
-
-            if (Vector3.Dot(Vector3.Cross(a, normal), point) > 0) { return false; }
-            if (Vector3.Dot(Vector3.Cross(b, normal), point) < 0) { return false; }
-
-            return true;
-        }
-
-        private static float? intersectTriangle(Ray ray, Vector3 t0, Vector3 t1, Vector3 t2)
-        {
-            var u = t1 - t0;
-            var v = t2 - t0;
-            var n = Vector3.Cross(u, v);
-
-            if (n == Vector3.zero) { return null; }
-
-            var dir = ray.direction;
-            var w0 = ray.origin - t0;
-            var a = -Vector3.Dot(n, w0);
-            var b = Vector3.Dot(n, dir);
-
-            if (b == 0) { return null; }
-
-            var r = a / b;
-            if (r < 0) { return null; }
-
-            var I = ray.origin + r * dir;
-
-            var uu = Vector3.Dot(u, u);
-            var uv = Vector3.Dot(u, v);
-            var vv = Vector3.Dot(v, v);
-            var w = I - t0;
-            var wu = Vector3.Dot(w, u);
-            var wv = Vector3.Dot(w, v);
-            var D = uv * uv - uu * vv;
-
-            var s = (uv * wv - vv * wu) / D;
-            if (s < 0 || s > 1) { return null; }
-
-            var t = (uv * wu - uu * wv) / D;
-            if (t < 0 || (s + t) > 1) { return null; }
-
-            return r;
-        }
-
-        private static float? intersectCellTriangles(Ray ray, Cell cell, int level, Func<Cell, float> heightAt)
-        {
-            var center = cell.Position * heightAt(cell);
-            return cell.GetVertices(level, heightAt)
-                .AdjacentPairs()
-                .Select(p => intersectTriangle(ray, p.First, p.Second, center))
-                .Where(d => d.HasValue)
-                .FirstOrDefault();
         }
 
         public IEnumerable<Vector3> GetVertices(int level)
@@ -327,26 +221,246 @@ namespace Kethane
             }
         }
 
-        /// <summary>
-        /// Finds the first intersection by a ray with a sphere of given radius centered at the origin.
-        /// </summary>
-        private static bool sphereIntersection(Ray ray, float radius, out Vector3? point)
+        #endregion
+
+        #region Triangulation
+
+        public struct Triangle
         {
-            var a = radius * radius - ray.origin.sqrMagnitude;
-            if (a > 0) { point = null; return true; }
+            private enum FaceDirection
+            {
+                Up = 0,
+                Down = 1,
+            }
 
-            var v = -Vector3.Dot(ray.direction, ray.origin);
-            var d = v * v + a;
-            if (d < 0) { point = null; return false; }
+            private readonly uint index;
 
-            var sqrt = (float)Math.Sqrt(d);
+            public uint Index
+            {
+                get { return this.index; }
+            }
 
-            var second = v + sqrt;
-            if (second < 0) { point = null; return false; }
+            private Triangle(Cell cell, FaceDirection direction)
+            {
+                if (cell.Index < 2) { throw new ArgumentException("Cannot root a triangle at a polar cell"); }
+                this.index = (cell.Index - 2) * 2 + (uint)direction;
+            }
 
-            var first = v - sqrt;
-            point = ray.origin + ray.direction * (first > 0 ? first : second);
-            return true;
+            private Triangle(uint index)
+            {
+                this.index = index;
+            }
+
+            private Cell getRoot()
+            {
+                return new Cell(2 + this.index / 2);
+            }
+
+            private FaceDirection getDirection()
+            {
+                return (FaceDirection)(this.index % 2);
+            }
+
+            public static uint CountAtLevel(int level)
+            {
+                return (Cell.CountAtLevel(level) - 2) * 2;
+            }
+
+            public static IEnumerable<Triangle> AtLevel(int level)
+            {
+                for (uint i = 0; i < CountAtLevel(level); i++)
+                {
+                    yield return new Triangle(i);
+                }
+            }
+
+            public Triangle GetParent(int level)
+            {
+                var cell = this.getRoot();
+                while (level < cell.Level)
+                {
+                    cell = cell.getFirstParent();
+                }
+                return new Triangle(cell, this.getDirection());
+            }
+
+            public IEnumerable<Triangle> GetChildren(int level)
+            {
+                var root = this.getRoot();
+                if (level <= root.Level) { throw new ArgumentException("Cannot find triangle children at level index not higher than the root cell"); }
+
+                var dir = this.getDirection();
+
+                yield return this;
+                yield return new Triangle(root.getNeighbor(ChildType.Straight, level), dir);
+
+                var cell = root.getNeighbor(dir == FaceDirection.Down ? ChildType.Down : ChildType.Up, level);
+                yield return new Triangle(cell, FaceDirection.Down);
+                yield return new Triangle(cell, FaceDirection.Up);
+            }
+
+            public IEnumerable<Cell> GetVertices(int level)
+            {
+                var root = this.getRoot();
+                if (level < root.Level) { throw new ArgumentException("Cannot find triangle vertices at a level lower than the root cell"); }
+
+                yield return root;
+
+                if (this.getDirection() == FaceDirection.Up)
+                {
+                    yield return root.getNeighbor(ChildType.Up, level);
+                    yield return root.getNeighbor(ChildType.Straight, level);
+                }
+                else
+                {
+                    yield return root.getNeighbor(ChildType.Straight, level);
+                    yield return root.getNeighbor(ChildType.Down, level);
+                }
+            }
+
+            public static TriangleHit? Raycast(Ray ray, int level, BoundsMap bounds, Func<Cell, float> heightAt, Transform gridTransform = null)
+            {
+                if (gridTransform != null)
+                {
+                    ray = new Ray(gridTransform.InverseTransformPoint(ray.origin), gridTransform.InverseTransformDirection(ray.direction));
+                }
+
+                var closest = (ray.origin - Vector3.Dot(ray.origin, ray.direction) * ray.direction).magnitude;
+                var candidates = new List<Triangle>(Triangle.AtLevel(0));
+
+                for (int i = 0; i < level; i++)
+                {
+                    var triangles = candidates;
+                    candidates = new List<Triangle>();
+                    foreach (var triangle in triangles)
+                    {
+                        var max = bounds.GetMax(triangle, i);
+                        if (max < closest) { continue; }
+
+                        if (intersectsCell(ray, triangle, i, bounds.GetMin(triangle, i), max))
+                        {
+                            candidates.AddRange(triangle.GetChildren(i + 1));
+                        }
+                    }
+                }
+
+                return candidates.Select(t => t.Raycast(ray, level, heightAt)).Where(h => h.HasValue).WithMin(t => t.Value.Distance);
+            }
+
+            public TriangleHit? Raycast(Ray ray, int level, Func<Cell, float> heightAt)
+            {
+                Vector3 v0, v1, v2;
+
+                using (var vertices = GetVertices(level).GetEnumerator())
+                {
+                    vertices.MoveNext(); v0 = vertices.Current.Position * heightAt(vertices.Current);
+                    vertices.MoveNext(); v1 = vertices.Current.Position * heightAt(vertices.Current);
+                    vertices.MoveNext(); v2 = vertices.Current.Position * heightAt(vertices.Current);
+                }
+
+                var e1 = v1 - v0;
+                var e2 = v2 - v0;
+
+                var p = Vector3.Cross(ray.direction, e2);
+                var a = Vector3.Dot(e1, p);
+
+                if (a <= 0) { return null; }
+
+                var f = 1 / a;
+                var s = ray.origin - v0;
+                var u = f * Vector3.Dot(s, p);
+
+                if (u < 0 || u > 1) { return null; }
+
+                var q = Vector3.Cross(s, e1);
+                var v = f * Vector3.Dot(ray.direction, q);
+
+                var w = u + v;
+                if (v < 0 || w > 1) { return null; }
+
+                var t = f * Vector3.Dot(e2, q);
+                return new TriangleHit(this, t, new Vector3(1 - w, u, v));
+            }
+
+            private static bool intersectsCell(Ray ray, Triangle triangle, int level, float min, float max)
+            {
+                Vector3? first;
+                sphereIntersection(ray, max, out first);
+
+                var radius = ray.origin.magnitude;
+                if (radius >= max)
+                {
+                    if (first.HasValue && triangleContains(triangle, level, first.Value)) { return true; }
+                }
+                else
+                {
+                    if ((radius >= min) && triangleContains(triangle, level, ray.origin)) { return true; }
+                }
+
+                return triangle.GetVertices(level).Select(c => c.Position).AdjacentPairs().Any(p => intersectsFace(ray, p.Second, p.First, min, max));
+            }
+
+            private static bool triangleContains(Triangle triangle, int level, Vector3 line)
+            {
+                return triangle.Raycast(new Ray(line.normalized, -line), level, c => 0.5f).HasValue;
+            }
+
+            private static bool intersectsFace(Ray ray, Vector3 a, Vector3 b, float min, float max)
+            {
+                var normal = Vector3.Cross(a, b);
+
+                var denominator = Vector3.Dot(ray.direction, normal);
+                if (denominator >= 0) { return false; }
+
+                var distance = -Vector3.Dot(ray.origin, normal) / denominator;
+                var point = ray.origin + distance * ray.direction;
+
+                var length = point.magnitude;
+                if (length > max) { return false; }
+                if (length < min) { return false; }
+
+                if (Vector3.Dot(Vector3.Cross(a, normal), point) > 0) { return false; }
+                if (Vector3.Dot(Vector3.Cross(b, normal), point) < 0) { return false; }
+
+                return true;
+            }
+
+            /// <summary>
+            /// Finds the first intersection by a ray with a sphere of given radius centered at the origin.
+            /// </summary>
+            private static bool sphereIntersection(Ray ray, float radius, out Vector3? point)
+            {
+                var a = radius * radius - ray.origin.sqrMagnitude;
+                if (a > 0) { point = null; return true; }
+
+                var v = -Vector3.Dot(ray.direction, ray.origin);
+                var d = v * v + a;
+                if (d < 0) { point = null; return false; }
+
+                var sqrt = (float)Math.Sqrt(d);
+
+                var second = v + sqrt;
+                if (second < 0) { point = null; return false; }
+
+                var first = v - sqrt;
+                point = ray.origin + ray.direction * (first > 0 ? first : second);
+                return true;
+            }
+        }
+
+        public struct TriangleHit
+        {
+            public Triangle Triangle { get; private set; }
+            public float Distance { get; private set; }
+            public Vector3 BarycentricCoordinate { get; private set; }
+
+            public TriangleHit(Triangle triangle, float distance, Vector3 barycentricCoordinate)
+                : this()
+            {
+                Triangle = triangle;
+                Distance = distance;
+                BarycentricCoordinate = barycentricCoordinate;
+            }
         }
 
         #endregion
@@ -527,11 +641,11 @@ namespace Kethane
             }
             else if (level == thisLevel)
             {
-                for (var i = neighborCache.Count; i < thisLevel; i++)
+                for (var cacheLevel = neighborCache.Count + 1; cacheLevel <= thisLevel; cacheLevel++)
                 {
-                    var cache = new Cell[30 << (2 * i), 3];
+                    var cache = new Cell[30 << (2 * (cacheLevel - 1)), 3];
 
-                    var count = CountAtLevel(i);
+                    var count = CountAtLevel(cacheLevel - 1);
                     for (uint j = 0; j < cache.GetLength(0); j++)
                     {
                         for (byte k = 0; k < 3; k++)
@@ -543,15 +657,15 @@ namespace Kethane
                             var first = cell.getFirstParent();
                             if (thisDir == dir)
                             {
-                                cache[j, k] = first.getNeighbor(dir, level - 1);
+                                cache[j, k] = first.getNeighbor(dir, cacheLevel - 1);
                             }
                             else if ((thisDir == ChildType.Down && dir == ChildType.Up) || (thisDir == ChildType.Up && dir == ChildType.Down))
                             {
-                                cache[j, k] = first.getNeighbor(ChildType.Straight, level);
+                                cache[j, k] = first.getNeighbor(ChildType.Straight, cacheLevel);
                             }
                             else
                             {
-                                cache[j, k] = first.traverse(thisDir == ChildType.Down || dir == ChildType.Down, level);
+                                cache[j, k] = first.traverse(thisDir == ChildType.Down || dir == ChildType.Down, cacheLevel);
                             }
                         }
                     }
@@ -727,17 +841,14 @@ namespace Kethane
         public class Set : IEnumerable<Cell>
         {
             private readonly BitArray set;
-            private readonly int level;
 
             public Set(int level)
             {
-                this.level = level;
                 this.set = new BitArray((int)Cell.CountAtLevel(level));
             }
 
             public Set(int level, byte[] array)
             {
-                this.level = level;
                 this.set = new BitArray(array);
                 this.set.Length = (int)Cell.CountAtLevel(level);
             }
@@ -746,19 +857,25 @@ namespace Kethane
             {
                 get
                 {
-                    if (cell.Index >= Cell.CountAtLevel(level)) { throw new ArgumentException(); }
+                    if (cell.Index >= set.Count) { throw new ArgumentException(); }
                     return set[(int)cell.Index];
                 }
                 set
                 {
-                    if (cell.Index >= Cell.CountAtLevel(level)) { throw new ArgumentException(); }
+                    if (cell.Index >= set.Count) { throw new ArgumentException(); }
                     set[(int)cell.Index] = value;
                 }
             }
 
             public IEnumerator<Cell> GetEnumerator()
             {
-                return Cell.AtLevel(level).Where(c => set[(int)c.Index]).GetEnumerator();
+                for (var i = 0; i < set.Count; i++)
+                {
+                    if (set[i])
+                    {
+                        yield return new Cell((uint)i);
+                    }
+                }
             }
 
             IEnumerator IEnumerable.GetEnumerator() { return GetEnumerator(); }

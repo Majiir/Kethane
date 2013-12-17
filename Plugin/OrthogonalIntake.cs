@@ -22,6 +22,8 @@ namespace Kethane
 
         public void FixedUpdate()
         {
+            if (!HighLogic.LoadedSceneIsFlight) { return; }
+
             var resourceDensity = PartResourceLibrary.Instance.GetDefinition(Resource).density;
             var airDensity = this.part.vessel.atmDensity;
 
