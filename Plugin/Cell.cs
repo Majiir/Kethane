@@ -205,49 +205,6 @@ namespace Kethane
             }
         }
 
-        private static bool intersectsCell(Ray ray, Triangle triangle, int level, float min, float max)
-        {
-            Vector3? first;
-            sphereIntersection(ray, max, out first);
-
-            var radius = ray.origin.magnitude;
-            if (radius >= max)
-            {
-                if (first.HasValue && triangleContains(triangle, level, first.Value)) { return true; }
-            }
-            else
-            {
-                if ((radius >= min) && triangleContains(triangle, level, ray.origin)) { return true; }
-            }
-
-            return triangle.GetVertices(level).Select(c => c.Position).AdjacentPairs().Any(p => intersectsFace(ray, p.Second, p.First, min, max));
-        }
-
-        private static bool triangleContains(Triangle triangle, int level, Vector3 line)
-        {
-            return triangle.Raycast(new Ray(line.normalized, -line), level, c => 0.5f).HasValue;
-        }
-
-        private static bool intersectsFace(Ray ray, Vector3 a, Vector3 b, float min, float max)
-        {
-            var normal = Vector3.Cross(a, b);
-
-            var denominator = Vector3.Dot(ray.direction, normal);
-            if (denominator >= 0) { return false; }
-
-            var distance = -Vector3.Dot(ray.origin, normal) / denominator;
-            var point = ray.origin + distance * ray.direction;
-
-            var length = point.magnitude;
-            if (length > max) { return false; }
-            if (length < min) { return false; }
-
-            if (Vector3.Dot(Vector3.Cross(a, normal), point) > 0) { return false; }
-            if (Vector3.Dot(Vector3.Cross(b, normal), point) < 0) { return false; }
-
-            return true;
-        }
-
         public IEnumerable<Vector3> GetVertices(int level)
         {
             var position = this.Position;
@@ -262,28 +219,6 @@ namespace Kethane
             {
                 yield return (position + pair.First.Position + pair.Second.Position).normalized * (height + heightAt(pair.First) + heightAt(pair.Second)) / 3;
             }
-        }
-
-        /// <summary>
-        /// Finds the first intersection by a ray with a sphere of given radius centered at the origin.
-        /// </summary>
-        private static bool sphereIntersection(Ray ray, float radius, out Vector3? point)
-        {
-            var a = radius * radius - ray.origin.sqrMagnitude;
-            if (a > 0) { point = null; return true; }
-
-            var v = -Vector3.Dot(ray.direction, ray.origin);
-            var d = v * v + a;
-            if (d < 0) { point = null; return false; }
-
-            var sqrt = (float)Math.Sqrt(d);
-
-            var second = v + sqrt;
-            if (second < 0) { point = null; return false; }
-
-            var first = v - sqrt;
-            point = ray.origin + ray.direction * (first > 0 ? first : second);
-            return true;
         }
 
         #endregion
@@ -445,6 +380,71 @@ namespace Kethane
 
                 var t = f * Vector3.Dot(e2, q);
                 return new TriangleHit(this, t, new Vector3(1 - w, u, v));
+            }
+
+            private static bool intersectsCell(Ray ray, Triangle triangle, int level, float min, float max)
+            {
+                Vector3? first;
+                sphereIntersection(ray, max, out first);
+
+                var radius = ray.origin.magnitude;
+                if (radius >= max)
+                {
+                    if (first.HasValue && triangleContains(triangle, level, first.Value)) { return true; }
+                }
+                else
+                {
+                    if ((radius >= min) && triangleContains(triangle, level, ray.origin)) { return true; }
+                }
+
+                return triangle.GetVertices(level).Select(c => c.Position).AdjacentPairs().Any(p => intersectsFace(ray, p.Second, p.First, min, max));
+            }
+
+            private static bool triangleContains(Triangle triangle, int level, Vector3 line)
+            {
+                return triangle.Raycast(new Ray(line.normalized, -line), level, c => 0.5f).HasValue;
+            }
+
+            private static bool intersectsFace(Ray ray, Vector3 a, Vector3 b, float min, float max)
+            {
+                var normal = Vector3.Cross(a, b);
+
+                var denominator = Vector3.Dot(ray.direction, normal);
+                if (denominator >= 0) { return false; }
+
+                var distance = -Vector3.Dot(ray.origin, normal) / denominator;
+                var point = ray.origin + distance * ray.direction;
+
+                var length = point.magnitude;
+                if (length > max) { return false; }
+                if (length < min) { return false; }
+
+                if (Vector3.Dot(Vector3.Cross(a, normal), point) > 0) { return false; }
+                if (Vector3.Dot(Vector3.Cross(b, normal), point) < 0) { return false; }
+
+                return true;
+            }
+
+            /// <summary>
+            /// Finds the first intersection by a ray with a sphere of given radius centered at the origin.
+            /// </summary>
+            private static bool sphereIntersection(Ray ray, float radius, out Vector3? point)
+            {
+                var a = radius * radius - ray.origin.sqrMagnitude;
+                if (a > 0) { point = null; return true; }
+
+                var v = -Vector3.Dot(ray.direction, ray.origin);
+                var d = v * v + a;
+                if (d < 0) { point = null; return false; }
+
+                var sqrt = (float)Math.Sqrt(d);
+
+                var second = v + sqrt;
+                if (second < 0) { point = null; return false; }
+
+                var first = v - sqrt;
+                point = ray.origin + ray.direction * (first > 0 ? first : second);
+                return true;
             }
         }
 
