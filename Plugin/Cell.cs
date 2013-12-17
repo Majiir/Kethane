@@ -183,14 +183,9 @@ namespace Kethane
             }
         }
 
-        public static Cell? Raycast(Ray ray, int level, BoundsMap bounds, Func<Cell, float> heightAt, Transform gridTransform)
+        public static Cell? Raycast(Ray ray, int level, BoundsMap bounds, Func<Cell, float> heightAt, Transform gridTransform = null)
         {
-            return Raycast(new Ray(gridTransform.InverseTransformPoint(ray.origin), gridTransform.InverseTransformDirection(ray.direction)), level, bounds, heightAt);
-        }
-
-        public static Cell? Raycast(Ray ray, int level, BoundsMap bounds, Func<Cell, float> heightAt)
-        {
-            var hit = Triangle.Raycast(ray, level, bounds, heightAt);
+            var hit = Triangle.Raycast(ray, level, bounds, heightAt, gridTransform);
             if (!hit.HasValue) { return null; }
 
             var barycentric = hit.Value.BarycentricCoordinate;
@@ -388,8 +383,13 @@ namespace Kethane
                 }
             }
 
-            public static TriangleHit? Raycast(Ray ray, int level, BoundsMap bounds, Func<Cell, float> heightAt)
+            public static TriangleHit? Raycast(Ray ray, int level, BoundsMap bounds, Func<Cell, float> heightAt, Transform gridTransform = null)
             {
+                if (gridTransform != null)
+                {
+                    ray = new Ray(gridTransform.InverseTransformPoint(ray.origin), gridTransform.InverseTransformDirection(ray.direction));
+                }
+
                 var closest = (ray.origin - Vector3.Dot(ray.origin, ray.direction) * ray.direction).magnitude;
                 var candidates = new List<Triangle>(Triangle.AtLevel(0));
 
