@@ -100,7 +100,7 @@ namespace Kethane
 
             setUpMesh();
 
-            var objects = GameObject.FindSceneObjectsOfType(typeof(GameObject));
+            var objects = GameObject.FindObjectsOfType(typeof(GameObject));
             if (objects.Any(o => o.name == "LoadingBuffer")) { return false; }
             var kerbin = objects.OfType<GameObject>().Where(b => b.name == "Kerbin").LastOrDefault();
 
