@@ -170,10 +170,10 @@ namespace Kethane
                 try
                 {
                     constructor = assembly.GetTypes()
-                .Where(t => t.Name == name)
-                .Where(t => t.GetInterfaces().Contains(typeof(IResourceGenerator)))
-                .Select(t => t.GetConstructor(new Type[] { typeof(ConfigNode) }))
-                .FirstOrDefault(c => c != null);
+                        .Where(t => t.Name == name)
+                        .Where(t => t.GetInterfaces().Contains(typeof(IResourceGenerator)))
+                        .Select(t => t.GetConstructor(new Type[] { typeof(ConfigNode) }))
+                        .FirstOrDefault(c => c != null);
 
                     if (constructor != null) { break; }
                 }
