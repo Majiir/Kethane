@@ -246,10 +246,21 @@ namespace Kethane
         [KSPField(isPersistant = false)]
         public String Label;
 
+        public ConfigNode config;
+
         private GameObject obj;
         private ParticleAnimator animator;
         private ParticleEmitter emitter;
         private new ParticleRenderer renderer;
+
+        public override void OnLoad(ConfigNode config)
+        {
+            if (this.config == null)
+            {
+                this.config = new ConfigNode();
+                config.CopyTo(this.config);
+            }
+        }
 
         public override void OnStart(StartState state)
         {
@@ -262,7 +273,7 @@ namespace Kethane
             if (part.partInfo == null) { return; }
             if (obj != null) { return; }
 
-            var node = GameDatabase.Instance.GetConfigs("PART").Single(c => part.partInfo.name == c.name.Replace('_', '.')).config.GetNodes("MODULE").Where(n => n.GetValue("name") == moduleName).Single(n => n.GetValue("Label") == Label);
+            var node = config;
 
             var shaderName = node.GetValue("ShaderName");
             var textureName = node.GetValue("TextureName");
