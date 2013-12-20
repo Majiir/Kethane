@@ -273,10 +273,8 @@ namespace Kethane
             if (part.partInfo == null) { return; }
             if (obj != null) { return; }
 
-            var node = config;
-
-            var shaderName = node.GetValue("ShaderName");
-            var textureName = node.GetValue("TextureName");
+            var shaderName = config.GetValue("ShaderName");
+            var textureName = config.GetValue("TextureName");
 
             obj = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             obj.collider.enabled = false;
@@ -296,45 +294,45 @@ namespace Kethane
             renderer.materials = new Material[] { material };
             animator.colorAnimation = new Color[5];
 
-            if (Misc.Parse(node.GetValue("Collision"), false))
+            if (Misc.Parse(config.GetValue("Collision"), false))
             {
                 obj.AddComponent("WorldParticleCollider");
             }
 
-            AngularVelocity         = Misc.Parse(node.GetValue("AngularVelocity"), 0f);
-            CameraVelocityScale     = Misc.Parse(node.GetValue("CameraVelocityScale"), 0f);
-            ColorAnimation1         = ConfigNode.ParseColor(node.GetValue("ColorAnimation1"));
-            ColorAnimation2         = ConfigNode.ParseColor(node.GetValue("ColorAnimation2"));
-            ColorAnimation3         = ConfigNode.ParseColor(node.GetValue("ColorAnimation3"));
-            ColorAnimation4         = ConfigNode.ParseColor(node.GetValue("ColorAnimation4"));
-            ColorAnimation5         = ConfigNode.ParseColor(node.GetValue("ColorAnimation5"));
-            Damping                 = Misc.Parse(node.GetValue("Damping"), 1f);
-            Emit                    = Misc.Parse(node.GetValue("Emit"), true);
-            EmitterVelocityScale    = Misc.Parse(node.GetValue("EmitterVelocityScale"), 1f);
-            Force                   = Misc.Parse(node.GetValue("Force"), Vector3.zero);
-            LengthScale             = Misc.Parse(node.GetValue("LengthScale"), 1f);
-            LocalRotationAxis       = Misc.Parse(node.GetValue("LocalRotationAxis"), Vector3.zero);
-            LocalVelocity           = Misc.Parse(node.GetValue("LocalVelocity"), Vector3.zero);
-            MaxEmission             = Misc.Parse(node.GetValue("MaxEmission"), 0f);
-            MaxEnergy               = Misc.Parse(node.GetValue("MaxEnergy"), 0f);
-            MaxParticleSize         = Misc.Parse(node.GetValue("MaxParticleSize"), 0f);
-            MaxSize                 = Misc.Parse(node.GetValue("MaxSize"), 0f);
-            MinEmission             = Misc.Parse(node.GetValue("MinEmission"), 0f);
-            MinEnergy               = Misc.Parse(node.GetValue("MinEnergy"), 0f);
-            MinSize                 = Misc.Parse(node.GetValue("MinSize"), 0f);
-            RandomAngularVelocity   = Misc.Parse(node.GetValue("RandomAngularVelocity"), 0f);
-            RandomForce             = Misc.Parse(node.GetValue("RandomForce"), Vector3.zero);
-            RandomRotation          = Misc.Parse(node.GetValue("RandomRotation"), false);
-            RandomVelocity          = Misc.Parse(node.GetValue("RandomVelocity"), Vector3.zero);
-            RenderMode              = Misc.Parse(node.GetValue("RenderMode"), ParticleRenderMode.Billboard);
-            SizeGrow                = Misc.Parse(node.GetValue("SizeGrow"), 0f);
-            UseWorldSpace           = Misc.Parse(node.GetValue("UseWorldSpace"), false);
-            VelocityScale           = Misc.Parse(node.GetValue("VelocityScale"), 0f);
-            WorldRotationAxis       = Misc.Parse(node.GetValue("WorldRotationAxis"), Vector3.zero);
-            WorldVelocity           = Misc.Parse(node.GetValue("WorldVelocity"), Vector3.zero);
+            AngularVelocity         = Misc.Parse(config.GetValue("AngularVelocity"), 0f);
+            CameraVelocityScale     = Misc.Parse(config.GetValue("CameraVelocityScale"), 0f);
+            ColorAnimation1         = ConfigNode.ParseColor(config.GetValue("ColorAnimation1"));
+            ColorAnimation2         = ConfigNode.ParseColor(config.GetValue("ColorAnimation2"));
+            ColorAnimation3         = ConfigNode.ParseColor(config.GetValue("ColorAnimation3"));
+            ColorAnimation4         = ConfigNode.ParseColor(config.GetValue("ColorAnimation4"));
+            ColorAnimation5         = ConfigNode.ParseColor(config.GetValue("ColorAnimation5"));
+            Damping                 = Misc.Parse(config.GetValue("Damping"), 1f);
+            Emit                    = Misc.Parse(config.GetValue("Emit"), true);
+            EmitterVelocityScale    = Misc.Parse(config.GetValue("EmitterVelocityScale"), 1f);
+            Force                   = Misc.Parse(config.GetValue("Force"), Vector3.zero);
+            LengthScale             = Misc.Parse(config.GetValue("LengthScale"), 1f);
+            LocalRotationAxis       = Misc.Parse(config.GetValue("LocalRotationAxis"), Vector3.zero);
+            LocalVelocity           = Misc.Parse(config.GetValue("LocalVelocity"), Vector3.zero);
+            MaxEmission             = Misc.Parse(config.GetValue("MaxEmission"), 0f);
+            MaxEnergy               = Misc.Parse(config.GetValue("MaxEnergy"), 0f);
+            MaxParticleSize         = Misc.Parse(config.GetValue("MaxParticleSize"), 0f);
+            MaxSize                 = Misc.Parse(config.GetValue("MaxSize"), 0f);
+            MinEmission             = Misc.Parse(config.GetValue("MinEmission"), 0f);
+            MinEnergy               = Misc.Parse(config.GetValue("MinEnergy"), 0f);
+            MinSize                 = Misc.Parse(config.GetValue("MinSize"), 0f);
+            RandomAngularVelocity   = Misc.Parse(config.GetValue("RandomAngularVelocity"), 0f);
+            RandomForce             = Misc.Parse(config.GetValue("RandomForce"), Vector3.zero);
+            RandomRotation          = Misc.Parse(config.GetValue("RandomRotation"), false);
+            RandomVelocity          = Misc.Parse(config.GetValue("RandomVelocity"), Vector3.zero);
+            RenderMode              = Misc.Parse(config.GetValue("RenderMode"), ParticleRenderMode.Billboard);
+            SizeGrow                = Misc.Parse(config.GetValue("SizeGrow"), 0f);
+            UseWorldSpace           = Misc.Parse(config.GetValue("UseWorldSpace"), false);
+            VelocityScale           = Misc.Parse(config.GetValue("VelocityScale"), 0f);
+            WorldRotationAxis       = Misc.Parse(config.GetValue("WorldRotationAxis"), Vector3.zero);
+            WorldVelocity           = Misc.Parse(config.GetValue("WorldVelocity"), Vector3.zero);
 
-            EmitterPosition         = Misc.Parse(node.GetValue("EmitterPosition"), Vector3.zero);
-            EmitterScale            = Misc.Parse(node.GetValue("EmitterScale"), Vector3.zero);
+            EmitterPosition         = Misc.Parse(config.GetValue("EmitterPosition"), Vector3.zero);
+            EmitterScale            = Misc.Parse(config.GetValue("EmitterScale"), Vector3.zero);
         }
     }
 }
