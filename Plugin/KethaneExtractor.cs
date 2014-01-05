@@ -53,6 +53,8 @@ namespace Kethane
         [KSPField(isPersistant = false)]
         public float TailOffset;
 
+        public ConfigNode config;
+
         private Transform headTransform;
         private Transform tailTransform;
 
@@ -89,10 +91,15 @@ namespace Kethane
             }
         }
 
-        public override void OnLoad(ConfigNode node)
+        public override void OnLoad(ConfigNode config)
         {
-            if (part.partInfo != null) { node = GameDatabase.Instance.GetConfigs("PART").Where(c => part.partInfo.name == c.name.Replace('_', '.')).Single().config.GetNodes("MODULE").Where(n => n.GetValue("name") == moduleName).Single(); }
-            resources = node.GetNodes("Resource").Select(n => new Resource(n)).ToList();
+            if (this.config == null)
+            {
+                this.config = new ConfigNode();
+                config.CopyTo(this.config);
+            }
+
+            resources = config.GetNodes("Resource").Select(n => new Resource(n)).ToList();
         }
 
         [KSPEvent(guiActive = true, guiName = "Deploy Drill", active = true)]
