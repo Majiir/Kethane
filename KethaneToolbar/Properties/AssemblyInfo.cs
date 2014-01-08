@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Kethane")]
+[assembly: AssemblyTitle("KethaneToolbar")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("MMI, Majiir")]
-[assembly: AssemblyProduct("Kethane")]
-[assembly: AssemblyCopyright("")]
+[assembly: AssemblyCompany("Majiir")]
+[assembly: AssemblyProduct("KethaneToolbar")]
+[assembly: AssemblyCopyright("Copyright © Majiir 2014")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -20,17 +20,17 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("e6926b84-0a8a-415a-97f8-5d79fc00c749")]
+[assembly: Guid("c858a0c6-3c48-4bbf-8089-6ccdee50c00f")]
 
 // Version information for an assembly consists of the following four values:
 //
 //      Major Version
-//      Minor Version
+//      Minor Version 
 //      Build Number
 //      Revision
 //
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyInformationalVersion("0.8.3")]
+[assembly: AssemblyVersion("1.0.0.0")]
+[assembly: AssemblyFileVersion("1.0.0.0")]

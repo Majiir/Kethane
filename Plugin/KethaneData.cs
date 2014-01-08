@@ -164,12 +164,24 @@ namespace Kethane
             var name = generatorNode.GetValue("name");
             if (name == null) { Debug.LogError("[Kethane] Could not find generator name"); return null; }
 
-            var constructor = AppDomain.CurrentDomain.GetAssemblies()
-                .SelectMany(a => a.GetTypes())
-                .Where(t => t.Name == name)
-                .Where(t => t.GetInterfaces().Contains(typeof(IResourceGenerator)))
-                .Select(t => t.GetConstructor(new Type[] { typeof(ConfigNode) }))
-                .FirstOrDefault(c => c != null);
+            System.Reflection.ConstructorInfo constructor = null;
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                try
+                {
+                    constructor = assembly.GetTypes()
+                        .Where(t => t.Name == name)
+                        .Where(t => t.GetInterfaces().Contains(typeof(IResourceGenerator)))
+                        .Select(t => t.GetConstructor(new Type[] { typeof(ConfigNode) }))
+                        .FirstOrDefault(c => c != null);
+
+                    if (constructor != null) { break; }
+                }
+                catch (Exception e)
+                {
+                    Debug.LogWarning("[Kethane] Error inspecting assembly '" + assembly.GetName().Name + "': \n" + e);
+                }
+            }
 
             if (constructor == null) { Debug.LogError("[Kethane] Could not find appropriate constructor for " + name); return null; }
 

@@ -31,6 +31,7 @@ namespace Kethane
         private static Rect controlWindowPos = new Rect(0, 0, 160, 0);
         private static bool revealAll = false;
         private static bool expandWindow = true;
+        private static IWindowToggle toolbar = findToolbar();
 
         private static readonly Color32 colorEmpty = Misc.Parse(SettingsManager.GetValue("ColorEmpty"), new Color32(128, 128, 128, 192));
         private static readonly Color32 colorUnknown = Misc.Parse(SettingsManager.GetValue("ColorUnknown"), new Color32(0, 0, 0, 128));
@@ -261,6 +262,39 @@ namespace Kethane
             return color;
         }
 
+        private static IWindowToggle findToolbar()
+        {
+            System.Reflection.ConstructorInfo constructor = null;
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                try
+                {
+                    constructor = assembly.GetTypes()
+                        .Where(t => t.GetInterfaces().Contains(typeof(IWindowToggle)))
+                        .Select(t => t.GetConstructor(System.Type.EmptyTypes))
+                        .FirstOrDefault(c => c != null);
+
+                    if (constructor != null) { break; }
+                }
+                catch (Exception e)
+                {
+                    Debug.LogWarning("[Kethane] Error inspecting assembly '" + assembly.GetName().Name + "': \n" + e);
+                }
+            }
+
+            if (constructor == null) { return null; }
+
+            try
+            {
+                return (IWindowToggle)constructor.Invoke(new object[0]);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("[Kethane] Could not instantiate " + constructor.DeclaringType.Name + ":\n" + e);
+                return null;
+            }
+        }
+
         public void OnGUI()
         {
             if (HighLogic.LoadedScene != GameScenes.FLIGHT && HighLogic.LoadedScene != GameScenes.TRACKSTATION) { return; }
@@ -322,6 +356,8 @@ namespace Kethane
                 minMaxStyle.contentOffset = new Vector2(-1, 0);
             }
 
+            if (toolbar != null && !toolbar.IsVisible) { return; }
+
             GUI.skin = defaultSkin;
             var oldBackground = GUI.backgroundColor;
             GUI.backgroundColor = XKCDColors.Green;
@@ -370,7 +406,7 @@ namespace Kethane
 
         private void controlWindow(int windowID)
         {
-            if (GUI.Button(new Rect(2, 2, 20, 15), expandWindow ? "\u25B4" : "\u25BE", minMaxStyle))
+            if ((toolbar == null) && GUI.Button(new Rect(2, 2, 20, 15), expandWindow ? "\u25B4" : "\u25BE", minMaxStyle))
             {
                 expandWindow = !expandWindow;
                 controlWindowPos = new Rect(controlWindowPos.xMin, controlWindowPos.yMin, expandWindow ? 160 : 24, 36);
