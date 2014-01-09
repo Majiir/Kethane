@@ -110,7 +110,7 @@ namespace Kethane
                 config.CopyTo(this.config);
             }
 
-            resources = config.GetNodes("Resource").Select(n => n.GetValue("Name")).ToList();
+            resources = this.config.GetNodes("Resource").Select(n => n.GetValue("Name")).ToList();
             if (resources.Count == 0)
             {
                 resources = KethaneController.ResourceDefinitions.Select(r => r.Resource).ToList();
