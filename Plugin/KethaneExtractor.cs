@@ -99,7 +99,7 @@ namespace Kethane
                 config.CopyTo(this.config);
             }
 
-            resources = config.GetNodes("Resource").Select(n => new Resource(n)).ToList();
+            resources = this.config.GetNodes("Resource").Select(n => new Resource(n)).ToList();
         }
 
         [KSPEvent(guiActive = true, guiName = "Deploy Drill", active = true)]
