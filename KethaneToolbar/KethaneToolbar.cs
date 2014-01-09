@@ -31,7 +31,7 @@ namespace KethaneToolbar
         {
             public bool Visible
             {
-                get { return MapView.MapIsEnabled; }
+                get { return (HighLogic.LoadedScene == GameScenes.FLIGHT || HighLogic.LoadedScene == GameScenes.TRACKSTATION) && MapView.MapIsEnabled; }
             }
         }
     }
