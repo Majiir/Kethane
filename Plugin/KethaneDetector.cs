@@ -177,9 +177,7 @@ namespace Kethane
 
                 if (TimerEcho >= TimerThreshold)
                 {
-					var scan_area = MapOverlay.GetCellUnder(vessel.mainBody, vessel.transform.position).GetNeighborhood((int)Math.Ceiling((double)BeamFootprint()-1)/2);
-
-					Debug.Log (String.Format ("Scan neighborhood includes {0:D} cells", scan_area.Count ()));
+                    var scan_area = MapOverlay.GetCellUnder(vessel.mainBody, vessel.transform.position).GetNeighborhood((int)Math.Ceiling((double)BeamFootprint()-1)/2);
 
                     var scanned = false;
                     var detected = false;
