@@ -151,92 +151,7 @@ namespace Kethane
 
         }
 
-        public class Pair
-        {
-            public bool scanned { get; set; }
-            public bool detected { get; set; }
-
-            public Pair(bool s, bool d)
-            {
-                this.scanned = s;
-                this.detected = d;
-            }
-        }
-
-        public Pair DetectResourceArea(Cell cell, uint width)
-        {
-			uint radius = 1;
-
-            // Convert width to radius of the scanned spot, should be odd
-            if (width < 1)
-                radius = 1;
-            else
-				radius = (uint)Math.Ceiling(width/2.0);
-
-            if (radius == 1) {
-                // Only scan one cell
-                return DetectResourceCell (cell);
-            } else {
-                Pair result = new Pair(false, false);
-                var round = 0;
-
-                List<uint> cells_visited = new List<uint>();
-                List<Cell> this_round = new List<Cell>();
-                List<Cell> next_round = new List<Cell>();
-
-                // Start the process with one cell
-                this_round.Add (cell);
-
-                while (round < radius) {
-                    foreach (var vistee in this_round) {
-                        // Skip if we've already scanned this cell this time
-                        if (!cells_visited.Exists (x => x == vistee.Index)) {
-                            // Scan the cell
-                            var detection = DetectResourceCell (vistee);
-                            result.scanned |= detection.scanned;
-                            result.detected |= detection.detected;
-
-                            // Note this cell as visited
-                            cells_visited.Add (vistee.Index);
-
-                            // Get the cell's neighbors and add them to the list to search next round
-                            var neighbors = vistee.GetNeighbors (MapOverlay.GridLevel);
-                            foreach (var neighbor in neighbors) {
-                                next_round.Add (neighbor);
-                            }
-                        }
-                    }
-
-                    this_round.Clear ();
-                    this_round = next_round.ToList ();
-                    next_round.Clear ();
-
-                    round++;
-                }
-                return result;
-            }
-        }
-
-        public Pair DetectResourceCell(Cell cell)
-        {
-            Pair result = new Pair(false, false);
-
-            if (resources.All(r => KethaneData.Current.Scans[r][vessel.mainBody.name][cell])) { return result; }
-            foreach (var resource in resources)
-            {
-                result.scanned = !KethaneData.Current.Scans [resource] [vessel.mainBody.name] [cell];
-                KethaneData.Current.Scans[resource][vessel.mainBody.name][cell] = true;
-                if (KethaneData.Current.GetCellDeposit(resource, vessel.mainBody, cell) != null)
-                {
-                    result.detected = true;
-                }
-            }
-            MapOverlay.Instance.RefreshCellColor(cell, vessel.mainBody);
-
-            return result;
-        }
-
-        public uint BeamFootprint()
+        public int BeamFootprint()
         {
             // Calculate the width of an equatorial cell, in meters
             var cell_width = 2 * Math.PI * vessel.mainBody.Radius / 256; // The grid implements a 256-cell equator
@@ -245,7 +160,7 @@ namespace Kethane
             var beam_footprint = 2 * Misc.GetTrueAltitude(vessel) * Math.Sin (2 * Math.PI * BeamWidth / 360);
 
             var detector_width = Math.Max(1,Math.Ceiling(beam_footprint / cell_width));
-            return (uint)detector_width;
+            return (int)detector_width;
         }
 
         public override void OnFixedUpdate()
@@ -262,16 +177,37 @@ namespace Kethane
 
                 if (TimerEcho >= TimerThreshold)
                 {
-                    // Locate the cell directly underneath
-                    var cell = MapOverlay.GetCellUnder(vessel.mainBody, vessel.transform.position);
+					var scan_area = MapOverlay.GetCellUnder(vessel.mainBody, vessel.transform.position).GetNeighborhood((int)Math.Ceiling((double)BeamFootprint()-1)/2);
 
-                    var results = DetectResourceArea (cell, BeamFootprint());
+					Debug.Log (String.Format ("Scan neighborhood includes {0:D} cells", scan_area.Count ()));
 
-                    TimerEcho = 0;
-                    if (results.scanned && vessel == FlightGlobals.ActiveVessel && ScanningSound)
+                    var scanned = false;
+                    var detected = false;
+
+                    foreach (var resource in resources)
                     {
-                        (results.detected ? PingDeposit : PingEmpty).Play();
+                        // Did we scan any new cells?
+                        if (scan_area.Any (x => KethaneData.Current.Scans [resource] [vessel.mainBody.name] [x] == false)) {
+                            // We scanned at least one previously unscanned cell
+                            scanned |= true;
+
+                            // Mark all cells as scanned and update the colors
+                            foreach (var cell in scan_area) {
+                                KethaneData.Current.Scans [resource] [vessel.mainBody.name] [cell] = true;
+                                MapOverlay.Instance.RefreshCellColor (cell, vessel.mainBody);
+                            }
+
+                            // Did we detect any new deposits?
+                            detected |= scan_area.Any (x => KethaneData.Current.GetCellDeposit (resource, vessel.mainBody, x) != null);
+                        }
                     }
+
+                    // If there are any unscanned cells in the scan area, play a sound based on whether the scan reveals a deposit
+                    if (vessel == FlightGlobals.ActiveVessel && ScanningSound && scanned) {
+                        (detected ? PingDeposit : PingEmpty).Play ();
+                    }
+                
+                    TimerEcho = 0;
                 }
             }
             else
