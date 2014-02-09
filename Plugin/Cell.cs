@@ -551,33 +551,37 @@ namespace Kethane
 
         /// <summary>
         /// Enumerates the cell neighbors to a specified distance.
-        /// A distance of 0 simply returns the cell, a distance of 1 returns the cell and its immediate neighbors
+        /// A distance of 0 simply returns the cell, a distance of 1 returns the cell and its immediate neighbors.
         /// </summary>
         public IEnumerable<Cell> GetNeighborhood(int distance)
         {
+            var timer = System.Diagnostics.Stopwatch.StartNew();
             var visited = new HashSet<Cell>();
-            var this_round = new List<Cell>();
-            var next_round = new List<Cell>();
+            var next_round = new HashSet<Cell>();
+            var this_round = new HashSet<Cell>();
 
             this_round.Add(this);
-
-            var round = 1;
-            while (round < distance) {
-                Debug.Log(String.Format("Starting round {0:D} with {1:D} cells to examine", round, this_round.Count()));
-                foreach (var vistee in this_round) {
+            for (var round = 0; round < distance && this_round.Count() > 0; round++) {
+                foreach (var visitee in this_round)
+                {
                     // Note the cell as visited
-                    visited.Add(vistee);
+                    visited.Add(visitee);
 
                     // Get the immediate nieghbors, remove ones we've already visited and add the remainer to the next_round
-                    next_round.AddRange (vistee.GetNeighbors(MapOverlay.GridLevel));
+                    foreach (var neighbor in visitee.GetNeighbors(MapOverlay.GridLevel))
+                    {
+                        if (!visited.Contains(neighbor))
+                        {
+                            next_round.Add(neighbor);
+                        }
+                    }
                 }
-
-                next_round.RemoveAll(x => visited.Contains(x));
-                this_round = next_round.Distinct().ToList();
-                next_round.Clear ();
-                round++;
+                this_round = next_round;
+                next_round = new HashSet<Cell>();
             }
-            return visited.Union(this_round).ToList ();
+            timer.Stop();
+            Debug.LogWarning(String.Format("Got neighboring cells in ({0}ms)", timer.ElapsedMilliseconds));
+            return visited.ToList ();
         }
 
         #endregion

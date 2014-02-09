@@ -168,6 +168,8 @@ namespace Kethane
             double Altitude = Misc.GetTrueAltitude(vessel);
             if (IsDetecting && this.vessel != null && this.vessel.gameObject.activeSelf && Altitude <= this.DetectingHeight)
             {
+                var timer = System.Diagnostics.Stopwatch.StartNew();
+
                 var energyRequest = PowerConsumption * TimeWarp.fixedDeltaTime;
                 var energyDrawn = this.part.RequestResource("ElectricCharge", energyRequest);
                 this.powerRatio = energyDrawn / energyRequest;
@@ -177,26 +179,25 @@ namespace Kethane
 
                 if (TimerEcho >= TimerThreshold)
                 {
-                    var scan_area = MapOverlay.GetCellUnder(vessel.mainBody, vessel.transform.position).GetNeighborhood((int)Math.Ceiling((double)BeamFootprint()-1)/2);
+                    // Do not scan more than the visible half of the planetoid. 
+                    var half_spherer_distance = 64;
+                    var scan_area = MapOverlay.GetCellUnder(vessel.mainBody, vessel.transform.position).GetNeighborhood(
+                        Math.Min(half_spherer_distance, (int)Math.Ceiling((double)BeamFootprint() - 1) / 2));
 
                     var scanned = false;
                     var detected = false;
 
                     foreach (var resource in resources)
                     {
-                        // Did we scan any new cells?
-                        if (scan_area.Any (x => KethaneData.Current.Scans [resource] [vessel.mainBody.name] [x] == false)) {
-                            // We scanned at least one previously unscanned cell
+                        // Mark all scanned cells and update the colors
+                        foreach (var cell in scan_area) {
+                            detected |= KethaneData.Current.GetCellDeposit (resource, vessel.mainBody, cell) != null;
+                            // Skip already scanned cells.
+                            if (KethaneData.Current.Scans [resource] [vessel.mainBody.name] [cell])
+                                continue;
                             scanned |= true;
-
-                            // Mark all cells as scanned and update the colors
-                            foreach (var cell in scan_area) {
-                                KethaneData.Current.Scans [resource] [vessel.mainBody.name] [cell] = true;
-                                MapOverlay.Instance.RefreshCellColor (cell, vessel.mainBody);
-                            }
-
-                            // Did we detect any new deposits?
-                            detected |= scan_area.Any (x => KethaneData.Current.GetCellDeposit (resource, vessel.mainBody, x) != null);
+                            KethaneData.Current.Scans [resource] [vessel.mainBody.name] [cell] = true;
+                            MapOverlay.Instance.RefreshCellColor (cell, vessel.mainBody);
                         }
                     }
 
@@ -204,8 +205,11 @@ namespace Kethane
                     if (vessel == FlightGlobals.ActiveVessel && ScanningSound && scanned) {
                         (detected ? PingDeposit : PingEmpty).Play ();
                     }
-                
+                    
                     TimerEcho = 0;
+
+                    timer.Stop();
+                    Debug.LogWarning(String.Format("Finished 1 scan in ({0}ms)", timer.ElapsedMilliseconds));
                 }
             }
             else
