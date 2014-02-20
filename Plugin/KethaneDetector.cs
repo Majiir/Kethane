@@ -191,13 +191,14 @@ namespace Kethane
                     {
                         // Mark all scanned cells and update the colors
                         foreach (var cell in scan_area) {
-                            detected |= KethaneData.Current.GetCellDeposit (resource, vessel.mainBody, cell) != null;
                             // Skip already scanned cells.
-                            if (KethaneData.Current.Scans [resource] [vessel.mainBody.name] [cell])
-                                continue;
-                            scanned |= true;
-                            KethaneData.Current.Scans [resource] [vessel.mainBody.name] [cell] = true;
-                            MapOverlay.Instance.RefreshCellColor (cell, vessel.mainBody);
+                            if (!KethaneData.Current.Scans[resource][vessel.mainBody.name][cell])
+                            {
+                                scanned = true;
+                                detected |= KethaneData.Current.GetCellDeposit(resource, vessel.mainBody, cell) != null;
+                                KethaneData.Current.Scans[resource][vessel.mainBody.name][cell] = true;
+                                MapOverlay.Instance.RefreshCellColor(cell, vessel.mainBody);
+                            }
                         }
                     }
 
