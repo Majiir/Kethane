@@ -185,7 +185,7 @@ namespace Kethane
             var target = MapView.MapCamera.target;
 
             var newBody = getTargetBody(target);
-            var bodyChanged = newBody != body;
+            var bodyChanged = (newBody != null) && (newBody != body);
             if (bodyChanged)
             {
                 body = newBody;
