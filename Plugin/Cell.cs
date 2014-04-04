@@ -560,6 +560,7 @@ namespace Kethane
             var next_round = new HashSet<Cell>();
             var this_round = new HashSet<Cell>();
 
+            visited.Add(this);
             this_round.Add(this);
             for (var round = 0; round < distance && this_round.Count() > 0; round++) {
                 foreach (var visitee in this_round)
@@ -580,7 +581,7 @@ namespace Kethane
                 next_round = new HashSet<Cell>();
             }
             timer.Stop();
-            Debug.LogWarning(String.Format("Got neighboring cells in ({0}ms)", timer.ElapsedMilliseconds));
+            Debug.LogWarning(String.Format("Got {0} neighboring cells in ({1}ms)", visited.Count(), timer.ElapsedMilliseconds));
             return visited.ToList ();
         }
 
