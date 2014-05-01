@@ -1,0 +1,9 @@
+{
+  "NAME": "Kethane",
+  "URL": "https://raw.githubusercontent.com/Majiir/Kethane/master/Kethane.version",
+  "VERSION": {
+    "MAJOR": 2,
+    "MINOR": 2,
+    "PATCH": 0
+  }
+}
