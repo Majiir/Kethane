@@ -567,6 +567,11 @@ namespace Kethane
             }
         }
 
+        private bool isPolar
+        {
+            get { return index < 2; }
+        }
+
         private Cell getFirstParent()
         {
             if (Level == 0) { throw new InvalidOperationException("Cannot find parent of a top-level cell"); }
@@ -586,7 +591,7 @@ namespace Kethane
 
         private Cell getChild(ChildType direction, int level)
         {
-            if (index < 2) { throw new ArgumentException("Cannot find child of a polar cell"); }
+            if (isPolar) { throw new ArgumentException("Cannot find child of a polar cell"); }
             return new Cell((index - 2) * 3 + (byte)direction, level - 1);
         }
 
@@ -604,7 +609,7 @@ namespace Kethane
         private Cell approach(ChildType direction, int levels)
         {
             if (levels == 0) { return this; }
-            if (index < 2) { throw new ArgumentException("Cannot find child of a polar cell"); }
+            if (isPolar) { throw new ArgumentException("Cannot find child of a polar cell"); }
             var a = (uint)Misc.IntPow(3, (uint)levels);
             return new Cell(this.index * a - (uint)((5 * (4 << (2 * this.Level)) * (a - (1 << (2 * levels))) - ((byte)direction - 4) * (a - 1)) / 2));
         }
@@ -623,7 +628,7 @@ namespace Kethane
 
             if (level == 0)
             {
-                if (index < 2) { throw new ArgumentException("Cannot find neighbor of a polar cell"); }
+                if (isPolar) { throw new ArgumentException("Cannot find neighbor of a polar cell"); }
 
                 if (direction == ChildType.Straight)
                 {
@@ -697,7 +702,7 @@ namespace Kethane
 
         private bool checkTraverse(Cell other)
         {
-            if (other.IsPentagon) { return other.index < 2; }
+            if (other.IsPentagon) { return other.isPolar; }
 
             var dir = other.direction;
             other = other.getFirstParent();
@@ -707,7 +712,7 @@ namespace Kethane
                 other = other.getFirstParent();
             }
 
-            return other.getNeighbor(dir, 0).index < 2 && (this.getRoot() != other);
+            return other.getNeighbor(dir, 0).isPolar && (this.getRoot() != other);
         }
 
         private Cell getRoot()
@@ -728,7 +733,7 @@ namespace Kethane
 
             if (thisLevel == 0)
             {
-                if (index < 2) { throw new ArgumentException("Cannot find neighbor of a polar cell"); }
+                if (isPolar) { throw new ArgumentException("Cannot find neighbor of a polar cell"); }
 
                 if (direction == ChildType.Straight)
                 {
@@ -802,7 +807,7 @@ namespace Kethane
                 if (cell.direction != dir) { return false; }
                 cell = cell.getFirstParent();
             }
-            return cell.getNeighbor(dir, 0).index < 2;
+            return cell.getNeighbor(dir, 0).isPolar;
         }
 
         #endregion
