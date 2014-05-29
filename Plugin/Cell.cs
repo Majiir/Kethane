@@ -6,15 +6,24 @@ using UnityEngine;
 
 namespace Kethane
 {
+    public enum ChildType : byte
+    {
+        Down = 0,
+        Straight = 1,
+        Up = 2,
+    }
+
+    public static class ChildTypeExtensions
+    {
+        public static ChildType Flip(this ChildType dir)
+        {
+            if (dir == ChildType.Straight) { return ChildType.Straight; }
+            return dir == ChildType.Down ? ChildType.Up : ChildType.Down;
+        }
+    }
+
     public struct Cell : IEquatable<Cell>
     {
-        private enum ChildType : byte
-        {
-            Down = 0,
-            Straight = 1,
-            Up = 2,
-        }
-
         private readonly uint index;
 
         public Cell(uint index)
@@ -664,7 +673,7 @@ namespace Kethane
                             {
                                 cache[j, k] = first.getNeighbor(dir, cacheLevel - 1);
                             }
-                            else if ((thisDir == ChildType.Down && dir == ChildType.Up) || (thisDir == ChildType.Up && dir == ChildType.Down))
+                            else if (thisDir == dir.Flip())
                             {
                                 cache[j, k] = first.getNeighbor(ChildType.Straight, cacheLevel);
                             }
@@ -746,7 +755,7 @@ namespace Kethane
 
                     if (north != down) { throw new InvalidOperationException(); } // TODO: Exception text 
 
-                    return new Cell(wrap(index - 1)).approach(down ? ChildType.Up : ChildType.Down, level);
+                    return new Cell(wrap(index - 1)).approach(direction.Flip(), level);
                 }
             }
             else
@@ -759,9 +768,7 @@ namespace Kethane
                     first = first.getChild(thisDir, thisLevel + 1).approach(thisDir, level - thisLevel - 1);
                 }
 
-                if ((thisDir == ChildType.Straight && direction == ChildType.Straight)
-                 || (thisDir == ChildType.Up && direction == ChildType.Down)
-                 || (thisDir == ChildType.Down && direction == ChildType.Up))
+                if (thisDir == direction.Flip())
                 {
                     return first;
                 }
@@ -773,7 +780,7 @@ namespace Kethane
                 {
                     first = this.getFirstParent();
 
-                    var other = thisDir == ChildType.Down ? ChildType.Up : ChildType.Down;
+                    var other = thisDir.Flip();
                     var seam = this.isPolarSeam();
 
                     var commonDir = thisDir;
