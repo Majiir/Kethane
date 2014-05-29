@@ -699,7 +699,7 @@ namespace Kethane
         {
             var dir = down ? ChildType.Down : ChildType.Up;
             var other = this.getNeighbor(dir, level - 1);
-            if (this.checkTraverse(other))
+            if (other.isPolarSeam() && (this.getRoot() != other.getRoot()))
             {
                 return this.getNeighbor(ChildType.Straight, level - 1).getNeighbor(dir, level);
             }
@@ -707,21 +707,6 @@ namespace Kethane
             {
                 return other.getNeighbor(down ? ChildType.Up : ChildType.Down, level);
             }
-        }
-
-        private bool checkTraverse(Cell other)
-        {
-            if (other.IsPentagon) { return other.isPolar; }
-
-            var dir = other.direction;
-            other = other.getFirstParent();
-            while (!other.IsPentagon)
-            {
-                if (other.direction != dir) { return false; }
-                other = other.getFirstParent();
-            }
-
-            return other.getNeighbor(dir, 0).isPolar && (this.getRoot() != other);
         }
 
         private Cell getRoot()
@@ -805,7 +790,7 @@ namespace Kethane
 
         private bool isPolarSeam()
         {
-            if (this.IsPentagon) { return true; }
+            if (this.IsPentagon) { return this.isPolar; }
 
             var dir = this.direction;
             var cell = this.getFirstParent();
