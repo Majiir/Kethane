@@ -727,7 +727,7 @@ namespace Kethane
         private Cell getRoot()
         {
             var cell = this;
-            while (cell.Level > 0)
+            while (!cell.IsPentagon)
             {
                 cell = cell.getFirstParent();
             }
@@ -809,7 +809,7 @@ namespace Kethane
 
             var dir = this.direction;
             var cell = this.getFirstParent();
-            while (cell.Level > 0)
+            while (!cell.IsPentagon)
             {
                 if (cell.direction != dir) { return false; }
                 cell = cell.getFirstParent();
