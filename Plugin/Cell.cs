@@ -679,7 +679,17 @@ namespace Kethane
                             }
                             else
                             {
-                                cache[j, k] = first.traverse(thisDir == ChildType.Down || dir == ChildType.Down, cacheLevel);
+                                if (dir == ChildType.Straight) { dir = thisDir; }
+
+                                var other = first.getNeighbor(dir, cacheLevel - 1);
+                                if (other.isPolarSeam() && (first.getRoot() != other.getRoot()))
+                                {
+                                    cache[j, k] = first.getNeighbor(ChildType.Straight, cacheLevel - 1).getNeighbor(dir, cacheLevel);
+                                }
+                                else
+                                {
+                                    cache[j, k] = other.getNeighbor(dir.Flip(), cacheLevel);
+                                }
                             }
                         }
                     }
@@ -692,20 +702,6 @@ namespace Kethane
             else
             {
                 return getChild(direction, level);
-            }
-        }
-
-        private Cell traverse(bool down, int level)
-        {
-            var dir = down ? ChildType.Down : ChildType.Up;
-            var other = this.getNeighbor(dir, level - 1);
-            if (other.isPolarSeam() && (this.getRoot() != other.getRoot()))
-            {
-                return this.getNeighbor(ChildType.Straight, level - 1).getNeighbor(dir, level);
-            }
-            else
-            {
-                return other.getNeighbor(down ? ChildType.Up : ChildType.Down, level);
             }
         }
 
