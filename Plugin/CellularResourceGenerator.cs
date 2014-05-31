@@ -53,6 +53,7 @@ namespace Kethane
             public BodyResources(Cell.Map<double> amounts)
             {
                 this.amounts = amounts;
+                MaxQuantity = amounts.Max(p => p.Value);
             }
 
             public ConfigNode Save()
@@ -81,10 +82,7 @@ namespace Kethane
                 return new CellResource(this, cell);
             }
 
-            public double MaxQuantity
-            {
-                get { return amounts.Max(p => p.Value); }
-            }
+            public double MaxQuantity { get; private set; }
 
             private class CellResource : ICellResource
             {
