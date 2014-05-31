@@ -47,6 +47,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Cell.cs" />
+    <Compile Include="CellularResourceGenerator.cs" />
     <Compile Include="CompatibilityChecker.cs" />
     <Compile Include="IWindowToggle.cs" />
     <Compile Include="LegacyResourceGenerator.cs" />
