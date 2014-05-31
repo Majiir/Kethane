@@ -235,20 +235,6 @@ namespace Kethane
 
         #endregion
 
-        #region Compression
-
-        public static byte[] Compress(this byte[] data)
-        {
-            return new DeflateStream(new MemoryStream(data), CompressionMode.Compress).ReadFully();
-        }
-
-        public static byte[] Decompress(this byte[] data)
-        {
-            return new DeflateStream(new MemoryStream(data), CompressionMode.Decompress).ReadFully();
-        }
-
-        #endregion
-
         #region Encoding
 
         public static byte[] FromBase64String(string encoded)

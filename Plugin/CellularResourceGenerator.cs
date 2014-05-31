@@ -15,7 +15,7 @@ namespace Kethane
             }
             else
             {
-                var bytes = Misc.FromBase64String(node.GetValue("amounts")).Decompress();
+                var bytes = Misc.FromBase64String(node.GetValue("amounts"));
                 ensureBigEndian(bytes);
 
                 var amounts = new Cell.Map<double>(MapOverlay.GridLevel);
@@ -71,7 +71,7 @@ namespace Kethane
                 ensureBigEndian(bytes);
 
                 var node = new ConfigNode();
-                node.AddValue("amounts", Misc.ToBase64String(bytes.Compress()));
+                node.AddValue("amounts", Misc.ToBase64String(bytes));
                 return node;
             }
 
