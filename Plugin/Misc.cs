@@ -214,5 +214,19 @@ namespace Kethane
         }
 
         #endregion
+
+        #region Encoding
+
+        public static byte[] FromBase64String(string encoded)
+        {
+            return Convert.FromBase64String(encoded.Replace('.', '/').Replace('%', '='));
+        }
+
+        public static string ToBase64String(byte[] data)
+        {
+            return Convert.ToBase64String(data).Replace('/', '.').Replace('=', '%');
+        }
+
+        #endregion
     }
 }

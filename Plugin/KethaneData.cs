@@ -106,7 +106,7 @@ namespace Kethane
                     {
                         try
                         {
-                            Scans[resourceName][body.name] = new Cell.Set(MapOverlay.GridLevel, Convert.FromBase64String(scanMask.Replace('.', '/').Replace('%', '=')));
+                            Scans[resourceName][body.name] = new Cell.Set(MapOverlay.GridLevel, Misc.FromBase64String(scanMask));
                         }
                         catch (FormatException e)
                         {
@@ -254,7 +254,7 @@ namespace Kethane
 
                     if (Scans.ContainsKey(resource.Key) && Scans[resource.Key].ContainsKey(body.Key))
                     {
-                        bodyNode.AddValue("ScanMask", Convert.ToBase64String(Scans[resource.Key][body.Key].ToByteArray()).Replace('/', '.').Replace('=', '%'));
+                        bodyNode.AddValue("ScanMask", Misc.ToBase64String(Scans[resource.Key][body.Key].ToByteArray()));
                     }
 
                     var node = body.Value.Save() ?? new ConfigNode();
