@@ -1,6 +1,8 @@
 ﻿using System;
-using UnityEngine;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
+using UnityEngine;
 
 namespace Kethane
 {
@@ -211,6 +213,38 @@ namespace Kethane
             v |= v >> 16;
 
             return MultiplyDeBruijnBitPosition[(v * 0x7C4ACDDU) >> 27];
+        }
+
+        #endregion
+
+        #region Stream extensions
+
+        public static byte[] ReadFully(this Stream input)
+        {
+            byte[] buffer = new byte[16 * 1024];
+            using (MemoryStream ms = new MemoryStream())
+            {
+                int read;
+                while ((read = input.Read(buffer, 0, buffer.Length)) > 0)
+                {
+                    ms.Write(buffer, 0, read);
+                }
+                return ms.ToArray();
+            }
+        }
+
+        #endregion
+
+        #region Compression
+
+        public static byte[] Compress(this byte[] data)
+        {
+            return new DeflateStream(new MemoryStream(data), CompressionMode.Compress).ReadFully();
+        }
+
+        public static byte[] Decompress(this byte[] data)
+        {
+            return new DeflateStream(new MemoryStream(data), CompressionMode.Decompress).ReadFully();
         }
 
         #endregion
