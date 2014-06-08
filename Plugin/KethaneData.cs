@@ -16,7 +16,12 @@ namespace Kethane
 
                 if (!game.scenarios.Any(p => p.moduleName == typeof(KethaneData).Name))
                 {
-                    var proto = game.AddProtoScenarioModule(typeof(KethaneData), GameScenes.FLIGHT, GameScenes.TRACKSTATION);
+					var proto = game.AddProtoScenarioModule(typeof(KethaneData),
+					                                        GameScenes.SPACECENTER,
+					                                        GameScenes.EDITOR,
+					                                        GameScenes.FLIGHT,
+					                                        GameScenes.TRACKSTATION,
+					                                        GameScenes.SPH);
                     if (proto.targetScenes.Contains(HighLogic.LoadedScene))
                     {
                         proto.Load(ScenarioRunner.fetch);
@@ -27,11 +32,23 @@ namespace Kethane
             }
         }
 
+		public class ScanSensor
+		{
+			public float DetectingPeriod;
+			public float DetectingHeight;
+			public List<string> resources;
+			public double TimerEcho;
+			public float powerRatio;
+		}
+
         internal Dictionary<string, Dictionary<string, IBodyResources>> PlanetDeposits = new Dictionary<string,Dictionary<string,IBodyResources>>();
         public Dictionary<string, Dictionary<string, Cell.Set>> Scans = new Dictionary<string,Dictionary<string,Cell.Set>>();
 
         private Dictionary<string, ConfigNode> generatorNodes = new Dictionary<string, ConfigNode>();
         private Dictionary<string, IResourceGenerator> generators = new Dictionary<string, IResourceGenerator>();
+
+
+		private Dictionary<Guid, Dictionary<uint, ScanSensor>> sensors = new Dictionary<Guid, Dictionary<uint, ScanSensor>>();
 
         public ICellResource GetDepositUnder(string resourceName, Vessel vessel)
         {
@@ -140,6 +157,32 @@ namespace Kethane
 
             timer.Stop();
             Debug.LogWarning(String.Format("Kethane deposits loaded ({0}ms)", timer.ElapsedMilliseconds));
+
+			timer.Reset();
+			timer.Start();
+
+            ConfigNode sensorsNode = config.GetNode("Sensors");
+            if (sensorsNode != null)
+            {
+                foreach (ConfigNode i in sensorsNode.GetNodes("Sensor"))
+                {
+                    Guid id = new Guid(i.GetValue("Vessel"));
+                    ScanSensor sensor = new ScanSensor();
+                    sensor.DetectingHeight = (float)Convert.ToDouble(i.GetValue("DetectingHeight"));
+                    sensor.DetectingPeriod = (float)Convert.ToDouble(i.GetValue("DetectingPeriod"));
+                    sensor.powerRatio = (float)Convert.ToDouble(i.GetValue("powerRatio"));
+                    sensor.resources = new List<string>(i.GetValue("resources").Split(new char[] { ',' }));
+                    sensor.TimerEcho = 0.0;
+
+                    if (!sensors.ContainsKey(id))
+                        sensors.Add(id, new Dictionary<uint, ScanSensor>());
+
+                    sensors[id][(uint)sensors[id].Count] = sensor;
+                }
+            }
+
+            timer.Stop();
+            Debug.LogWarning(String.Format("Kethane sensor list loaded ({0}ms)", timer.ElapsedMilliseconds));
         }
 
         internal void ResetBodyData(ResourceDefinition resource, CelestialBody body)
@@ -268,6 +311,130 @@ namespace Kethane
 
             timer.Stop();
             Debug.LogWarning(String.Format("Kethane deposits saved ({0}ms)", timer.ElapsedMilliseconds));
+
+
+			timer.Reset ();
+			timer.Start ();
+			ConfigNode sensorsNode = new ConfigNode ("Sensors");
+			foreach(var i in sensors)
+			{
+				foreach(var j in i.Value)
+				{
+					ConfigNode node = new ConfigNode("Sensor");
+					node.AddValue("Vessel", i.Key);
+					node.AddValue("DetectingHeight", j.Value.DetectingHeight);
+					node.AddValue("DetectingPeriod", j.Value.DetectingPeriod);
+					node.AddValue("powerRatio", j.Value.powerRatio);
+					node.AddValue("resources", String.Join(",", j.Value.resources.ToArray()));
+					sensorsNode.AddNode(node);
+				}
+			}
+			configNode.AddNode (sensorsNode);
+
+			timer.Stop ();
+			Debug.LogWarning(String.Format("Kethane sensor list saved ({0}ms)", timer.ElapsedMilliseconds));
         }
+
+		public void Update()
+		{
+			KethaneData data = KethaneData.Current;
+
+			foreach(Vessel v in FlightGlobals.Vessels)
+			{
+                if (!sensors.ContainsKey(v.id))
+                    continue;
+
+                double altitude = Misc.GetTrueAltitude(v);
+                bool activeVessel = FlightGlobals.ActiveVessel == v;
+                bool detected = false;
+
+                if (activeVessel)
+                {
+                    List<uint> to_remove = sensors[v.id].Keys.Except(v.FindPartModulesImplementing<KethaneDetector>().Select(x => x.part.uid)).ToList();
+
+                    foreach(uint i in to_remove)
+                    {
+                        sensors[v.id].Remove(i);
+                    }
+                }
+
+                foreach (var i in sensors[v.id])
+                {
+                    ScanSensor sensor = i.Value;
+                    if (altitude > sensor.DetectingHeight)
+                        continue;
+
+                    double TimerThreshold = sensor.DetectingPeriod * (1 + altitude * 0.000002d);
+
+                    sensor.TimerEcho += Time.deltaTime * (1 + Math.Log(TimeWarp.CurrentRate)) * sensor.powerRatio;
+
+                    if (sensor.TimerEcho < TimerThreshold)
+                        continue;
+
+                    var cell = MapOverlay.GetCellUnder(v.mainBody, v.transform.position);
+
+                    if (sensor.resources.All(r => KethaneData.Current.Scans[r][v.mainBody.name][cell]))
+                    {
+                        continue;
+                    }
+                    foreach (var resource in sensor.resources)
+                    {
+                        KethaneData.Current.Scans[resource][v.mainBody.name][cell] = true;
+                        if (KethaneData.Current.GetCellDeposit(resource, v.mainBody, cell) != null)
+                        {
+                            detected = true;
+                        }
+                    }
+
+                    MapOverlay.Instance.RefreshCellColor(cell, v.mainBody);
+                    sensor.TimerEcho = 0;
+
+                    if (activeVessel)
+                    {
+                        v.FindPartModulesImplementing<KethaneDetector>().Single(x => x.part.uid == i.Key).Ping(detected);
+                    }
+                }
+            }
+        }
+
+        public void register(KethaneDetector detector)
+		{
+			Part p = detector.part;
+			Vessel v = p.vessel;
+
+			Dictionary<uint, ScanSensor> vessel;
+			if(sensors.ContainsKey(v.id))
+				vessel = sensors[v.id];
+			else
+				sensors.Add(v.id, vessel = new Dictionary<uint, ScanSensor>());
+
+			ScanSensor sensor = new ScanSensor();
+
+            if (vessel.ContainsKey(p.uid))
+                sensor.TimerEcho = vessel[p.uid].TimerEcho;
+
+			sensor.DetectingHeight = detector.DetectingHeight;
+			sensor.DetectingPeriod = detector.DetectingPeriod;
+			sensor.resources = detector.resources;
+			sensor.powerRatio = detector.powerRatio;
+
+			vessel[p.uid] = sensor;
+		}
+
+		public void unregister(KethaneDetector detector)
+		{
+			Part p = detector.part;
+			Vessel v = p.vessel;
+
+			if(sensors.ContainsKey(v.id))
+			{
+				if(sensors[v.id].ContainsKey(p.uid))
+				{
+					sensors[v.id].Remove(p.uid);
+					if(sensors[v.id].Count == 0)
+						sensors.Remove(v.id);
+				}
+			}
+		}
     }
 }
