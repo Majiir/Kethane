@@ -52,7 +52,7 @@ namespace Kethane
             {
                 MapView.EnterMapView();
                 MapOverlay.ShowOverlay = true;
-                KethaneController.SelectedResource = "Kethane";
+                MapOverlay.SelectedResource = "Kethane";
                 instructor.PlayEmote(instructor.anim_idle_lookAround);
             };
 

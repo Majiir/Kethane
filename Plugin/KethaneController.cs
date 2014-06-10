@@ -18,13 +18,6 @@ namespace Kethane
             }
         }
 
-        public static string SelectedResource { get; set; }
-
-        static KethaneController()
-        {
-            SelectedResource = "Kethane";
-        }
-
         private static void loadResourceDefinitions()
         {
             if (resourceDefinitions != null) { return; }

@@ -13,6 +13,7 @@ namespace Kethane
         public const int GridLevel = 5;
 
         public static MapOverlay Instance { get; private set; }
+        public static string SelectedResource { get; set; }
         public static bool ShowOverlay { get; set; }
 
         private CelestialBody body;
@@ -42,6 +43,7 @@ namespace Kethane
             controlWindowPos.x = Misc.Parse(SettingsManager.GetValue("WindowLeft"), 200f);
             controlWindowPos.y = Misc.Parse(SettingsManager.GetValue("WindowTop"), 200f);
             ShowOverlay = Misc.Parse(SettingsManager.GetValue("ShowOverlay"), true);
+            SelectedResource = "Kethane";
         }
 
         public static Cell GetCellUnder(CelestialBody body, Vector3 worldPosition)
@@ -200,9 +202,9 @@ namespace Kethane
                 gameObject.transform.localRotation = Quaternion.identity;
             }
 
-            if (bodyChanged || resource == null || resource.Resource != KethaneController.SelectedResource)
+            if (bodyChanged || resource == null || resource.Resource != SelectedResource)
             {
-                resource = KethaneController.ResourceDefinitions.Where(r => r.Resource == KethaneController.SelectedResource).Single();
+                resource = KethaneController.ResourceDefinitions.Where(r => r.Resource == SelectedResource).Single();
                 refreshCellColors();
             }
 
@@ -422,19 +424,19 @@ namespace Kethane
             {
                 GUILayout.BeginHorizontal();
 
-                GUI.enabled = KethaneController.ResourceDefinitions.First().Resource != KethaneController.SelectedResource;
+                GUI.enabled = KethaneController.ResourceDefinitions.First().Resource != SelectedResource;
                 if (GUILayout.Button("◀", GUILayout.ExpandWidth(false)))
                 {
-                    KethaneController.SelectedResource = KethaneController.ResourceDefinitions.Select(d => d.Resource).Last(s => s.CompareTo(KethaneController.SelectedResource) < 0);
+                    SelectedResource = KethaneController.ResourceDefinitions.Select(d => d.Resource).Last(s => s.CompareTo(SelectedResource) < 0);
                 }
                 GUI.enabled = true;
 
-                GUILayout.Label(KethaneController.SelectedResource, centeredStyle, GUILayout.ExpandWidth(true));
+                GUILayout.Label(SelectedResource, centeredStyle, GUILayout.ExpandWidth(true));
 
-                GUI.enabled = KethaneController.ResourceDefinitions.Last().Resource != KethaneController.SelectedResource;
+                GUI.enabled = KethaneController.ResourceDefinitions.Last().Resource != SelectedResource;
                 if (GUILayout.Button("▶", GUILayout.ExpandWidth(false)))
                 {
-                    KethaneController.SelectedResource = KethaneController.ResourceDefinitions.Select(d => d.Resource).First(s => s.CompareTo(KethaneController.SelectedResource) > 0);
+                    SelectedResource = KethaneController.ResourceDefinitions.Select(d => d.Resource).First(s => s.CompareTo(SelectedResource) > 0);
                 }
                 GUI.enabled = true;
 
