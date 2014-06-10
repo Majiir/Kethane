@@ -27,7 +27,7 @@ namespace Kethane
             }
         }
 
-        internal Dictionary<string, Dictionary<string, IBodyResources>> PlanetDeposits = new Dictionary<string,Dictionary<string,IBodyResources>>();
+        public Dictionary<string, Dictionary<string, IBodyResources>> PlanetDeposits = new Dictionary<string,Dictionary<string,IBodyResources>>();
         public Dictionary<string, Dictionary<string, Cell.Set>> Scans = new Dictionary<string,Dictionary<string,Cell.Set>>();
 
         private Dictionary<string, ConfigNode> generatorNodes = new Dictionary<string, ConfigNode>();
@@ -106,7 +106,7 @@ namespace Kethane
                     {
                         try
                         {
-                            Scans[resourceName][body.name] = new Cell.Set(MapOverlay.GridLevel, Convert.FromBase64String(scanMask.Replace('.', '/').Replace('%', '=')));
+                            Scans[resourceName][body.name] = new Cell.Set(MapOverlay.GridLevel, Misc.FromBase64String(scanMask));
                         }
                         catch (FormatException e)
                         {
@@ -142,13 +142,13 @@ namespace Kethane
             Debug.LogWarning(String.Format("Kethane deposits loaded ({0}ms)", timer.ElapsedMilliseconds));
         }
 
-        internal void ResetBodyData(ResourceDefinition resource, CelestialBody body)
+        public void ResetBodyData(ResourceDefinition resource, CelestialBody body)
         {
             var resourceName = resource.Resource;
             PlanetDeposits[resourceName][body.name] = generators[resourceName].Load(body, null);
         }
 
-        internal void ResetGeneratorConfig(ResourceDefinition resource)
+        public void ResetGeneratorConfig(ResourceDefinition resource)
         {
             var resourceName = resource.Resource;
             generatorNodes[resourceName] = resource.Generator;
@@ -254,7 +254,7 @@ namespace Kethane
 
                     if (Scans.ContainsKey(resource.Key) && Scans[resource.Key].ContainsKey(body.Key))
                     {
-                        bodyNode.AddValue("ScanMask", Convert.ToBase64String(Scans[resource.Key][body.Key].ToByteArray()).Replace('/', '.').Replace('=', '%'));
+                        bodyNode.AddValue("ScanMask", Misc.ToBase64String(Scans[resource.Key][body.Key].ToByteArray()));
                     }
 
                     var node = body.Value.Save() ?? new ConfigNode();

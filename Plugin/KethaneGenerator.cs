@@ -38,13 +38,13 @@ namespace Kethane
         private TimedMovingAverage fanSpeed = new TimedMovingAverage(1f);
         private Func<float, float> logistic = x => (1 / ((float)Math.Exp(15f * x - 10.5f) + 1));
 
-        [KSPEvent(guiActive = true, guiName = "Enable Generator", active = true)]
+        [KSPEvent(guiActive = true, guiName = "Enable Generator", active = true, externalToEVAOnly = true, guiActiveUnfocused = true, unfocusedRange = 1.5f)]
         public void Enable()
         {
             Enabled = true;
         }
 
-        [KSPEvent(guiActive = true, guiName = "Disable Generator", active = false)]
+        [KSPEvent(guiActive = true, guiName = "Disable Generator", active = false, externalToEVAOnly = true, guiActiveUnfocused = true, unfocusedRange = 1.5f)]
         public void Disable()
         {
             Enabled = false;

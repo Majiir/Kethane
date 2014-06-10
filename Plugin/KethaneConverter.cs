@@ -54,13 +54,13 @@ namespace Kethane
             get { return new Dictionary<string, double>(resourceActivity); }
         }
 
-        [KSPEvent(guiActive = true, guiName = "Activate Converter", active = true)]
+        [KSPEvent(guiActive = true, guiName = "Activate Converter", active = true, externalToEVAOnly = true, guiActiveUnfocused = true, unfocusedRange = 1.5f)]
         public void ActivateConverter()
         {
             IsEnabled = true;
         }
 
-        [KSPEvent(guiActive = true, guiName = "Deactivate Converter", active = false)]
+        [KSPEvent(guiActive = true, guiName = "Deactivate Converter", active = false, externalToEVAOnly = true, guiActiveUnfocused = true, unfocusedRange = 1.5f)]
         public void DeactivateConverter()
         {
             IsEnabled = false;
