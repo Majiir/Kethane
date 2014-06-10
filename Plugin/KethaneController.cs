@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Kethane
 {
-    internal class KethaneController
+    public class KethaneController
     {
         private static SortedDictionary<String, ResourceDefinition> resourceDefinitions = null;
 

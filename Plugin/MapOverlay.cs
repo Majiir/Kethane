@@ -8,7 +8,7 @@ using UnityEngine;
 namespace Kethane
 {
     [KSPAddon(KSPAddon.Startup.EveryScene, false)]
-    internal class MapOverlay : MonoBehaviour
+    public class MapOverlay : MonoBehaviour
     {
         public const int GridLevel = 5;
 
