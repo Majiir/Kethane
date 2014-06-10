@@ -467,7 +467,7 @@ namespace Kethane
                         refreshCellColors();
                     }
 
-                    if (GUILayout.Button("Reset " + body.name + " Data"))
+                    if (GUILayout.Button("Reset " + (body ? body.name : "[null]") + " Data"))
                     {
                         KethaneData.Current.ResetBodyData(resource, body);
                         refreshCellColors();
