@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Kethane
 {
-    [KSPAddonFixed(KSPAddon.Startup.Instantly, true, typeof(TutorialInstaller))]
+    [KSPAddon(KSPAddon.Startup.Instantly, true)]
     internal class TutorialInstaller : MonoBehaviour
     {
         public void Start()
