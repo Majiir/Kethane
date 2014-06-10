@@ -428,19 +428,21 @@ namespace Kethane
             {
                 GUILayout.BeginHorizontal();
 
-                GUI.enabled = KethaneController.ResourceDefinitions.First().Resource != SelectedResource;
+                var defs = KethaneController.ResourceDefinitions.Select(d => d.Resource).ToList();
+
+                GUI.enabled = defs.Count > 1;
                 if (GUILayout.Button("◀", GUILayout.ExpandWidth(false)))
                 {
-                    SelectedResource = KethaneController.ResourceDefinitions.Select(d => d.Resource).Last(s => s.CompareTo(SelectedResource) < 0);
+                    SelectedResource = defs.LastOrDefault(s => s.CompareTo(SelectedResource) < 0) ?? defs.Last();
                 }
                 GUI.enabled = true;
 
                 GUILayout.Label(SelectedResource, centeredStyle, GUILayout.ExpandWidth(true));
 
-                GUI.enabled = KethaneController.ResourceDefinitions.Last().Resource != SelectedResource;
+                GUI.enabled = defs.Count > 1;
                 if (GUILayout.Button("▶", GUILayout.ExpandWidth(false)))
                 {
-                    SelectedResource = KethaneController.ResourceDefinitions.Select(d => d.Resource).First(s => s.CompareTo(SelectedResource) > 0);
+                    SelectedResource = defs.FirstOrDefault(s => s.CompareTo(SelectedResource) > 0) ?? defs.First();
                 }
                 GUI.enabled = true;
 
