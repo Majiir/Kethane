@@ -196,7 +196,11 @@ namespace Kethane
                 refreshCollider();
 
                 var radius = bodyRadii.ContainsKey(body) ? bodyRadii[body] : 1.025;
-                gameObject.transform.parent = ScaledSpace.Instance.scaledSpaceTransforms.Single(t => t.name == body.name);
+                var parent = ScaledSpace.Instance.scaledSpaceTransforms.FirstOrDefault(t => t.name == body.name);
+                if (parent != null)
+                {
+                    gameObject.transform.parent = parent;
+                }
                 gameObject.transform.localScale = Vector3.one * 1000f * (float)radius;
                 gameObject.transform.localPosition = Vector3.zero;
                 gameObject.transform.localRotation = Quaternion.identity;
