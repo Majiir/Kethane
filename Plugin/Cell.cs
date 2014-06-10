@@ -6,15 +6,24 @@ using UnityEngine;
 
 namespace Kethane
 {
+    public enum ChildType : byte
+    {
+        Down = 0,
+        Straight = 1,
+        Up = 2,
+    }
+
+    public static class ChildTypeExtensions
+    {
+        public static ChildType Flip(this ChildType dir)
+        {
+            if (dir == ChildType.Straight) { return ChildType.Straight; }
+            return dir == ChildType.Down ? ChildType.Up : ChildType.Down;
+        }
+    }
+
     public struct Cell : IEquatable<Cell>
     {
-        private enum ChildType : byte
-        {
-            Down = 0,
-            Straight = 1,
-            Up = 2,
-        }
-
         private readonly uint index;
 
         public Cell(uint index)
@@ -567,6 +576,11 @@ namespace Kethane
             }
         }
 
+        private bool isPolar
+        {
+            get { return index < 2; }
+        }
+
         private Cell getFirstParent()
         {
             if (Level == 0) { throw new InvalidOperationException("Cannot find parent of a top-level cell"); }
@@ -586,7 +600,7 @@ namespace Kethane
 
         private Cell getChild(ChildType direction, int level)
         {
-            if (index < 2) { throw new ArgumentException("Cannot find child of a polar cell"); }
+            if (isPolar) { throw new ArgumentException("Cannot find child of a polar cell"); }
             return new Cell((index - 2) * 3 + (byte)direction, level - 1);
         }
 
@@ -604,7 +618,7 @@ namespace Kethane
         private Cell approach(ChildType direction, int levels)
         {
             if (levels == 0) { return this; }
-            if (index < 2) { throw new ArgumentException("Cannot find child of a polar cell"); }
+            if (isPolar) { throw new ArgumentException("Cannot find child of a polar cell"); }
             var a = (uint)Misc.IntPow(3, (uint)levels);
             return new Cell(this.index * a - (uint)((5 * (4 << (2 * this.Level)) * (a - (1 << (2 * levels))) - ((byte)direction - 4) * (a - 1)) / 2));
         }
@@ -623,7 +637,7 @@ namespace Kethane
 
             if (level == 0)
             {
-                if (index < 2) { throw new ArgumentException("Cannot find neighbor of a polar cell"); }
+                if (isPolar) { throw new ArgumentException("Cannot find neighbor of a polar cell"); }
 
                 if (direction == ChildType.Straight)
                 {
@@ -659,13 +673,23 @@ namespace Kethane
                             {
                                 cache[j, k] = first.getNeighbor(dir, cacheLevel - 1);
                             }
-                            else if ((thisDir == ChildType.Down && dir == ChildType.Up) || (thisDir == ChildType.Up && dir == ChildType.Down))
+                            else if (thisDir == dir.Flip())
                             {
                                 cache[j, k] = first.getNeighbor(ChildType.Straight, cacheLevel);
                             }
                             else
                             {
-                                cache[j, k] = first.traverse(thisDir == ChildType.Down || dir == ChildType.Down, cacheLevel);
+                                if (dir == ChildType.Straight) { dir = thisDir; }
+
+                                var other = first.getNeighbor(dir, cacheLevel - 1);
+                                if (other.isPolarSeam() && (first.getRoot() != other.getRoot()))
+                                {
+                                    cache[j, k] = first.getNeighbor(ChildType.Straight, cacheLevel - 1).getNeighbor(dir, cacheLevel);
+                                }
+                                else
+                                {
+                                    cache[j, k] = other.getNeighbor(dir.Flip(), cacheLevel);
+                                }
                             }
                         }
                     }
@@ -681,39 +705,10 @@ namespace Kethane
             }
         }
 
-        private Cell traverse(bool down, int level)
-        {
-            var dir = down ? ChildType.Down : ChildType.Up;
-            var other = this.getNeighbor(dir, level - 1);
-            if (this.checkTraverse(other))
-            {
-                return this.getNeighbor(ChildType.Straight, level - 1).getNeighbor(dir, level);
-            }
-            else
-            {
-                return other.getNeighbor(down ? ChildType.Up : ChildType.Down, level);
-            }
-        }
-
-        private bool checkTraverse(Cell other)
-        {
-            if (other.IsPentagon) { return other.index < 2; }
-
-            var dir = other.direction;
-            other = other.getFirstParent();
-            while (!other.IsPentagon)
-            {
-                if (other.direction != dir) { return false; }
-                other = other.getFirstParent();
-            }
-
-            return other.getNeighbor(dir, 0).index < 2 && (this.getRoot() != other);
-        }
-
         private Cell getRoot()
         {
             var cell = this;
-            while (cell.Level > 0)
+            while (!cell.IsPentagon)
             {
                 cell = cell.getFirstParent();
             }
@@ -728,7 +723,7 @@ namespace Kethane
 
             if (thisLevel == 0)
             {
-                if (index < 2) { throw new ArgumentException("Cannot find neighbor of a polar cell"); }
+                if (isPolar) { throw new ArgumentException("Cannot find neighbor of a polar cell"); }
 
                 if (direction == ChildType.Straight)
                 {
@@ -741,7 +736,7 @@ namespace Kethane
 
                     if (north != down) { throw new InvalidOperationException(); } // TODO: Exception text 
 
-                    return new Cell(wrap(index - 1)).approach(down ? ChildType.Up : ChildType.Down, level);
+                    return new Cell(wrap(index - 1)).approach(direction.Flip(), level);
                 }
             }
             else
@@ -754,9 +749,7 @@ namespace Kethane
                     first = first.getChild(thisDir, thisLevel + 1).approach(thisDir, level - thisLevel - 1);
                 }
 
-                if ((thisDir == ChildType.Straight && direction == ChildType.Straight)
-                 || (thisDir == ChildType.Up && direction == ChildType.Down)
-                 || (thisDir == ChildType.Down && direction == ChildType.Up))
+                if (thisDir == direction.Flip())
                 {
                     return first;
                 }
@@ -768,7 +761,7 @@ namespace Kethane
                 {
                     first = this.getFirstParent();
 
-                    var other = thisDir == ChildType.Down ? ChildType.Up : ChildType.Down;
+                    var other = thisDir.Flip();
                     var seam = this.isPolarSeam();
 
                     var commonDir = thisDir;
@@ -793,16 +786,16 @@ namespace Kethane
 
         private bool isPolarSeam()
         {
-            if (this.IsPentagon) { return true; }
+            if (this.IsPentagon) { return this.isPolar; }
 
             var dir = this.direction;
             var cell = this.getFirstParent();
-            while (cell.Level > 0)
+            while (!cell.IsPentagon)
             {
                 if (cell.direction != dir) { return false; }
                 cell = cell.getFirstParent();
             }
-            return cell.getNeighbor(dir, 0).index < 2;
+            return cell.getNeighbor(dir, 0).isPolar;
         }
 
         #endregion
