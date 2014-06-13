@@ -34,13 +34,13 @@ namespace Kethane
         private static AudioSource PingEmpty;
         private static AudioSource PingDeposit;
 
-        [KSPEvent(guiActive = true, guiName = "Activate Detector", active = true)]
+        [KSPEvent(guiActive = true, guiName = "Activate Detector", active = true, externalToEVAOnly = true, guiActiveUnfocused = true, unfocusedRange = 1.5f)]
         public void EnableDetection()
         {
             IsDetecting = true;
         }
 
-        [KSPEvent(guiActive = true, guiName = "Deactivate Detector", active = false)]
+        [KSPEvent(guiActive = true, guiName = "Deactivate Detector", active = false, externalToEVAOnly = true, guiActiveUnfocused = true, unfocusedRange = 1.5f)]
         public void DisableDetection()
         {
             IsDetecting = false;
@@ -64,13 +64,13 @@ namespace Kethane
             IsDetecting = !IsDetecting;
         }
 
-        [KSPEvent(guiActive = true, guiName = "Enable Scan Tone", active = true)]
+        [KSPEvent(guiActive = true, guiName = "Enable Scan Tone", active = true, externalToEVAOnly = true, guiActiveUnfocused = true, unfocusedRange = 1.5f)]
         public void EnableSounds()
         {
             ScanningSound = true;
         }
 
-        [KSPEvent(guiActive = true, guiName = "Disable Scan Tone", active = false)]
+        [KSPEvent(guiActive = true, guiName = "Disable Scan Tone", active = false, externalToEVAOnly = true, guiActiveUnfocused = true, unfocusedRange = 1.5f)]
         public void DisableSounds()
         {
             ScanningSound = false;

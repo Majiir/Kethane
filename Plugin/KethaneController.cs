@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Kethane
 {
-    internal class KethaneController
+    public class KethaneController
     {
         private static SortedDictionary<String, ResourceDefinition> resourceDefinitions = null;
 
@@ -16,13 +16,6 @@ namespace Kethane
                 loadResourceDefinitions();
                 return resourceDefinitions.Values.ToArray();
             }
-        }
-
-        public static string SelectedResource { get; set; }
-
-        static KethaneController()
-        {
-            SelectedResource = "Kethane";
         }
 
         private static void loadResourceDefinitions()

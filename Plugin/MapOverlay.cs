@@ -8,11 +8,12 @@ using UnityEngine;
 namespace Kethane
 {
     [KSPAddon(KSPAddon.Startup.EveryScene, false)]
-    internal class MapOverlay : MonoBehaviour
+    public class MapOverlay : MonoBehaviour
     {
         public const int GridLevel = 5;
 
         public static MapOverlay Instance { get; private set; }
+        public static string SelectedResource { get; set; }
         public static bool ShowOverlay { get; set; }
 
         private CelestialBody body;
@@ -42,6 +43,7 @@ namespace Kethane
             controlWindowPos.x = Misc.Parse(SettingsManager.GetValue("WindowLeft"), 200f);
             controlWindowPos.y = Misc.Parse(SettingsManager.GetValue("WindowTop"), 200f);
             ShowOverlay = Misc.Parse(SettingsManager.GetValue("ShowOverlay"), true);
+            SelectedResource = "Kethane";
         }
 
         public static Cell GetCellUnder(CelestialBody body, Vector3 worldPosition)
@@ -70,7 +72,10 @@ namespace Kethane
             if (HighLogic.LoadedScene == GameScenes.MAINMENU)
             {
                 var success = startMenuOverlay();
-                gameObject.renderer.enabled = success;
+                if (gameObject.renderer != null)
+                {
+                    gameObject.renderer.enabled = success;
+                }
             }
             else if (HighLogic.LoadedScene == GameScenes.FLIGHT || HighLogic.LoadedScene == GameScenes.TRACKSTATION)
             {
@@ -194,15 +199,19 @@ namespace Kethane
                 refreshCollider();
 
                 var radius = bodyRadii.ContainsKey(body) ? bodyRadii[body] : 1.025;
-                gameObject.transform.parent = ScaledSpace.Instance.scaledSpaceTransforms.Single(t => t.name == body.name);
+                var parent = ScaledSpace.Instance.scaledSpaceTransforms.FirstOrDefault(t => t.name == body.name);
+                if (parent != null)
+                {
+                    gameObject.transform.parent = parent;
+                }
                 gameObject.transform.localScale = Vector3.one * 1000f * (float)radius;
                 gameObject.transform.localPosition = Vector3.zero;
                 gameObject.transform.localRotation = Quaternion.identity;
             }
 
-            if (bodyChanged || resource == null || resource.Resource != KethaneController.SelectedResource)
+            if (bodyChanged || resource == null || resource.Resource != SelectedResource)
             {
-                resource = KethaneController.ResourceDefinitions.Where(r => r.Resource == KethaneController.SelectedResource).Single();
+                resource = KethaneController.ResourceDefinitions.Where(r => r.Resource == SelectedResource).Single();
                 refreshCellColors();
             }
 
@@ -422,19 +431,21 @@ namespace Kethane
             {
                 GUILayout.BeginHorizontal();
 
-                GUI.enabled = KethaneController.ResourceDefinitions.First().Resource != KethaneController.SelectedResource;
+                var defs = KethaneController.ResourceDefinitions.Select(d => d.Resource).ToList();
+
+                GUI.enabled = defs.Count > 1;
                 if (GUILayout.Button("◀", GUILayout.ExpandWidth(false)))
                 {
-                    KethaneController.SelectedResource = KethaneController.ResourceDefinitions.Select(d => d.Resource).Last(s => s.CompareTo(KethaneController.SelectedResource) < 0);
+                    SelectedResource = defs.LastOrDefault(s => s.CompareTo(SelectedResource) < 0) ?? defs.Last();
                 }
                 GUI.enabled = true;
 
-                GUILayout.Label(KethaneController.SelectedResource, centeredStyle, GUILayout.ExpandWidth(true));
+                GUILayout.Label(SelectedResource, centeredStyle, GUILayout.ExpandWidth(true));
 
-                GUI.enabled = KethaneController.ResourceDefinitions.Last().Resource != KethaneController.SelectedResource;
+                GUI.enabled = defs.Count > 1;
                 if (GUILayout.Button("▶", GUILayout.ExpandWidth(false)))
                 {
-                    KethaneController.SelectedResource = KethaneController.ResourceDefinitions.Select(d => d.Resource).First(s => s.CompareTo(KethaneController.SelectedResource) > 0);
+                    SelectedResource = defs.FirstOrDefault(s => s.CompareTo(SelectedResource) > 0) ?? defs.First();
                 }
                 GUI.enabled = true;
 
@@ -456,7 +467,7 @@ namespace Kethane
                         refreshCellColors();
                     }
 
-                    if (GUILayout.Button("Reset " + body.name + " Data"))
+                    if (GUILayout.Button("Reset " + (body ? body.name : "[null]") + " Data"))
                     {
                         KethaneData.Current.ResetBodyData(resource, body);
                         refreshCellColors();

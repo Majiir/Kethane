@@ -32,16 +32,17 @@ namespace Kethane
             }
         }
 
-		public class ScanSensor
-		{
-			public float DetectingPeriod;
-			public float DetectingHeight;
-			public List<string> resources;
-			public double TimerEcho;
-			public float powerRatio;
-		}
+        public class ScanSensor
+        {
+            public float DetectingPeriod;
+            public float DetectingHeight;
+            public List<string> resources;
+            public double TimerEcho;
+            public float powerRatio;
+        }
 
-        internal Dictionary<string, Dictionary<string, IBodyResources>> PlanetDeposits = new Dictionary<string,Dictionary<string,IBodyResources>>();
+        public Dictionary<string, Dictionary<string, IBodyResources>> PlanetDeposits = new Dictionary<string,Dictionary<string,IBodyResources>>();
+
         public Dictionary<string, Dictionary<string, Cell.Set>> Scans = new Dictionary<string,Dictionary<string,Cell.Set>>();
 
         private Dictionary<string, ConfigNode> generatorNodes = new Dictionary<string, ConfigNode>();
@@ -123,7 +124,7 @@ namespace Kethane
                     {
                         try
                         {
-                            Scans[resourceName][body.name] = new Cell.Set(MapOverlay.GridLevel, Convert.FromBase64String(scanMask.Replace('.', '/').Replace('%', '=')));
+                            Scans[resourceName][body.name] = new Cell.Set(MapOverlay.GridLevel, Misc.FromBase64String(scanMask));
                         }
                         catch (FormatException e)
                         {
@@ -158,8 +159,8 @@ namespace Kethane
             timer.Stop();
             Debug.LogWarning(String.Format("Kethane deposits loaded ({0}ms)", timer.ElapsedMilliseconds));
 
-			timer.Reset();
-			timer.Start();
+            timer.Reset();
+            timer.Start();
 
             ConfigNode sensorsNode = config.GetNode("Sensors");
             if (sensorsNode != null)
@@ -185,13 +186,13 @@ namespace Kethane
             Debug.LogWarning(String.Format("Kethane sensor list loaded ({0}ms)", timer.ElapsedMilliseconds));
         }
 
-        internal void ResetBodyData(ResourceDefinition resource, CelestialBody body)
+        public void ResetBodyData(ResourceDefinition resource, CelestialBody body)
         {
             var resourceName = resource.Resource;
             PlanetDeposits[resourceName][body.name] = generators[resourceName].Load(body, null);
         }
 
-        internal void ResetGeneratorConfig(ResourceDefinition resource)
+        public void ResetGeneratorConfig(ResourceDefinition resource)
         {
             var resourceName = resource.Resource;
             generatorNodes[resourceName] = resource.Generator;
@@ -297,7 +298,7 @@ namespace Kethane
 
                     if (Scans.ContainsKey(resource.Key) && Scans[resource.Key].ContainsKey(body.Key))
                     {
-                        bodyNode.AddValue("ScanMask", Convert.ToBase64String(Scans[resource.Key][body.Key].ToByteArray()).Replace('/', '.').Replace('=', '%'));
+                        bodyNode.AddValue("ScanMask", Misc.ToBase64String(Scans[resource.Key][body.Key].ToByteArray()));
                     }
 
                     var node = body.Value.Save() ?? new ConfigNode();
@@ -335,12 +336,12 @@ namespace Kethane
 			Debug.LogWarning(String.Format("Kethane sensor list saved ({0}ms)", timer.ElapsedMilliseconds));
         }
 
-		public void Update()
-		{
-			KethaneData data = KethaneData.Current;
+        public void Update()
+        {
+            KethaneData data = KethaneData.Current;
 
-			foreach(Vessel v in FlightGlobals.Vessels)
-			{
+            foreach(Vessel v in FlightGlobals.Vessels)
+            {
                 if (!sensors.ContainsKey(v.id))
                     continue;
 
@@ -398,43 +399,43 @@ namespace Kethane
         }
 
         public void register(KethaneDetector detector)
-		{
-			Part p = detector.part;
-			Vessel v = p.vessel;
+        {
+            Part p = detector.part;
+            Vessel v = p.vessel;
 
-			Dictionary<uint, ScanSensor> vessel;
-			if(sensors.ContainsKey(v.id))
-				vessel = sensors[v.id];
-			else
-				sensors.Add(v.id, vessel = new Dictionary<uint, ScanSensor>());
+            Dictionary<uint, ScanSensor> vessel;
+            if(sensors.ContainsKey(v.id))
+                vessel = sensors[v.id];
+            else
+                sensors.Add(v.id, vessel = new Dictionary<uint, ScanSensor>());
 
-			ScanSensor sensor = new ScanSensor();
+            ScanSensor sensor = new ScanSensor();
 
             if (vessel.ContainsKey(p.uid))
                 sensor.TimerEcho = vessel[p.uid].TimerEcho;
 
-			sensor.DetectingHeight = detector.DetectingHeight;
-			sensor.DetectingPeriod = detector.DetectingPeriod;
-			sensor.resources = detector.resources;
-			sensor.powerRatio = detector.powerRatio;
+                sensor.DetectingHeight = detector.DetectingHeight;
+                sensor.DetectingPeriod = detector.DetectingPeriod;
+                sensor.resources = detector.resources;
+                sensor.powerRatio = detector.powerRatio;
 
-			vessel[p.uid] = sensor;
-		}
+                vessel[p.uid] = sensor;
+        }
 
-		public void unregister(KethaneDetector detector)
-		{
-			Part p = detector.part;
-			Vessel v = p.vessel;
+        public void unregister(KethaneDetector detector)
+        {
+            Part p = detector.part;
+            Vessel v = p.vessel;
 
-			if(sensors.ContainsKey(v.id))
-			{
-				if(sensors[v.id].ContainsKey(p.uid))
-				{
-					sensors[v.id].Remove(p.uid);
-					if(sensors[v.id].Count == 0)
-						sensors.Remove(v.id);
-				}
-			}
-		}
+            if(sensors.ContainsKey(v.id))
+            {
+                if(sensors[v.id].ContainsKey(p.uid))
+                {
+                    sensors[v.id].Remove(p.uid);
+                    if(sensors[v.id].Count == 0)
+                        sensors.Remove(v.id);
+                }
+            }
+        }
     }
 }

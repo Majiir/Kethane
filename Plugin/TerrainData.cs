@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Kethane
 {
-    internal class TerrainData
+    public class TerrainData
     {
         private static readonly Dictionary<string, TerrainData> bodies = new Dictionary<string, TerrainData>();
 

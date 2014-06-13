@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace Kethane
 {
-    [KSPAddonFixed(KSPAddon.Startup.MainMenu, true, typeof(InstallChecker))]
+    [KSPAddon(KSPAddon.Startup.MainMenu, true)]
     internal class InstallChecker : MonoBehaviour
     {
         protected void Start()

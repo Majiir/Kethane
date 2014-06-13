@@ -102,13 +102,13 @@ namespace Kethane
             resources = this.config.GetNodes("Resource").Select(n => new Resource(n)).ToList();
         }
 
-        [KSPEvent(guiActive = true, guiName = "Deploy Drill", active = true)]
+        [KSPEvent(guiActive = true, guiName = "Deploy Drill", active = true, externalToEVAOnly = true, guiActiveUnfocused = true, unfocusedRange = 1.5f)]
         public void DeployDrill()
         {
             animator.Deploy();
         }
 
-        [KSPEvent(guiActive = true, guiName = "Retract Drill", active = false)]
+        [KSPEvent(guiActive = true, guiName = "Retract Drill", active = false, externalToEVAOnly = true, guiActiveUnfocused = true, unfocusedRange = 1.5f)]
         public void RetractDrill()
         {
             animator.Retract();
