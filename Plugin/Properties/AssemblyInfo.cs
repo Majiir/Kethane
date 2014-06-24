@@ -34,3 +34,4 @@ using System.Runtime.InteropServices;
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyInformationalVersion("0.8.6")]
+[assembly: KSPAssembly("Kethane", 8, 6)]
