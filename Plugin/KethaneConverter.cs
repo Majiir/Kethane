@@ -21,7 +21,7 @@ namespace Kethane
             {
                 Resource = resource;
                 Rate = rate;
-                Optional = Optional;
+                Optional = optional;
             }
 
             public static ResourceRate operator *(ResourceRate rate, double multiplier)
@@ -130,7 +130,11 @@ namespace Kethane
             inputRates = loadRates(config.GetNode("InputRates")).ToArray();
             var inputMassRate = inputRates.Sum(p => p.Rate * definitions[p.Resource].density);
 
-            outputRates = loadRates(config.GetNode("OutputRatios")).Select(r => r * (inputMassRate / definitions[r.Resource].density)).GroupBy(r => r.Resource).Select(g => new ResourceRate(g.Key, g.Sum(r => r.Rate))).Concat(loadRates(config.GetNode("OutputRates"))).ToArray();
+            var outRates = loadRates(config.GetNode("OutputRatios"));
+            var reqOutRates = outRates.Where (r => !r.Optional).Select(r => r * (inputMassRate / definitions[r.Resource].density)).GroupBy(r => r.Resource).Select(g => new ResourceRate(g.Key, g.Sum(r => r.Rate), false));
+            var optOutRates = outRates.Where (r => r.Optional).Select(r => r * (inputMassRate / definitions[r.Resource].density)).GroupBy(r => r.Resource).Select(g => new ResourceRate(g.Key, g.Sum(r => r.Rate), true));
+
+            outputRates = reqOutRates.Concat(optOutRates).ToArray();
 
             if (Label == null)
             {
