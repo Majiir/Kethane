@@ -134,7 +134,7 @@ namespace Kethane
             var reqOutRates = outRates.Where(r => !r.Optional).Select(r => r * (inputMassRate / definitions[r.Resource].density)).GroupBy(r => r.Resource).Select(g => new ResourceRate(g.Key, g.Sum(r => r.Rate), false));
             var optOutRates = outRates.Where(r => r.Optional).Select(r => r * (inputMassRate / definitions[r.Resource].density)).GroupBy(r => r.Resource).Select(g => new ResourceRate(g.Key, g.Sum(r => r.Rate), true));
 
-            outputRates = reqOutRates.Concat(optOutRates).ToArray();
+            outputRates = reqOutRates.Concat(optOutRates).Concat(loadRates(config.GetNode("OutputRates"))).ToArray();
 
             if (Label == null)
             {
