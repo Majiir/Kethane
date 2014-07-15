@@ -155,7 +155,7 @@ namespace Kethane
                 var energyRequest = PowerConsumption * TimeWarp.fixedDeltaTime;
                 var energyDrawn = this.part.RequestResource("ElectricCharge", energyRequest);
                 this.powerRatio = energyDrawn / energyRequest;
-                TimerEcho += Time.deltaTime * (1 + Math.Log(TimeWarp.CurrentRate)) * this.powerRatio;
+                TimerEcho += TimeWarp.deltaTime * this.powerRatio;
 
                 var TimerThreshold = this.DetectingPeriod * (1 + Altitude * 0.000002d);
 
