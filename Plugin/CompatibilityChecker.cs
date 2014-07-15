@@ -53,8 +53,8 @@ namespace Compatibility
             \*-----------------------------------------------*/
 
             const int compatibleMajor = 0;
-            const int compatibleMinor = 23;
-            const int compatibleRevision = 5;
+            const int compatibleMinor = 24;
+            const int compatibleRevision = 0;
 
             return (Versioning.version_major == compatibleMajor) && (Versioning.version_minor == compatibleMinor) && (Versioning.Revision == compatibleRevision);
 
