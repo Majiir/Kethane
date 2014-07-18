@@ -69,7 +69,7 @@ namespace Compatibility
             |    BEGIN IMPLEMENTATION-SPECIFIC EDITS HERE.    |
             \*-----------------------------------------------*/
 
-            return Application.unityVersion == "4.5.2";
+            return Application.unityVersion == "4.5.2f1";
 
             /*-----------------------------------------------*\
             | IMPLEMENTERS SHOULD NOT EDIT BEYOND THIS POINT! |
