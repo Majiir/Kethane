@@ -158,6 +158,33 @@ namespace Kethane
                 var energyRequest = PowerConsumption * TimeWarp.fixedDeltaTime;
                 var energyDrawn = this.part.RequestResource("ElectricCharge", energyRequest);
                 this.powerRatio = energyDrawn / energyRequest;
+<<<<<<< HEAD
+=======
+                TimerEcho += TimeWarp.deltaTime * this.powerRatio;
+
+                var TimerThreshold = this.DetectingPeriod * (1 + Altitude * 0.000002d);
+
+                if (TimerEcho >= TimerThreshold)
+                {
+                    var detected = false;
+                    var cell = MapOverlay.GetCellUnder(vessel.mainBody, vessel.transform.position);
+                    if (resources.All(r => KethaneData.Current.Scans[r][vessel.mainBody.name][cell])) { return; }
+                    foreach (var resource in resources)
+                    {
+                        KethaneData.Current.Scans[resource][vessel.mainBody.name][cell] = true;
+                        if (KethaneData.Current.GetCellDeposit(resource, vessel.mainBody, cell) != null)
+                        {
+                            detected = true;
+                        }
+                    }
+                    MapOverlay.Instance.RefreshCellColor(cell, vessel.mainBody);
+                    TimerEcho = 0;
+                    if (vessel == FlightGlobals.ActiveVessel && ScanningSound)
+                    {
+                        (detected ? PingDeposit : PingEmpty).Play();
+                    }
+                }
+>>>>>>> develop
             }
             else
             {
