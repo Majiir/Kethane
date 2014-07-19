@@ -367,7 +367,7 @@ namespace Kethane
 
                     double TimerThreshold = sensor.DetectingPeriod * (1 + altitude * 0.000002d);
 
-                    sensor.TimerEcho += Time.deltaTime * (1 + Math.Log(TimeWarp.CurrentRate)) * sensor.powerRatio;
+                    sensor.TimerEcho += Time.deltaTime * sensor.powerRatio;
 
                     if (sensor.TimerEcho < TimerThreshold)
                         continue;
