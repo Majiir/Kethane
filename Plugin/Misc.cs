@@ -48,8 +48,9 @@ namespace Kethane
 
         public static List<PartResource> GetConnectedResources(Part part, String resourceName)
         {
+            var resourceDef = PartResourceLibrary.Instance.GetDefinition(resourceName);
             var resources = new List<PartResource>();
-            part.GetConnectedResources(PartResourceLibrary.Instance.GetDefinition(resourceName).id, resources);
+            part.GetConnectedResources(resourceDef.id, resourceDef.resourceFlowMode, resources);
             return resources;
         }
 
