@@ -27,11 +27,9 @@ namespace Kethane
 
         public ConfigNode config;
 
-        private List<string> resources;
+        internal List<string> resources;
 
-        private double TimerEcho;
-
-        private float powerRatio;
+        internal float powerRatio;
 
         private static AudioSource PingEmpty;
         private static AudioSource PingDeposit;
@@ -145,6 +143,11 @@ namespace Kethane
                 animator.IsDetecting = IsDetecting;
                 animator.PowerRatio = powerRatio;
             }
+
+            if (IsDetecting)
+                KethaneData.Current.register(this);
+            else
+                KethaneData.Current.unregister(this);
         }
 
         public override void OnFixedUpdate()
@@ -155,34 +158,18 @@ namespace Kethane
                 var energyRequest = PowerConsumption * TimeWarp.fixedDeltaTime;
                 var energyDrawn = this.part.RequestResource("ElectricCharge", energyRequest);
                 this.powerRatio = energyDrawn / energyRequest;
-                TimerEcho += TimeWarp.deltaTime * this.powerRatio;
-
-                var TimerThreshold = this.DetectingPeriod * (1 + Altitude * 0.000002d);
-
-                if (TimerEcho >= TimerThreshold)
-                {
-                    var detected = false;
-                    var cell = MapOverlay.GetCellUnder(vessel.mainBody, vessel.transform.position);
-                    if (resources.All(r => KethaneData.Current.Scans[r][vessel.mainBody.name][cell])) { return; }
-                    foreach (var resource in resources)
-                    {
-                        KethaneData.Current.Scans[resource][vessel.mainBody.name][cell] = true;
-                        if (KethaneData.Current.GetCellDeposit(resource, vessel.mainBody, cell) != null)
-                        {
-                            detected = true;
-                        }
-                    }
-                    MapOverlay.Instance.RefreshCellColor(cell, vessel.mainBody);
-                    TimerEcho = 0;
-                    if (vessel == FlightGlobals.ActiveVessel && ScanningSound)
-                    {
-                        (detected ? PingDeposit : PingEmpty).Play();
-                    }
-                }
             }
             else
             {
                 this.powerRatio = 0;
+            }
+        }
+
+        public void Ping(bool detected)
+        {
+            if (ScanningSound)
+            {
+                (detected ? PingDeposit : PingEmpty).Play();
             }
         }
     }
