@@ -558,6 +558,42 @@ namespace Kethane
             }
         }
 
+        /// <summary>
+        /// Enumerates the cell neighbors to a specified distance.
+        /// A distance of 0 simply returns the cell, a distance of 1 returns the cell and its immediate neighbors.
+        /// </summary>
+        public IEnumerable<Cell> GetNeighborhood(int distance)
+        {
+            var timer = System.Diagnostics.Stopwatch.StartNew();
+            var visited = new HashSet<Cell>();
+            var next_round = new HashSet<Cell>();
+            var this_round = new HashSet<Cell>();
+
+            visited.Add(this);
+            this_round.Add(this);
+            for (var round = 0; round < distance && this_round.Count() > 0; round++) {
+                foreach (var visitee in this_round)
+                {
+                    // Note the cell as visited
+                    visited.Add(visitee);
+
+                    // Get the immediate nieghbors, remove ones we've already visited and add the remainer to the next_round
+                    foreach (var neighbor in visitee.GetNeighbors(MapOverlay.GridLevel))
+                    {
+                        if (!visited.Contains(neighbor))
+                        {
+                            next_round.Add(neighbor);
+                        }
+                    }
+                }
+                this_round = next_round;
+                next_round = new HashSet<Cell>();
+            }
+            timer.Stop();
+            Debug.LogWarning(String.Format("Got {0} neighboring cells in ({1}ms)", visited.Count(), timer.ElapsedMilliseconds));
+            return visited.ToList ();
+        }
+
         #endregion
 
         #region Grid structure

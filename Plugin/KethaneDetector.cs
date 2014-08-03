@@ -25,6 +25,9 @@ namespace Kethane
         [KSPField(isPersistant = true)]
         public bool IsDetecting;
 
+        [KSPField(isPersistant = false)]
+        public float BeamWidth;
+
         public ConfigNode config;
 
         private List<string> resources;
@@ -83,7 +86,7 @@ namespace Kethane
 
         public override string GetInfo()
         {
-            return String.Format("Maximum Altitude: {0:N0}m\nPower Consumption: {1:F2}/s\nScanning Period: {2:F2}s\nDetects: {3}", DetectingHeight, PowerConsumption, DetectingPeriod, String.Join(", ", resources.ToArray()));
+            return String.Format("Maximum Altitude: {0:N0}m\nSensor Beam Width: {1:N} degrees\nPower Consumption: {2:F2}/s\nScanning Period: {3:F2}s\nDetects: {4}", DetectingHeight, BeamWidth, PowerConsumption, DetectingPeriod, String.Join(", ", resources.ToArray()));
         }
 
         public override void OnStart(PartModule.StartState state)
@@ -145,6 +148,19 @@ namespace Kethane
                 animator.IsDetecting = IsDetecting;
                 animator.PowerRatio = powerRatio;
             }
+
+        }
+
+        public int BeamFootprint()
+        {
+            // Calculate the width of an equatorial cell, in meters
+            var cell_width = 2 * Math.PI * vessel.mainBody.Radius / 256; // The grid implements a 256-cell equator
+
+            // Calculate the width of the beam on the surfance
+            var beam_footprint = 2 * Misc.GetTrueAltitude(vessel) * Math.Sin (2 * Math.PI * BeamWidth / 360);
+
+            var detector_width = Math.Max(1,Math.Ceiling(beam_footprint / cell_width));
+            return (int)detector_width;
         }
 
         public override void OnFixedUpdate()
@@ -152,6 +168,8 @@ namespace Kethane
             double Altitude = Misc.GetTrueAltitude(vessel);
             if (IsDetecting && this.vessel != null && this.vessel.gameObject.activeSelf && Altitude <= this.DetectingHeight)
             {
+                var timer = System.Diagnostics.Stopwatch.StartNew();
+
                 var energyRequest = PowerConsumption * TimeWarp.fixedDeltaTime;
                 var energyDrawn = this.part.RequestResource("ElectricCharge", energyRequest);
                 this.powerRatio = energyDrawn / energyRequest;
@@ -161,23 +179,38 @@ namespace Kethane
 
                 if (TimerEcho >= TimerThreshold)
                 {
+                    // Do not scan more than the visible half of the planetoid. 
+                    var half_spherer_distance = 64;
+                    var scan_area = MapOverlay.GetCellUnder(vessel.mainBody, vessel.transform.position).GetNeighborhood(
+                        Math.Min(half_spherer_distance, (int)Math.Ceiling((double)BeamFootprint() - 1) / 2));
+
+                    var scanned = false;
                     var detected = false;
-                    var cell = MapOverlay.GetCellUnder(vessel.mainBody, vessel.transform.position);
-                    if (resources.All(r => KethaneData.Current.Scans[r][vessel.mainBody.name][cell])) { return; }
+
                     foreach (var resource in resources)
                     {
-                        KethaneData.Current.Scans[resource][vessel.mainBody.name][cell] = true;
-                        if (KethaneData.Current.GetCellDeposit(resource, vessel.mainBody, cell) != null)
-                        {
-                            detected = true;
+                        // Mark all scanned cells and update the colors
+                        foreach (var cell in scan_area) {
+                            // Skip already scanned cells.
+                            if (!KethaneData.Current.Scans[resource][vessel.mainBody.name][cell])
+                            {
+                                scanned = true;
+                                detected |= KethaneData.Current.GetCellDeposit(resource, vessel.mainBody, cell) != null;
+                                KethaneData.Current.Scans[resource][vessel.mainBody.name][cell] = true;
+                                MapOverlay.Instance.RefreshCellColor(cell, vessel.mainBody);
+                            }
                         }
                     }
-                    MapOverlay.Instance.RefreshCellColor(cell, vessel.mainBody);
-                    TimerEcho = 0;
-                    if (vessel == FlightGlobals.ActiveVessel && ScanningSound)
-                    {
-                        (detected ? PingDeposit : PingEmpty).Play();
+
+                    // If there are any unscanned cells in the scan area, play a sound based on whether the scan reveals a deposit
+                    if (vessel == FlightGlobals.ActiveVessel && ScanningSound && scanned) {
+                        (detected ? PingDeposit : PingEmpty).Play ();
                     }
+                    
+                    TimerEcho = 0;
+
+                    timer.Stop();
+                    Debug.LogWarning(String.Format("Finished 1 scan in ({0}ms)", timer.ElapsedMilliseconds));
                 }
             }
             else
