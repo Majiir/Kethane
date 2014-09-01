@@ -4,7 +4,7 @@ namespace Kethane.GeodesicGrid
     internal static class IntMath
     {
         // From: http://stackoverflow.com/a/383596/303422
-        public static int IntPow(int x, uint pow)
+        public static int Pow(int x, uint pow)
         {
             int ret = 1;
             while (pow != 0)

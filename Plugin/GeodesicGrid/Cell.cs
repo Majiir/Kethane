@@ -542,7 +542,7 @@ namespace Kethane.GeodesicGrid
         {
             if (levels == 0) { return this; }
             if (isPolar) { throw new ArgumentException("Cannot find child of a polar cell"); }
-            var a = (uint)IntMath.IntPow(3, (uint)levels);
+            var a = (uint)IntMath.Pow(3, (uint)levels);
             return new Cell(this.index * a - (uint)((5 * (4 << (2 * this.Level)) * (a - (1 << (2 * levels))) - ((byte)direction - 4) * (a - 1)) / 2));
         }
 
