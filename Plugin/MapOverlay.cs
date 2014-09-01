@@ -24,7 +24,7 @@ namespace Kethane
         private Cell? hoverCell;
         private ResourceDefinition resource;
         private Func<Cell, float> heightAt;
-        private Cell.BoundsMap bounds;
+        private BoundsMap bounds;
 
         private static RenderingManager renderingManager;
         private static GUIStyle centeredStyle = null;
@@ -645,7 +645,7 @@ namespace Kethane
 
         private void refreshCollider()
         {
-            bounds = new Cell.BoundsMap(heightAt, MapOverlay.GridLevel);
+            bounds = new BoundsMap(heightAt, MapOverlay.GridLevel);
         }
     }
 }

@@ -46,6 +46,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GeodesicGrid\BoundsMap.cs" />
     <Compile Include="GeodesicGrid\Cell.cs" />
     <Compile Include="CellularResourceGenerator.cs" />
     <Compile Include="CompatibilityChecker.cs" />
