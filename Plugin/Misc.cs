@@ -170,13 +170,6 @@ namespace Kethane
             }
         }
 
-        public static byte[] ToByteArray(this System.Collections.BitArray bits)
-        {
-            byte[] ret = new byte[(bits.Length - 1) / 8 + 1];
-            bits.CopyTo(ret, 0);
-            return ret;
-        }
-
         #endregion
 
         public static string GetInformationalVersion(this System.Reflection.Assembly assembly)

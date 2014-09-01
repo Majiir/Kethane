@@ -48,7 +48,9 @@ namespace Kethane.GeodesicGrid
 
         public byte[] ToByteArray()
         {
-            return set.ToByteArray();
+            byte[] ret = new byte[(set.Length - 1) / 8 + 1];
+            set.CopyTo(ret, 0);
+            return ret;
         }
     }
 }
