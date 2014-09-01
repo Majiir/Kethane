@@ -10,7 +10,7 @@ namespace Kethane
         {
             if (node == null)
             {
-                var amounts = new Map<double>(MapOverlay.GridLevel);
+                var amounts = new CellMap<double>(MapOverlay.GridLevel);
                 Initialize(body, amounts);
                 return new BodyResources(amounts);
             }
@@ -19,7 +19,7 @@ namespace Kethane
                 var bytes = Misc.FromBase64String(node.GetValue("amounts"));
                 ensureBigEndian(bytes);
 
-                var amounts = new Map<double>(MapOverlay.GridLevel);
+                var amounts = new CellMap<double>(MapOverlay.GridLevel);
                 var count = Cell.CountAtLevel(MapOverlay.GridLevel);
                 for (uint i = 0; i < count; i++) {
                     amounts[new Cell(i)] = BitConverter.ToDouble(bytes, (int)i * 8);
@@ -29,7 +29,7 @@ namespace Kethane
             }
         }
 
-        public abstract void Initialize(CelestialBody body, Map<double> amounts);
+        public abstract void Initialize(CelestialBody body, CellMap<double> amounts);
 
         private static void ensureBigEndian(byte[] bytes)
         {
@@ -49,9 +49,9 @@ namespace Kethane
 
         private class BodyResources : IBodyResources
         {
-            private readonly Map<double> amounts;
+            private readonly CellMap<double> amounts;
 
-            public BodyResources(Map<double> amounts)
+            public BodyResources(CellMap<double> amounts)
             {
                 this.amounts = amounts;
                 MaxQuantity = amounts.Max(p => p.Value);

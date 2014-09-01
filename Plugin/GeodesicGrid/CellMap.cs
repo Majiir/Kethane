@@ -5,16 +5,16 @@ using System.Linq;
 
 namespace Kethane.GeodesicGrid
 {
-    public class Map<T> : IEnumerable<KeyValuePair<Cell, T>>
+    public class CellMap<T> : IEnumerable<KeyValuePair<Cell, T>>
     {
         private readonly T[] values;
 
-        public Map(int level)
+        public CellMap(int level)
         {
             values = new T[Cell.CountAtLevel(level)];
         }
 
-        public Map(int level, Func<Cell, T> selector)
+        public CellMap(int level, Func<Cell, T> selector)
         {
             values = Cell.AtLevel(level).Select(selector).ToArray();
         }
