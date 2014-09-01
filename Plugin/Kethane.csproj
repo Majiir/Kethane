@@ -49,6 +49,7 @@
     <Compile Include="GeodesicGrid\Cell.cs" />
     <Compile Include="CellularResourceGenerator.cs" />
     <Compile Include="CompatibilityChecker.cs" />
+    <Compile Include="GeodesicGrid\Map.cs" />
     <Compile Include="InstallCleanup.cs" />
     <Compile Include="IWindowToggle.cs" />
     <Compile Include="LegacyResourceGenerator.cs" />

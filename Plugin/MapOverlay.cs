@@ -498,7 +498,7 @@ namespace Kethane
         {
             var sb = new StringBuilder();
 
-            var cells = new Cell.Map<string>(MapOverlay.GridLevel);
+            var cells = new Map<string>(MapOverlay.GridLevel);
             foreach (var cell in Cell.AtLevel(MapOverlay.GridLevel))
             {
                 var pos = cell.Position;
