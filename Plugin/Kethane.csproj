@@ -46,7 +46,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Cell.cs" />
+    <Compile Include="GeodesicGrid\Cell.cs" />
     <Compile Include="CellularResourceGenerator.cs" />
     <Compile Include="CompatibilityChecker.cs" />
     <Compile Include="InstallCleanup.cs" />
