@@ -54,6 +54,7 @@
     <Compile Include="GeodesicGrid\CellSet.cs" />
     <Compile Include="GeodesicGrid\ChildType.cs" />
     <Compile Include="GeodesicGrid\IntMath.cs" />
+    <Compile Include="GeodesicGrid\TriangleHit.cs" />
     <Compile Include="InstallCleanup.cs" />
     <Compile Include="IWindowToggle.cs" />
     <Compile Include="LegacyResourceGenerator.cs" />
