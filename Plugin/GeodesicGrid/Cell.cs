@@ -26,7 +26,7 @@ namespace Kethane.GeodesicGrid
 
         public int Level
         {
-            get { return (Misc.LogBase2((Math.Max(2, index) - 2) / 5) + 1) / 2; }
+            get { return (IntMath.LogBase2((Math.Max(2, index) - 2) / 5) + 1) / 2; }
         }
 
         public bool IsPentagon
@@ -542,7 +542,7 @@ namespace Kethane.GeodesicGrid
         {
             if (levels == 0) { return this; }
             if (isPolar) { throw new ArgumentException("Cannot find child of a polar cell"); }
-            var a = (uint)Misc.IntPow(3, (uint)levels);
+            var a = (uint)IntMath.IntPow(3, (uint)levels);
             return new Cell(this.index * a - (uint)((5 * (4 << (2 * this.Level)) * (a - (1 << (2 * levels))) - ((byte)direction - 4) * (a - 1)) / 2));
         }
 
