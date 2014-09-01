@@ -51,6 +51,7 @@
     <Compile Include="CompatibilityChecker.cs" />
     <Compile Include="GeodesicGrid\CellMap.cs" />
     <Compile Include="GeodesicGrid\CellSet.cs" />
+    <Compile Include="GeodesicGrid\ChildType.cs" />
     <Compile Include="InstallCleanup.cs" />
     <Compile Include="IWindowToggle.cs" />
     <Compile Include="LegacyResourceGenerator.cs" />
