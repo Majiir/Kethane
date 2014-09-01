@@ -4,16 +4,16 @@ using System.Collections.Generic;
 
 namespace Kethane.GeodesicGrid
 {
-    public class Set : IEnumerable<Cell>
+    public class CellSet : IEnumerable<Cell>
     {
         private readonly BitArray set;
 
-        public Set(int level)
+        public CellSet(int level)
         {
             this.set = new BitArray((int)Cell.CountAtLevel(level));
         }
 
-        public Set(int level, byte[] array)
+        public CellSet(int level, byte[] array)
         {
             this.set = new BitArray(array);
             this.set.Length = (int)Cell.CountAtLevel(level);
