@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Kethane.GeodesicGrid;
+using System;
 using System.Collections.Generic;
 
 namespace Kethane
@@ -22,12 +23,12 @@ namespace Kethane
             return bodies[body.name];
         }
 
-        private readonly Cell.Map<float> heightRatios;
+        private readonly CellMap<float> heightRatios;
 
         private TerrainData(CelestialBody body)
         {
             if (body.pqsController == null) { throw new ArgumentException("Body doesn't have a PQS controller"); }
-            heightRatios = new Cell.Map<float>(MapOverlay.GridLevel, c => (float)(body.pqsController.GetSurfaceHeight(c.Position) / body.pqsController.radius));
+            heightRatios = new CellMap<float>(MapOverlay.GridLevel, c => (float)(body.pqsController.GetSurfaceHeight(c.Position) / body.pqsController.radius));
         }
 
         public float GetHeightRatio(Cell cell)

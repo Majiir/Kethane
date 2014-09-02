@@ -46,9 +46,16 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Cell.cs" />
+    <Compile Include="GeodesicGrid\BoundsMap.cs" />
+    <Compile Include="GeodesicGrid\Cell.cs" />
     <Compile Include="CellularResourceGenerator.cs" />
     <Compile Include="CompatibilityChecker.cs" />
+    <Compile Include="GeodesicGrid\CellMap.cs" />
+    <Compile Include="GeodesicGrid\CellSet.cs" />
+    <Compile Include="GeodesicGrid\ChildType.cs" />
+    <Compile Include="GeodesicGrid\IntMath.cs" />
+    <Compile Include="GeodesicGrid\Triangle.cs" />
+    <Compile Include="GeodesicGrid\TriangleHit.cs" />
     <Compile Include="InstallCleanup.cs" />
     <Compile Include="IWindowToggle.cs" />
     <Compile Include="LegacyResourceGenerator.cs" />

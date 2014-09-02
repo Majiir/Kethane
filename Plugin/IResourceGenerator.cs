@@ -1,4 +1,5 @@
-﻿
+﻿using Kethane.GeodesicGrid;
+
 namespace Kethane
 {
     public interface IResourceGenerator

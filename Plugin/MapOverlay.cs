@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Kethane.GeodesicGrid;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -23,7 +24,7 @@ namespace Kethane
         private Cell? hoverCell;
         private ResourceDefinition resource;
         private Func<Cell, float> heightAt;
-        private Cell.BoundsMap bounds;
+        private BoundsMap bounds;
 
         private static RenderingManager renderingManager;
         private static GUIStyle centeredStyle = null;
@@ -497,7 +498,7 @@ namespace Kethane
         {
             var sb = new StringBuilder();
 
-            var cells = new Cell.Map<string>(MapOverlay.GridLevel);
+            var cells = new CellMap<string>(MapOverlay.GridLevel);
             foreach (var cell in Cell.AtLevel(MapOverlay.GridLevel))
             {
                 var pos = cell.Position;
@@ -644,7 +645,7 @@ namespace Kethane
 
         private void refreshCollider()
         {
-            bounds = new Cell.BoundsMap(heightAt, MapOverlay.GridLevel);
+            bounds = new BoundsMap(heightAt, MapOverlay.GridLevel);
         }
     }
 }

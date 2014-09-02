@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Kethane.GeodesicGrid;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -28,7 +29,7 @@ namespace Kethane
         }
 
         public Dictionary<string, Dictionary<string, IBodyResources>> PlanetDeposits = new Dictionary<string,Dictionary<string,IBodyResources>>();
-        public Dictionary<string, Dictionary<string, Cell.Set>> Scans = new Dictionary<string,Dictionary<string,Cell.Set>>();
+        public Dictionary<string, Dictionary<string, CellSet>> Scans = new Dictionary<string,Dictionary<string,CellSet>>();
 
         private Dictionary<string, ConfigNode> generatorNodes = new Dictionary<string, ConfigNode>();
         private Dictionary<string, IResourceGenerator> generators = new Dictionary<string, IResourceGenerator>();
@@ -81,7 +82,7 @@ namespace Kethane
                 var resourceNode = resourceNodes.SingleOrDefault(n => n.GetValue("Resource") == resourceName) ?? new ConfigNode();
 
                 PlanetDeposits[resourceName] = new Dictionary<string, IBodyResources>();
-                Scans[resourceName] = new Dictionary<string, Cell.Set>();
+                Scans[resourceName] = new Dictionary<string, CellSet>();
 
                 generatorNodes[resourceName] = resourceNode.GetNode("Generator") ?? resource.Generator;
                 var generator = createGenerator(generatorNodes[resourceName].CreateCopy());
@@ -99,14 +100,14 @@ namespace Kethane
                     var bodyNode = bodyNodes.SingleOrDefault(n => n.GetValue("Name") == body.name) ?? new ConfigNode();
 
                     PlanetDeposits[resourceName][body.name] = generator.Load(body, bodyNode.GetNode("GeneratorData"));
-                    Scans[resourceName][body.name] = new Cell.Set(MapOverlay.GridLevel);
+                    Scans[resourceName][body.name] = new CellSet(MapOverlay.GridLevel);
 
                     var scanMask = bodyNode.GetValue("ScanMask");
                     if (scanMask != null)
                     {
                         try
                         {
-                            Scans[resourceName][body.name] = new Cell.Set(MapOverlay.GridLevel, Misc.FromBase64String(scanMask));
+                            Scans[resourceName][body.name] = new CellSet(MapOverlay.GridLevel, Misc.FromBase64String(scanMask));
                         }
                         catch (FormatException e)
                         {
@@ -126,7 +127,7 @@ namespace Kethane
                     foreach (var body in FlightGlobals.Bodies)
                     {
                         var old = Scans[resource.Resource][body.name];
-                        var set = new Cell.Set(MapOverlay.GridLevel);
+                        var set = new CellSet(MapOverlay.GridLevel);
 
                         foreach (var cell in Cell.AtLevel(MapOverlay.GridLevel))
                         {
