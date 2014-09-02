@@ -1,4 +1,5 @@
 ﻿using Kethane.GeodesicGrid;
+using Kethane.Toolbar;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -33,7 +34,7 @@ namespace Kethane
         private static Rect controlWindowPos = new Rect(0, 0, 160, 0);
         private static bool revealAll = false;
         private static bool expandWindow = true;
-        private static IWindowToggle toolbar = findToolbar();
+        private static WindowToggle toolbar = findToolbar();
 
         private static readonly Color32 colorEmpty = Misc.Parse(SettingsManager.GetValue("ColorEmpty"), new Color32(128, 128, 128, 192));
         private static readonly Color32 colorUnknown = Misc.Parse(SettingsManager.GetValue("ColorUnknown"), new Color32(0, 0, 0, 128));
@@ -272,35 +273,16 @@ namespace Kethane
             return color;
         }
 
-        private static IWindowToggle findToolbar()
+        private static WindowToggle findToolbar()
         {
-            System.Reflection.ConstructorInfo constructor = null;
-            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            if (ToolbarManager.ToolbarAvailable)
             {
-                try
-                {
-                    constructor = assembly.GetTypes()
-                        .Where(t => t.GetInterfaces().Contains(typeof(IWindowToggle)))
-                        .Select(t => t.GetConstructor(System.Type.EmptyTypes))
-                        .FirstOrDefault(c => c != null);
-
-                    if (constructor != null) { break; }
-                }
-                catch (Exception e)
-                {
-                    Debug.LogWarning("[Kethane] Error inspecting assembly '" + assembly.GetName().Name + "': \n" + e);
-                }
+                Debug.Log("[Kethane] Toolbar instance found. Using new interface.");
+                return new WindowToggle();
             }
-
-            if (constructor == null) { return null; }
-
-            try
+            else
             {
-                return (IWindowToggle)constructor.Invoke(new object[0]);
-            }
-            catch (Exception e)
-            {
-                Debug.LogError("[Kethane] Could not instantiate " + constructor.DeclaringType.Name + ":\n" + e);
+                Debug.LogWarning("[Kethane] Could not find Toolbar instance. Reverting to legacy interface.");
                 return null;
             }
         }

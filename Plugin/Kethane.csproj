@@ -63,7 +63,6 @@
     <Compile Include="GeodesicGrid\Triangle.cs" />
     <Compile Include="GeodesicGrid\TriangleHit.cs" />
     <Compile Include="InstallCleanup.cs" />
-    <Compile Include="IWindowToggle.cs" />
     <Compile Include="LegacyResourceGenerator.cs" />
     <Compile Include="HeatSinkAnimator.cs" />
     <Compile Include="IResourceGenerator.cs" />
@@ -93,6 +92,7 @@
     <Compile Include="SettingsManager.cs" />
     <Compile Include="TerrainData.cs" />
     <Compile Include="TimedMovingAverage.cs" />
+    <Compile Include="WindowToggle.cs" />
     <Compile Include="Toolbar\ToolbarWrapper.cs" />
     <Compile Include="TutorialInstaller.cs" />
   </ItemGroup>
