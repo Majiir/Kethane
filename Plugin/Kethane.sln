@@ -1,9 +1,9 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.21005.1
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kethane", "Kethane.csproj", "{8D1501AC-6C11-459B-9561-6CC5E3EC15FE}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KethaneToolbar", "..\KethaneToolbar\KethaneToolbar.csproj", "{0A4BDEC5-89C4-4470-A40E-177D2FEF8300}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,10 +15,6 @@ Global
 		{8D1501AC-6C11-459B-9561-6CC5E3EC15FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8D1501AC-6C11-459B-9561-6CC5E3EC15FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8D1501AC-6C11-459B-9561-6CC5E3EC15FE}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0A4BDEC5-89C4-4470-A40E-177D2FEF8300}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0A4BDEC5-89C4-4470-A40E-177D2FEF8300}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0A4BDEC5-89C4-4470-A40E-177D2FEF8300}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0A4BDEC5-89C4-4470-A40E-177D2FEF8300}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

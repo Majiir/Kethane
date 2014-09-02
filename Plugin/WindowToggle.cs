@@ -1,13 +1,12 @@
-﻿using Kethane;
-using Toolbar;
+﻿using Kethane.Toolbar;
 
-namespace KethaneToolbar
+namespace Kethane
 {
-    public class KethaneToolbar : IWindowToggle
+    public class WindowToggle
     {
         public bool IsVisible { get; private set; }
 
-        public KethaneToolbar()
+        public WindowToggle()
         {
             IsVisible = true;
 
