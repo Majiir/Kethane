@@ -94,21 +94,13 @@ namespace Kethane
                 {
                     var bodyNode = bodyNodes.SingleOrDefault(n => n.GetValue("Name") == body.name) ?? new ConfigNode();
 
-                    PlanetDeposits[resourceName][body.name] = generator.Load(body, bodyNode.GetNode("GeneratorData"));
-                    Scans[resourceName][body.name] = new CellSet(MapOverlay.GridLevel);
+                    IBodyResources resources;
+                    CellSet scans;
 
-                    var scanMask = bodyNode.GetValue("ScanMask");
-                    if (scanMask != null)
-                    {
-                        try
-                        {
-                            Scans[resourceName][body.name] = new CellSet(MapOverlay.GridLevel, Misc.FromBase64String(scanMask));
-                        }
-                        catch (FormatException e)
-                        {
-                            Debug.LogError(String.Format("[Kethane] Failed to parse {0}/{1} scan string, resetting ({2})", body.name, resourceName, e.Message));
-                        }
-                    }
+                    LoadBodyResources(resourceName, generator, body, bodyNode, out resources, out scans);
+
+                    PlanetDeposits[resourceName][body.name] = resources;
+                    Scans[resourceName][body.name] = scans;
                 }
             }
 
@@ -136,6 +128,25 @@ namespace Kethane
 
             timer.Stop();
             Debug.LogWarning(String.Format("Kethane deposits loaded ({0}ms)", timer.ElapsedMilliseconds));
+        }
+
+        private static void LoadBodyResources(string resourceName, IResourceGenerator generator, CelestialBody body, ConfigNode bodyNode, out IBodyResources resources, out CellSet scans)
+        {
+            resources = generator.Load(body, bodyNode.GetNode("GeneratorData"));
+            scans = new CellSet(MapOverlay.GridLevel);
+
+            var scanMask = bodyNode.GetValue("ScanMask");
+            if (scanMask != null)
+            {
+                try
+                {
+                    scans = new CellSet(MapOverlay.GridLevel, Misc.FromBase64String(scanMask));
+                }
+                catch (FormatException e)
+                {
+                    Debug.LogError(String.Format("[Kethane] Failed to parse {0}/{1} scan string, resetting ({2})", body.name, resourceName, e.Message));
+                }
+            }
         }
 
         public void ResetBodyData(ResourceDefinition resource, CelestialBody body)
