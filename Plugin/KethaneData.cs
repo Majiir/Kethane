@@ -34,11 +34,6 @@ namespace Kethane
         private Dictionary<string, ConfigNode> generatorNodes = new Dictionary<string, ConfigNode>();
         private Dictionary<string, IResourceGenerator> generators = new Dictionary<string, IResourceGenerator>();
 
-        public ICellResource GetDepositUnder(string resourceName, Vessel vessel)
-        {
-            return GetCellDeposit(resourceName, vessel.mainBody, MapOverlay.GetCellUnder(vessel.mainBody, vessel.transform.position));
-        }
-
         public ICellResource GetCellDeposit(string resourceName, CelestialBody body, Cell cell)
         {
             if (resourceName == null || body == null || !PlanetDeposits.ContainsKey(resourceName) || !PlanetDeposits[resourceName].ContainsKey(body.name)) { return null; }

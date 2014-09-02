@@ -182,7 +182,7 @@ namespace Kethane.PartModules
                 {
                     if (animator.CurrentState == ExtractorState.Deployed)
                     {
-                        emitter.Emit = hit && KethaneData.Current.GetDepositUnder("Kethane", this.vessel) != null;
+                        emitter.Emit = hit && GetDepositUnder("Kethane") != null;
                     }
                     else
                     {
@@ -209,13 +209,18 @@ namespace Kethane.PartModules
 
             foreach (var resource in resources)
             {
-                var deposit = KethaneData.Current.GetDepositUnder(resource.Name, this.vessel);
+                var deposit = GetDepositUnder(resource.Name);
                 if (deposit == null) { continue; }
 
                 double amount = TimeWarp.fixedDeltaTime * resource.Rate * energyRatio;
                 amount = Math.Min(amount, deposit.Quantity);
                 deposit.Quantity += this.part.RequestResource(resource.Name, -amount);
             }
+        }
+
+        private ICellResource GetDepositUnder(string resourceName)
+        {
+            return KethaneData.Current.GetCellDeposit(resourceName, this.vessel.mainBody, MapOverlay.GetCellUnder(this.vessel.mainBody, this.vessel.transform.position));
         }
 
         private bool raycastGround()
