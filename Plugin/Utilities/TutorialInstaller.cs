@@ -2,7 +2,7 @@
 using System.IO;
 using UnityEngine;
 
-namespace Kethane
+namespace Kethane.Utilities
 {
     [KSPAddon(KSPAddon.Startup.Instantly, true)]
     internal class TutorialInstaller : MonoBehaviour

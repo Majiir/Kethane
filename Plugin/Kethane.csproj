@@ -55,20 +55,20 @@
     <Compile Include="GeodesicGrid\BoundsMap.cs" />
     <Compile Include="GeodesicGrid\Cell.cs" />
     <Compile Include="CellularResourceGenerator.cs" />
-    <Compile Include="CompatibilityChecker.cs" />
+    <Compile Include="Utilities\CompatibilityChecker.cs" />
     <Compile Include="GeodesicGrid\CellMap.cs" />
     <Compile Include="GeodesicGrid\CellSet.cs" />
     <Compile Include="GeodesicGrid\ChildType.cs" />
     <Compile Include="GeodesicGrid\IntMath.cs" />
     <Compile Include="GeodesicGrid\Triangle.cs" />
     <Compile Include="GeodesicGrid\TriangleHit.cs" />
-    <Compile Include="InstallCleanup.cs" />
+    <Compile Include="Utilities\InstallCleanup.cs" />
     <Compile Include="LegacyResourceGenerator.cs" />
     <Compile Include="PartModules\HeatSinkAnimator.cs" />
     <Compile Include="IResourceGenerator.cs" />
     <Compile Include="PartModules\IDetectorAnimator.cs" />
     <Compile Include="PartModules\IExtractorAnimator.cs" />
-    <Compile Include="InstallChecker.cs" />
+    <Compile Include="Utilities\InstallChecker.cs" />
     <Compile Include="KethaneData.cs" />
     <Compile Include="PartModules\KethaneDetectorAnimator.cs" />
     <Compile Include="PartModules\KethaneDetectorAnimatorUnity.cs" />
@@ -94,7 +94,7 @@
     <Compile Include="PartModules\TimedMovingAverage.cs" />
     <Compile Include="WindowToggle.cs" />
     <Compile Include="Toolbar\ToolbarWrapper.cs" />
-    <Compile Include="TutorialInstaller.cs" />
+    <Compile Include="Utilities\TutorialInstaller.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\AlphaUnlitVertexColored.txt" />
