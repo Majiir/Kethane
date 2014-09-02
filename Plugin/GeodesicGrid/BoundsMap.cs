@@ -16,7 +16,7 @@ namespace Kethane.GeodesicGrid
 
             for (var i = 0; i <= level; i++)
             {
-                var count = Cell.Triangle.CountAtLevel(i);
+                var count = Triangle.CountAtLevel(i);
                 minVals[i] = new float[count];
                 maxVals[i] = new float[count];
             }
@@ -24,7 +24,7 @@ namespace Kethane.GeodesicGrid
             var mins = minVals[level];
             var maxs = maxVals[level];
 
-            foreach (var triangle in Cell.Triangle.AtLevel(level))
+            foreach (var triangle in Triangle.AtLevel(level))
             {
                 maxs[triangle.Index] = triangle.GetVertices(level).Max(heightAt);
 
@@ -39,7 +39,7 @@ namespace Kethane.GeodesicGrid
                 mins = minVals[i];
                 maxs = maxVals[i];
 
-                foreach (var triangle in Cell.Triangle.AtLevel(i))
+                foreach (var triangle in Triangle.AtLevel(i))
                 {
                     var min = float.PositiveInfinity;
                     var max = 0f;
@@ -56,12 +56,12 @@ namespace Kethane.GeodesicGrid
             }
         }
 
-        public float GetMin(Cell.Triangle triangle, int level)
+        public float GetMin(Triangle triangle, int level)
         {
             return minVals[level][triangle.Index];
         }
 
-        public float GetMax(Cell.Triangle triangle, int level)
+        public float GetMax(Triangle triangle, int level)
         {
             return maxVals[level][triangle.Index];
         }
