@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace Kethane
+namespace Kethane.PartModules
 {
     public class KethaneDetector : PartModule
     {

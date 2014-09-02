@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Kethane
+namespace Kethane.PartModules
 {
     public class KethaneConverter : PartModule
     {

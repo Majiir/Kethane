@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 
-namespace Kethane
+namespace Kethane.PartModules
 {
     public class KethaneWetMassIndicator : PartModule
     {

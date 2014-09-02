@@ -1,5 +1,5 @@
 ﻿
-namespace Kethane
+namespace Kethane.PartModules
 {
     public interface IDetectorAnimator
     {

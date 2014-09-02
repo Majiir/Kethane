@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
-namespace Kethane
+namespace Kethane.PartModules
 {
     public class KethaneGenerator : PartModule
     {

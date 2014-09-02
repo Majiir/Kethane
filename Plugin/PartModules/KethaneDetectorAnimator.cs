@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace Kethane
+namespace Kethane.PartModules
 {
     public class KethaneDetectorAnimator : PartModule, IDetectorAnimator
     {

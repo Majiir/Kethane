@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Kethane
+namespace Kethane.PartModules
 {
     internal class TimedMovingAverage
     {
