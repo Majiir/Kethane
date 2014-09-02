@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Kethane.EnumerableExtensions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Ray = UnityEngine.Ray;
@@ -126,7 +127,7 @@ namespace Kethane.GeodesicGrid
                 }
             }
 
-            return candidates.Select(t => t.Raycast(ray, level, heightAt)).Where(h => h.HasValue).WithMin(t => t.Value.Distance);
+            return candidates.Select(t => t.Raycast(ray, level, heightAt)).Where(h => h.HasValue).MinByOrDefault(t => t.Value.Distance);
         }
 
         public TriangleHit? Raycast(Ray ray, int level, Func<Cell, float> heightAt)
@@ -179,7 +180,7 @@ namespace Kethane.GeodesicGrid
                 if ((radius >= min) && triangleContains(triangle, level, ray.origin)) { return true; }
             }
 
-            return triangle.GetVertices(level).Select(c => c.Position).AdjacentPairs().Any(p => intersectsFace(ray, p.Second, p.First, min, max));
+            return triangle.GetVertices(level).Select(c => c.Position).EdgesCircular().Any(p => intersectsFace(ray, p.Second, p.First, min, max));
         }
 
         private static bool triangleContains(Triangle triangle, int level, Vector3 line)
