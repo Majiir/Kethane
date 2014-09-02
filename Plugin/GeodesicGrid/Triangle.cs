@@ -127,7 +127,7 @@ namespace Kethane.GeodesicGrid
                 }
             }
 
-            return candidates.Select(t => t.Raycast(ray, level, heightAt)).Where(h => h.HasValue).WithMin(t => t.Value.Distance);
+            return candidates.Select(t => t.Raycast(ray, level, heightAt)).Where(h => h.HasValue).MinByOrDefault(t => t.Value.Distance);
         }
 
         public TriangleHit? Raycast(Ray ray, int level, Func<Cell, float> heightAt)

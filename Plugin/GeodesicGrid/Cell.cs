@@ -181,7 +181,7 @@ namespace Kethane.GeodesicGrid
 
         private Cell searchNeighbors(Vector3 line, int level)
         {
-            return this.GetNeighbors(level).Prepend(this).WithMax(c => Vector3.Dot(c.Position, line));
+            return this.GetNeighbors(level).Prepend(this).MaxBy(c => Vector3.Dot(c.Position, line));
         }
 
         #endregion
