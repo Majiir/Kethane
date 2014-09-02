@@ -223,9 +223,9 @@ namespace Kethane.GeodesicGrid
                 var dir = this.getDirection();
 
                 yield return this;
-                yield return new Triangle(root.getNeighbor(ChildType.Straight, level), dir);
+                yield return new Triangle(root.GetFrontNeighbor(ChildType.Straight, level), dir);
 
-                var cell = root.getNeighbor(dir == FaceDirection.Down ? ChildType.Down : ChildType.Up, level);
+                var cell = root.GetFrontNeighbor(dir == FaceDirection.Down ? ChildType.Down : ChildType.Up, level);
                 yield return new Triangle(cell, FaceDirection.Down);
                 yield return new Triangle(cell, FaceDirection.Up);
             }
@@ -239,13 +239,13 @@ namespace Kethane.GeodesicGrid
 
                 if (this.getDirection() == FaceDirection.Up)
                 {
-                    yield return root.getNeighbor(ChildType.Up, level);
-                    yield return root.getNeighbor(ChildType.Straight, level);
+                    yield return root.GetFrontNeighbor(ChildType.Up, level);
+                    yield return root.GetFrontNeighbor(ChildType.Straight, level);
                 }
                 else
                 {
-                    yield return root.getNeighbor(ChildType.Straight, level);
-                    yield return root.getNeighbor(ChildType.Down, level);
+                    yield return root.GetFrontNeighbor(ChildType.Straight, level);
+                    yield return root.GetFrontNeighbor(ChildType.Down, level);
                 }
             }
 
@@ -445,9 +445,9 @@ namespace Kethane.GeodesicGrid
             }
             else
             {
-                yield return this.getNeighbor(ChildType.Up, level);
-                yield return this.getNeighbor(ChildType.Straight, level);
-                yield return this.getNeighbor(ChildType.Down, level);
+                yield return this.GetFrontNeighbor(ChildType.Up, level);
+                yield return this.GetFrontNeighbor(ChildType.Straight, level);
+                yield return this.GetFrontNeighbor(ChildType.Down, level);
 
                 var root = IsPentagon;
 
@@ -497,7 +497,7 @@ namespace Kethane.GeodesicGrid
         private Cell getSecondParent()
         {
             if (Level == 0) { throw new InvalidOperationException("Cannot find parent of a top-level cell"); }
-            return GetParent().getNeighbor(this.direction, Level - 1);
+            return GetParent().GetFrontNeighbor(this.direction, Level - 1);
         }
 
         private Cell getChild(ChildType direction)
@@ -537,7 +537,7 @@ namespace Kethane.GeodesicGrid
 
         private static readonly List<Cell[,]> neighborCache = new List<Cell[,]>();
 
-        private Cell getNeighbor(ChildType direction, int level)
+        public Cell GetFrontNeighbor(ChildType direction, int level)
         {
             var thisLevel = this.Level;
             if (level < thisLevel) { throw new ArgumentException("Cannot find neighbor at a level index lower than this cell"); }
@@ -578,24 +578,24 @@ namespace Kethane.GeodesicGrid
                             var first = cell.GetParent();
                             if (thisDir == dir)
                             {
-                                cache[j, k] = first.getNeighbor(dir, cacheLevel - 1);
+                                cache[j, k] = first.GetFrontNeighbor(dir, cacheLevel - 1);
                             }
                             else if (thisDir == dir.Flip())
                             {
-                                cache[j, k] = first.getNeighbor(ChildType.Straight, cacheLevel);
+                                cache[j, k] = first.GetFrontNeighbor(ChildType.Straight, cacheLevel);
                             }
                             else
                             {
                                 if (dir == ChildType.Straight) { dir = thisDir; }
 
-                                var other = first.getNeighbor(dir, cacheLevel - 1);
+                                var other = first.GetFrontNeighbor(dir, cacheLevel - 1);
                                 if (other.isPolarSeam() && (first.getRoot() != other.getRoot()))
                                 {
-                                    cache[j, k] = first.getNeighbor(ChildType.Straight, cacheLevel - 1).getNeighbor(dir, cacheLevel);
+                                    cache[j, k] = first.GetFrontNeighbor(ChildType.Straight, cacheLevel - 1).GetFrontNeighbor(dir, cacheLevel);
                                 }
                                 else
                                 {
-                                    cache[j, k] = other.getNeighbor(dir.Flip(), cacheLevel);
+                                    cache[j, k] = other.GetFrontNeighbor(dir.Flip(), cacheLevel);
                                 }
                             }
                         }
@@ -662,7 +662,7 @@ namespace Kethane.GeodesicGrid
                 }
                 else if (thisDir == ChildType.Straight)
                 {
-                    return first.getNeighbor(direction, level);
+                    return first.GetFrontNeighbor(direction, level);
                 }
                 else
                 {
@@ -681,11 +681,11 @@ namespace Kethane.GeodesicGrid
 
                     if ((direction == ChildType.Straight) == seam)
                     {
-                        return common.getNeighbor(ChildType.Straight, thisLevel).approach(seam ? thisDir : other, level - thisLevel);
+                        return common.GetFrontNeighbor(ChildType.Straight, thisLevel).approach(seam ? thisDir : other, level - thisLevel);
                     }
                     else
                     {
-                        return common.getNeighbor(seam ? thisDir : other, thisLevel).approach(ChildType.Straight, level - thisLevel);
+                        return common.GetFrontNeighbor(seam ? thisDir : other, thisLevel).approach(ChildType.Straight, level - thisLevel);
                     }
                 }
             }
@@ -702,7 +702,7 @@ namespace Kethane.GeodesicGrid
                 if (cell.direction != dir) { return false; }
                 cell = cell.GetParent();
             }
-            return cell.getNeighbor(dir, 0).isPolar;
+            return cell.GetFrontNeighbor(dir, 0).isPolar;
         }
 
         #endregion
