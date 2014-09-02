@@ -45,44 +45,48 @@ namespace Kethane.EnumerableExtensions
             return new PrependIterator<T>(sequence, element);
         }
 
-        private class AppendIterator<T> : AppendPrependIterator<T>
+        private sealed class AppendIterator<T> : AppendPrependIterator<T>
         {
             public AppendIterator(IEnumerable<T> sequence, T element) : base(sequence, element) { }
         }
 
-        private class PrependIterator<T> : AppendPrependIterator<T>
+        private sealed class PrependIterator<T> : AppendPrependIterator<T>
         {
             public PrependIterator(IEnumerable<T> sequence, T element) : base(sequence, element) { }
         }
 
-        private class AppendPrependIterator<T> : IEnumerable<T>
+        private abstract class AppendPrependIterator<T> : IEnumerable<T>
         {
             private readonly T element;
             private readonly IEnumerable<T> sequence;
 
-            public AppendPrependIterator(IEnumerable<T> sequence, T element)
+            protected AppendPrependIterator(IEnumerable<T> sequence, T element)
             {
+                if (sequence == null) { throw new ArgumentNullException("sequence"); }
                 this.element = element;
                 this.sequence = sequence;
             }
 
             public IEnumerator<T> GetEnumerator()
             {
-                var appends = new Stack<AppendIterator<T>>();
+                var appends = new Stack<AppendPrependIterator<T>>();
                 IEnumerable<T> seq = this;
 
-                do
+                while (true)
                 {
-                    if (seq is PrependIterator<T>)
+                    var iterator = seq as AppendPrependIterator<T>;
+                    if (iterator == null) { break; }
+
+                    if (iterator is AppendIterator<T>)
                     {
-                        yield return ((PrependIterator<T>)seq).element;
+                        appends.Push(iterator);
                     }
-                    else // (seq is AppendIterator<T>)
+                    else // (iterator is PrependIterator<T>)
                     {
-                        appends.Push((AppendIterator<T>)seq);
+                        yield return iterator.element;
                     }
-                    seq = ((AppendPrependIterator<T>)seq).sequence;
-                } while (seq is AppendPrependIterator<T>);
+                    seq = iterator.sequence;
+                }
 
                 foreach (var e in seq) { yield return e; }
                 while (appends.Count > 0) { yield return appends.Pop().element; }
