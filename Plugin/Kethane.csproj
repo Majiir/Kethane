@@ -59,7 +59,7 @@
     <Compile Include="InstallCleanup.cs" />
     <Compile Include="IWindowToggle.cs" />
     <Compile Include="LegacyResourceGenerator.cs" />
-    <Compile Include="EnumerableExtensions.cs" />
+    <Compile Include="EnumerableExtensions\EnumerableExtensions.cs" />
     <Compile Include="HeatSinkAnimator.cs" />
     <Compile Include="IResourceGenerator.cs" />
     <Compile Include="IDetectorAnimator.cs" />
