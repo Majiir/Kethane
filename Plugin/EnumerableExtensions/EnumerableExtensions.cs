@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Kethane.EnumerableExtensions
 {
-    internal static class EnumerableExtensions
+    public static class EnumerableExtensions
     {
         public struct Pair<T>
         {
