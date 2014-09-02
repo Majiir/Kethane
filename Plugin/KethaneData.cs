@@ -76,32 +76,17 @@ namespace Kethane
                 var resourceName = resource.Resource;
                 var resourceNode = resourceNodes.SingleOrDefault(n => n.GetValue("Resource") == resourceName) ?? new ConfigNode();
 
-                PlanetDeposits[resourceName] = new Dictionary<string, IBodyResources>();
-                Scans[resourceName] = new Dictionary<string, CellSet>();
+                Dictionary<string, IBodyResources> resourceDeposits;
+                Dictionary<string, CellSet> resourceScans;
+                ConfigNode generatorNode;
+                IResourceGenerator generator;
 
-                generatorNodes[resourceName] = resourceNode.GetNode("Generator") ?? resource.Generator;
-                var generator = createGenerator(generatorNodes[resourceName].CreateCopy());
-                if (generator == null)
-                {
-                    Debug.LogWarning("[Kethane] Defaulting to empty generator for " + resourceName);
-                    generator = new EmptyResourceGenerator();
-                }
+                LoadResource(resource, resourceName, resourceNode, out resourceDeposits, out resourceScans, out generatorNode, out generator);
+
+                generatorNodes[resourceName] = generatorNode;
                 generators[resourceName] = generator;
-
-                var bodyNodes = resourceNode.GetNodes("Body");
-
-                foreach (var body in FlightGlobals.Bodies)
-                {
-                    var bodyNode = bodyNodes.SingleOrDefault(n => n.GetValue("Name") == body.name) ?? new ConfigNode();
-
-                    IBodyResources resources;
-                    CellSet scans;
-
-                    LoadBodyResources(generator, body, bodyNode, out resources, out scans);
-
-                    PlanetDeposits[resourceName][body.name] = resources;
-                    Scans[resourceName][body.name] = scans;
-                }
+                PlanetDeposits[resourceName] = resourceDeposits;
+                Scans[resourceName] = resourceScans;
             }
 
             if (!config.HasValue("Version") || config.GetValue("Version") == "0.8")
@@ -128,6 +113,36 @@ namespace Kethane
 
             timer.Stop();
             Debug.LogWarning(String.Format("Kethane deposits loaded ({0}ms)", timer.ElapsedMilliseconds));
+        }
+
+        private static void LoadResource(ResourceDefinition resource, string resourceName, ConfigNode resourceNode, out Dictionary<string, IBodyResources> resourceDeposits, out Dictionary<string, CellSet> resourceScans, out ConfigNode generatorNode, out IResourceGenerator generator)
+        {
+            resourceDeposits = new Dictionary<string, IBodyResources>();
+            resourceScans = new Dictionary<string, CellSet>();
+
+            generatorNode = resourceNode.GetNode("Generator") ?? resource.Generator;
+
+            generator = createGenerator(generatorNode.CreateCopy());
+            if (generator == null)
+            {
+                Debug.LogWarning("[Kethane] Defaulting to empty generator for " + resourceName);
+                generator = new EmptyResourceGenerator();
+            }
+
+            var bodyNodes = resourceNode.GetNodes("Body");
+
+            foreach (var body in FlightGlobals.Bodies)
+            {
+                var bodyNode = bodyNodes.SingleOrDefault(n => n.GetValue("Name") == body.name) ?? new ConfigNode();
+
+                IBodyResources resources;
+                CellSet scans;
+
+                LoadBodyResources(generator, body, bodyNode, out resources, out scans);
+
+                resourceDeposits[body.name] = resources;
+                resourceScans[body.name] = scans;
+            }
         }
 
         private static void LoadBodyResources(IResourceGenerator generator, CelestialBody body, ConfigNode bodyNode, out IBodyResources resources, out CellSet scans)
