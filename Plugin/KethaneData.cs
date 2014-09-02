@@ -43,27 +43,6 @@ namespace Kethane
 
         public override void OnLoad(ConfigNode config)
         {
-            var oldPath = KSPUtil.ApplicationRootPath + "saves/" + HighLogic.SaveFolder + "/kethane.cfg";
-            var oldConfig = ConfigNode.Load(oldPath);
-            if (oldConfig != null)
-            {
-                config = oldConfig;
-                System.IO.File.Delete(oldPath);
-            }
-
-            if (!config.HasValue("Version") && (config.CountNodes > 0 || config.CountValues > 2))
-            {
-                try
-                {
-                    config = upgradeConfig(config);
-                }
-                catch (Exception e)
-                {
-                    Debug.LogError("[Kethane] Error upgrading legacy data: " + e);
-                    config = new ConfigNode();
-                }
-            }
-
             var timer = System.Diagnostics.Stopwatch.StartNew();
 
             PlanetDeposits.Clear();
@@ -87,28 +66,6 @@ namespace Kethane
                 generators[resourceName] = generator;
                 PlanetDeposits[resourceName] = resourceDeposits;
                 Scans[resourceName] = resourceScans;
-            }
-
-            if (!config.HasValue("Version") || config.GetValue("Version") == "0.8")
-            {
-                var str = new System.IO.StreamReader(System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("Kethane.Resources.GridIndices.txt")).ReadToEnd();
-                var map = str.Split(',').Select(s => new Cell(uint.Parse(s))).ToArray();
-
-                foreach (var resource in KethaneController.ResourceDefinitions)
-                {
-                    foreach (var body in FlightGlobals.Bodies)
-                    {
-                        var old = Scans[resource.Resource][body.name];
-                        var set = new CellSet(MapOverlay.GridLevel);
-
-                        foreach (var cell in Cell.AtLevel(MapOverlay.GridLevel))
-                        {
-                            set[cell] = old[map[cell.Index]];
-                        }
-
-                        Scans[resource.Resource][body.name] = set;
-                    }
-                }
             }
 
             timer.Stop();
@@ -217,45 +174,6 @@ namespace Kethane
                 Debug.LogError("[Kethane] Could not instantiate " + name + ":\n" + e);
                 return null;
             }
-        }
-
-        private static ConfigNode upgradeConfig(ConfigNode oldConfig)
-        {
-            var config = oldConfig.CreateCopy();
-
-            var depositSeed = int.Parse(config.GetValue("Seed"));
-            config.RemoveValue("Seed");
-
-            foreach (var resourceNode in config.GetNodes("Resource"))
-            {
-                var resourceName = resourceNode.GetValue("Resource");
-                foreach (var bodyNode in resourceNode.GetNodes("Body"))
-                {
-                    var bodySeed = 0;
-
-                    if (resourceName == "Kethane")
-                    {
-                        if (int.TryParse(bodyNode.GetValue("SeedModifier"), out bodySeed))
-                        {
-                            bodyNode.RemoveValue("SeedModifier");
-                        }
-                        else
-                        {
-                            bodySeed = bodyNode.GetValue("Name").GetHashCode();
-                        }
-                    }
-
-                    var dataNode = bodyNode.AddNode("GeneratorData");
-                    dataNode.AddValue("Seed", depositSeed ^ bodySeed ^ (resourceName == "Kethane" ? 0 : resourceName.GetHashCode()));
-                    foreach (var depositNode in bodyNode.GetNodes("Deposit"))
-                    {
-                        dataNode.AddValue("Deposit", depositNode.GetValue("Quantity"));
-                    }
-                    bodyNode.RemoveNodes("Deposit");
-                }
-            }
-
-            return config;
         }
 
         public override void OnSave(ConfigNode configNode)
