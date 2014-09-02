@@ -190,17 +190,7 @@ namespace Kethane
 
                 foreach (var body in resource.Value)
                 {
-                    var bodyNode = new ConfigNode("Body");
-                    bodyNode.AddValue("Name", body.Key);
-
-                    if (Scans.ContainsKey(resource.Key) && Scans[resource.Key].ContainsKey(body.Key))
-                    {
-                        bodyNode.AddValue("ScanMask", Misc.ToBase64String(Scans[resource.Key][body.Key].ToByteArray()));
-                    }
-
-                    var node = body.Value.Save() ?? new ConfigNode();
-                    node.name = "GeneratorData";
-                    bodyNode.AddNode(node);
+                    var bodyNode = saveBodyData(resource.Key, body.Key, body.Value);
                     resourceNode.AddNode(bodyNode);
                 }
 
@@ -209,6 +199,22 @@ namespace Kethane
 
             timer.Stop();
             Debug.LogWarning(String.Format("Kethane deposits saved ({0}ms)", timer.ElapsedMilliseconds));
+        }
+
+        private ConfigNode saveBodyData(string resourceName, string bodyName, IBodyResources bodyResources)
+        {
+            var bodyNode = new ConfigNode("Body");
+            bodyNode.AddValue("Name", bodyName);
+
+            if (Scans.ContainsKey(resourceName) && Scans[resourceName].ContainsKey(bodyName))
+            {
+                bodyNode.AddValue("ScanMask", Misc.ToBase64String(Scans[resourceName][bodyName].ToByteArray()));
+            }
+
+            var node = bodyResources.Save() ?? new ConfigNode();
+            node.name = "GeneratorData";
+            bodyNode.AddNode(node);
+            return bodyNode;
         }
     }
 }
