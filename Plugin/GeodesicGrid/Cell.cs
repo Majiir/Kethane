@@ -140,14 +140,14 @@ namespace Kethane.GeodesicGrid
         public IEnumerable<Vector3> GetVertices(int level)
         {
             var position = this.Position;
-            return this.GetNeighbors(level).Select(c => c.Position).AdjacentPairs().Select(p => (position + p.First + p.Second).normalized);
+            return this.GetNeighbors(level).Select(c => c.Position).EdgesCircular().Select(p => (position + p.First + p.Second).normalized);
         }
 
         public IEnumerable<Vector3> GetVertices(int level, Func<Cell, float> heightAt)
         {
             var position = this.Position;
             var height = heightAt(this);
-            foreach (var pair in this.GetNeighbors(level).AdjacentPairs())
+            foreach (var pair in this.GetNeighbors(level).EdgesCircular())
             {
                 yield return (position + pair.First.Position + pair.Second.Position).normalized * (height + heightAt(pair.First) + heightAt(pair.Second)) / 3;
             }

@@ -46,9 +46,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="EnumerableExtensions\Edges.cs" />
     <Compile Include="EnumerableExtensions\AppendPrepend.cs" />
     <Compile Include="EnumerableExtensions\MinMaxBy.cs" />
     <Compile Include="EnumerableExtensions\Pair.cs" />
+    <Compile Include="EnumerableExtensions\Repeat.cs" />
     <Compile Include="EnumerableExtensions\ReverseComparer.cs" />
     <Compile Include="GeodesicGrid\BoundsMap.cs" />
     <Compile Include="GeodesicGrid\Cell.cs" />
@@ -63,7 +65,6 @@
     <Compile Include="InstallCleanup.cs" />
     <Compile Include="IWindowToggle.cs" />
     <Compile Include="LegacyResourceGenerator.cs" />
-    <Compile Include="EnumerableExtensions\EnumerableExtensions.cs" />
     <Compile Include="HeatSinkAnimator.cs" />
     <Compile Include="IResourceGenerator.cs" />
     <Compile Include="IDetectorAnimator.cs" />

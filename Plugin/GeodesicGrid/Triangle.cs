@@ -180,7 +180,7 @@ namespace Kethane.GeodesicGrid
                 if ((radius >= min) && triangleContains(triangle, level, ray.origin)) { return true; }
             }
 
-            return triangle.GetVertices(level).Select(c => c.Position).AdjacentPairs().Any(p => intersectsFace(ray, p.Second, p.First, min, max));
+            return triangle.GetVertices(level).Select(c => c.Position).EdgesCircular().Any(p => intersectsFace(ray, p.Second, p.First, min, max));
         }
 
         private static bool triangleContains(Triangle triangle, int level, Vector3 line)

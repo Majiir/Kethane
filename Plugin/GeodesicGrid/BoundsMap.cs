@@ -29,7 +29,7 @@ namespace Kethane.GeodesicGrid
             {
                 maxs[triangle.Index] = triangle.GetVertices(level).Max(heightAt);
 
-                var min = Mathf.Sqrt(triangle.GetVertices(level).AdjacentPairs().Min(e => (e.First.Position * heightAt(e.First) + e.Second.Position * heightAt(e.Second)).sqrMagnitude)) / 2;
+                var min = Mathf.Sqrt(triangle.GetVertices(level).EdgesCircular().Min(e => (e.First.Position * heightAt(e.First) + e.Second.Position * heightAt(e.Second)).sqrMagnitude)) / 2;
                 mins[triangle.Index] = Math.Min(min, triangle.GetVertices(level).Min(heightAt));
             }
 
