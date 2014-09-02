@@ -93,6 +93,7 @@
     <Compile Include="SettingsManager.cs" />
     <Compile Include="TerrainData.cs" />
     <Compile Include="TimedMovingAverage.cs" />
+    <Compile Include="Toolbar\ToolbarWrapper.cs" />
     <Compile Include="TutorialInstaller.cs" />
   </ItemGroup>
   <ItemGroup>
