@@ -81,7 +81,7 @@ namespace Kethane
                 ConfigNode generatorNode;
                 IResourceGenerator generator;
 
-                LoadResource(resource, resourceName, resourceNode, out resourceDeposits, out resourceScans, out generatorNode, out generator);
+                LoadResource(resource, resourceNode, out resourceDeposits, out resourceScans, out generatorNode, out generator);
 
                 generatorNodes[resourceName] = generatorNode;
                 generators[resourceName] = generator;
@@ -115,7 +115,7 @@ namespace Kethane
             Debug.LogWarning(String.Format("Kethane deposits loaded ({0}ms)", timer.ElapsedMilliseconds));
         }
 
-        private static void LoadResource(ResourceDefinition resource, string resourceName, ConfigNode resourceNode, out Dictionary<string, IBodyResources> resourceDeposits, out Dictionary<string, CellSet> resourceScans, out ConfigNode generatorNode, out IResourceGenerator generator)
+        private static void LoadResource(ResourceDefinition resource, ConfigNode resourceNode, out Dictionary<string, IBodyResources> resourceDeposits, out Dictionary<string, CellSet> resourceScans, out ConfigNode generatorNode, out IResourceGenerator generator)
         {
             resourceDeposits = new Dictionary<string, IBodyResources>();
             resourceScans = new Dictionary<string, CellSet>();
@@ -125,7 +125,7 @@ namespace Kethane
             generator = createGenerator(generatorNode.CreateCopy());
             if (generator == null)
             {
-                Debug.LogWarning("[Kethane] Defaulting to empty generator for " + resourceName);
+                Debug.LogWarning("[Kethane] Defaulting to empty generator for " + resource.Resource);
                 generator = new EmptyResourceGenerator();
             }
 
