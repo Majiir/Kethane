@@ -5,7 +5,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using UnityEngine;
 
-namespace Kethane
+namespace Kethane.Generators
 {
     internal class LegacyResourceGenerator : IResourceGenerator
     {

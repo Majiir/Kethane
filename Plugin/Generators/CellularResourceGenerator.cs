@@ -2,7 +2,7 @@
 using System;
 using System.Linq;
 
-namespace Kethane
+namespace Kethane.Generators
 {
     public abstract class CellularResourceGenerator : IResourceGenerator
     {
