@@ -48,6 +48,7 @@
   <ItemGroup>
     <Compile Include="EnumerableExtensions\AppendPrepend.cs" />
     <Compile Include="EnumerableExtensions\MinMaxBy.cs" />
+    <Compile Include="EnumerableExtensions\Pair.cs" />
     <Compile Include="EnumerableExtensions\ReverseComparer.cs" />
     <Compile Include="GeodesicGrid\BoundsMap.cs" />
     <Compile Include="GeodesicGrid\Cell.cs" />
