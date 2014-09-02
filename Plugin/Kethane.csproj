@@ -82,7 +82,7 @@
     <Compile Include="PartModules\KethaneDetector.cs" />
     <Compile Include="PartModules\KethaneParticleEmitter.cs" />
     <Compile Include="PartModules\KethaneParticleDynamics.cs" />
-    <Compile Include="KethaneScanningTutorial.cs" />
+    <Compile Include="Scenarios\KethaneScanningTutorial.cs" />
     <Compile Include="PartModules\KethaneWetMassIndicator.cs" />
     <Compile Include="MapOverlay.cs" />
     <Compile Include="Misc.cs" />

@@ -4,7 +4,7 @@ using System;
 using System.Linq;
 using UnityEngine;
 
-namespace Kethane
+namespace Kethane.Scenarios
 {
     public class KethaneScanningTutorial : TutorialScenario
     {
