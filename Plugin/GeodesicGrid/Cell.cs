@@ -99,7 +99,7 @@ namespace Kethane.GeodesicGrid
                         for (uint j = 0; j < cache.Length; j++)
                         {
                             var cell = new Cell(count + j);
-                            cache[j] = (cell.getFirstParent().Position + cell.getSecondParent().Position).normalized;
+                            cache[j] = (cell.GetParent().Position + cell.getSecondParent().Position).normalized;
                         }
 
                         positionCache.Add(cache);
@@ -210,7 +210,7 @@ namespace Kethane.GeodesicGrid
                 var cell = this.getRoot();
                 while (level < cell.Level)
                 {
-                    cell = cell.getFirstParent();
+                    cell = cell.GetParent();
                 }
                 return new Triangle(cell, this.getDirection());
             }
@@ -488,7 +488,7 @@ namespace Kethane.GeodesicGrid
             get { return index < 2; }
         }
 
-        private Cell getFirstParent()
+        public Cell GetParent()
         {
             if (Level == 0) { throw new InvalidOperationException("Cannot find parent of a top-level cell"); }
             return new Cell(subindex / 3 + 2);
@@ -497,7 +497,7 @@ namespace Kethane.GeodesicGrid
         private Cell getSecondParent()
         {
             if (Level == 0) { throw new InvalidOperationException("Cannot find parent of a top-level cell"); }
-            return getFirstParent().getNeighbor(this.direction, Level - 1);
+            return GetParent().getNeighbor(this.direction, Level - 1);
         }
 
         private Cell getChild(ChildType direction)
@@ -575,7 +575,7 @@ namespace Kethane.GeodesicGrid
                             var dir = (ChildType)k;
 
                             var thisDir = cell.direction;
-                            var first = cell.getFirstParent();
+                            var first = cell.GetParent();
                             if (thisDir == dir)
                             {
                                 cache[j, k] = first.getNeighbor(dir, cacheLevel - 1);
@@ -617,7 +617,7 @@ namespace Kethane.GeodesicGrid
             var cell = this;
             while (!cell.IsPentagon)
             {
-                cell = cell.getFirstParent();
+                cell = cell.GetParent();
             }
             return cell;
         }
@@ -650,7 +650,7 @@ namespace Kethane.GeodesicGrid
             {
                 var thisDir = this.direction;
 
-                var first = this.getFirstParent();
+                var first = this.GetParent();
                 if (level != thisLevel)
                 {
                     first = first.getChild(thisDir, thisLevel + 1).approach(thisDir, level - thisLevel - 1);
@@ -666,7 +666,7 @@ namespace Kethane.GeodesicGrid
                 }
                 else
                 {
-                    first = this.getFirstParent();
+                    first = this.GetParent();
 
                     var other = thisDir.Flip();
                     var seam = this.isPolarSeam();
@@ -696,11 +696,11 @@ namespace Kethane.GeodesicGrid
             if (this.IsPentagon) { return this.isPolar; }
 
             var dir = this.direction;
-            var cell = this.getFirstParent();
+            var cell = this.GetParent();
             while (!cell.IsPentagon)
             {
                 if (cell.direction != dir) { return false; }
-                cell = cell.getFirstParent();
+                cell = cell.GetParent();
             }
             return cell.getNeighbor(dir, 0).isPolar;
         }
