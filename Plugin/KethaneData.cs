@@ -158,7 +158,9 @@ namespace Kethane
 
                 foreach (var body in resource.Value)
                 {
-                    var bodyNode = saveBodyData(body.Key, body.Value);
+                    var bodyNode = new ConfigNode("Body");
+                    bodyNode.AddValue("Name", body.Key);
+                    body.Value.Save(bodyNode);
                     resourceNode.AddNode(bodyNode);
                 }
 
@@ -167,14 +169,6 @@ namespace Kethane
 
             timer.Stop();
             Debug.LogWarning(String.Format("Kethane deposits saved ({0}ms)", timer.ElapsedMilliseconds));
-        }
-
-        private ConfigNode saveBodyData(string bodyName, BodyResourceData bodyResources)
-        {
-            var bodyNode = new ConfigNode("Body");
-            bodyNode.AddValue("Name", bodyName);
-            bodyResources.Save(bodyNode);
-            return bodyNode;
         }
     }
 }
