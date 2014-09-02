@@ -97,7 +97,7 @@ namespace Kethane
                     IBodyResources resources;
                     CellSet scans;
 
-                    LoadBodyResources(resourceName, generator, body, bodyNode, out resources, out scans);
+                    LoadBodyResources(generator, body, bodyNode, out resources, out scans);
 
                     PlanetDeposits[resourceName][body.name] = resources;
                     Scans[resourceName][body.name] = scans;
@@ -130,7 +130,7 @@ namespace Kethane
             Debug.LogWarning(String.Format("Kethane deposits loaded ({0}ms)", timer.ElapsedMilliseconds));
         }
 
-        private static void LoadBodyResources(string resourceName, IResourceGenerator generator, CelestialBody body, ConfigNode bodyNode, out IBodyResources resources, out CellSet scans)
+        private static void LoadBodyResources(IResourceGenerator generator, CelestialBody body, ConfigNode bodyNode, out IBodyResources resources, out CellSet scans)
         {
             resources = generator.Load(body, bodyNode.GetNode("GeneratorData"));
             scans = new CellSet(MapOverlay.GridLevel);
@@ -144,7 +144,7 @@ namespace Kethane
                 }
                 catch (FormatException e)
                 {
-                    Debug.LogError(String.Format("[Kethane] Failed to parse {0}/{1} scan string, resetting ({2})", body.name, resourceName, e.Message));
+                    Debug.LogError(String.Format("[Kethane] Failed to parse {0} scan string, resetting ({1})", body.name, e.Message));
                 }
             }
         }
