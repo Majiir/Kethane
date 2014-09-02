@@ -168,6 +168,7 @@ namespace Kethane
         {
             var resourceName = resource.Resource;
             PlanetDeposits[resourceName][body.name] = generators[resourceName].Load(body, null);
+            Scans[resourceName][body.name] = new CellSet(MapOverlay.GridLevel);
         }
 
         public void ResetGeneratorConfig(ResourceDefinition resource)
