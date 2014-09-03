@@ -28,20 +28,25 @@ namespace Kethane
             }
         }
 
-        public Dictionary<string, ResourceData> ResourceData = new Dictionary<string,ResourceData>();
+        private Dictionary<string, ResourceData> resources = new Dictionary<string,ResourceData>();
+
+        public ResourceData this[string resourceName]
+        {
+            get { return resources[resourceName]; }
+        }
 
         public ICellResource GetCellDeposit(string resourceName, CelestialBody body, Cell cell)
         {
-            if (resourceName == null || body == null || !ResourceData.ContainsKey(resourceName)) { return null; }
+            if (resourceName == null || body == null || !resources.ContainsKey(resourceName)) { return null; }
 
-            return ResourceData[resourceName][body].GetCellDeposit(cell);
+            return resources[resourceName][body].GetCellDeposit(cell);
         }
 
         public override void OnLoad(ConfigNode config)
         {
             var timer = System.Diagnostics.Stopwatch.StartNew();
 
-            ResourceData.Clear();
+            resources.Clear();
 
             var resourceNodes = config.GetNodes("Resource");
 
@@ -49,7 +54,7 @@ namespace Kethane
             {
                 var resourceName = resource.Resource;
                 var resourceNode = resourceNodes.SingleOrDefault(n => n.GetValue("Resource") == resourceName) ?? new ConfigNode();
-                ResourceData[resourceName] = Kethane.ResourceData.Load(resource, resourceNode);
+                resources[resourceName] = Kethane.ResourceData.Load(resource, resourceNode);
             }
 
             timer.Stop();
@@ -58,7 +63,7 @@ namespace Kethane
 
         public void ResetGeneratorConfig(ResourceDefinition resource)
         {
-            ResourceData[resource.Resource] = Kethane.ResourceData.Load(resource, new ConfigNode());
+            resources[resource.Resource] = Kethane.ResourceData.Load(resource, new ConfigNode());
         }
 
         public override void OnSave(ConfigNode configNode)
@@ -67,7 +72,7 @@ namespace Kethane
 
             configNode.AddValue("Version", System.Reflection.Assembly.GetExecutingAssembly().GetInformationalVersion());
 
-            foreach (var resource in ResourceData)
+            foreach (var resource in resources)
             {
                 var resourceNode = new ConfigNode("Resource");
                 resourceNode.AddValue("Resource", resource.Key);
