@@ -243,8 +243,8 @@ namespace Kethane
         private void refreshCellColor(Cell cell, CelestialBody body, Color32[] colors, KethaneData data)
         {
             var deposit = data.GetCellDeposit(resource.Resource, body, cell);
-            var scanned = data.Scans[resource.Resource][body.name][cell];
-            var bodyResources = data.PlanetDeposits[resource.Resource][body.name];
+            var scanned = data[resource.Resource][body].IsCellScanned(cell);
+            var bodyResources = data[resource.Resource][body];
             var color = (revealAll ? deposit != null : scanned) ? getDepositColor(resource, bodyResources, deposit) : colorUnknown;
             setCellColor(cell, color, colors);
         }
@@ -258,12 +258,12 @@ namespace Kethane
             }
         }
 
-        private static Color32 getDepositColor(ResourceDefinition definition, IBodyResources bodyResources, ICellResource deposit)
+        private static Color32 getDepositColor(ResourceDefinition definition, BodyResourceData bodyResources, ICellResource deposit)
         {
             Color32 color;
             if (deposit != null)
             {
-                var ratio = (float)(deposit.Quantity / bodyResources.MaxQuantity);
+                var ratio = (float)(deposit.Quantity / bodyResources.MaxDepositQuantity);
                 color = (Color32)(definition.ColorFull * ratio + definition.ColorEmpty * (1 - ratio));
             }
             else
@@ -380,7 +380,7 @@ namespace Kethane
 
                 GUILayout.Label(String.Format("{0}:", definition.Resource));
                 GUILayout.FlexibleSpace();
-                if (revealAll || KethaneData.Current.Scans[definition.Resource][body.name][cell])
+                if (revealAll || KethaneData.Current[definition.Resource][body].IsCellScanned(cell))
                 {
                     var deposit = KethaneData.Current.GetCellDeposit(definition.Resource, body, cell);
                     GUILayout.Label(deposit != null ? String.Format("{0:N1}", deposit.Quantity) : "(none)");
@@ -452,7 +452,7 @@ namespace Kethane
 
                     if (GUILayout.Button("Reset " + (body ? body.name : "[null]") + " Data"))
                     {
-                        KethaneData.Current.ResetBodyData(resource, body);
+                        KethaneData.Current[resource.Resource].ResetBodyData(body);
                         refreshCellColors();
                     }
 
@@ -497,7 +497,7 @@ namespace Kethane
                 {
                     foreach (var cell in Cell.AtLevel(MapOverlay.GridLevel))
                     {
-                        var scanned = KethaneData.Current.Scans[resource.Resource][body.name][cell];
+                        var scanned = KethaneData.Current[resource.Resource][body].IsCellScanned(cell);
                         var deposit = KethaneData.Current.GetCellDeposit(resource.Resource, body, cell);
 
                         sb.Append(String.Format("{0},{1},", body.name, resource.Resource));
