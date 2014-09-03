@@ -28,7 +28,7 @@ namespace Kethane
             }
         }
 
-        private Dictionary<string, ResourceData> resources = new Dictionary<string,ResourceData>();
+        private Dictionary<string, ResourceData> resources = new Dictionary<string, ResourceData>();
 
         public ResourceData this[string resourceName]
         {
@@ -38,8 +38,12 @@ namespace Kethane
         public ICellResource GetCellDeposit(string resourceName, CelestialBody body, Cell cell)
         {
             if (resourceName == null || body == null || !resources.ContainsKey(resourceName)) { return null; }
-
             return resources[resourceName][body].GetCellDeposit(cell);
+        }
+
+        public void ResetGeneratorConfig(ResourceDefinition resource)
+        {
+            resources[resource.Resource] = Kethane.ResourceData.Load(resource, new ConfigNode());
         }
 
         public override void OnLoad(ConfigNode config)
@@ -59,11 +63,6 @@ namespace Kethane
 
             timer.Stop();
             Debug.LogWarning(String.Format("Kethane deposits loaded ({0}ms)", timer.ElapsedMilliseconds));
-        }
-
-        public void ResetGeneratorConfig(ResourceDefinition resource)
-        {
-            resources[resource.Resource] = Kethane.ResourceData.Load(resource, new ConfigNode());
         }
 
         public override void OnSave(ConfigNode configNode)
