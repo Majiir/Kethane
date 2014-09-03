@@ -243,8 +243,8 @@ namespace Kethane
         private void refreshCellColor(Cell cell, CelestialBody body, Color32[] colors, KethaneData data)
         {
             var deposit = data.GetCellDeposit(resource.Resource, body, cell);
-            var scanned = data.ResourceData[resource.Resource][body.name].IsCellScanned(cell);
-            var bodyResources = data.ResourceData[resource.Resource][body.name];
+            var scanned = data.ResourceData[resource.Resource][body].IsCellScanned(cell);
+            var bodyResources = data.ResourceData[resource.Resource][body];
             var color = (revealAll ? deposit != null : scanned) ? getDepositColor(resource, bodyResources, deposit) : colorUnknown;
             setCellColor(cell, color, colors);
         }
@@ -380,7 +380,7 @@ namespace Kethane
 
                 GUILayout.Label(String.Format("{0}:", definition.Resource));
                 GUILayout.FlexibleSpace();
-                if (revealAll || KethaneData.Current.ResourceData[definition.Resource][body.name].IsCellScanned(cell))
+                if (revealAll || KethaneData.Current.ResourceData[definition.Resource][body].IsCellScanned(cell))
                 {
                     var deposit = KethaneData.Current.GetCellDeposit(definition.Resource, body, cell);
                     GUILayout.Label(deposit != null ? String.Format("{0:N1}", deposit.Quantity) : "(none)");
@@ -452,7 +452,7 @@ namespace Kethane
 
                     if (GUILayout.Button("Reset " + (body ? body.name : "[null]") + " Data"))
                     {
-                        KethaneData.Current.ResetBodyData(resource, body);
+                        KethaneData.Current.ResourceData[resource.Resource].ResetBodyData(body);
                         refreshCellColors();
                     }
 
@@ -497,7 +497,7 @@ namespace Kethane
                 {
                     foreach (var cell in Cell.AtLevel(MapOverlay.GridLevel))
                     {
-                        var scanned = KethaneData.Current.ResourceData[resource.Resource][body.name].IsCellScanned(cell);
+                        var scanned = KethaneData.Current.ResourceData[resource.Resource][body].IsCellScanned(cell);
                         var deposit = KethaneData.Current.GetCellDeposit(resource.Resource, body, cell);
 
                         sb.Append(String.Format("{0},{1},", body.name, resource.Resource));

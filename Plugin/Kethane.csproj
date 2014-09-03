@@ -56,6 +56,7 @@
     <Compile Include="GeodesicGrid\BoundsMap.cs" />
     <Compile Include="GeodesicGrid\Cell.cs" />
     <Compile Include="Generators\CellularResourceGenerator.cs" />
+    <Compile Include="ResourceData.cs" />
     <Compile Include="Utilities\CompatibilityChecker.cs" />
     <Compile Include="GeodesicGrid\CellMap.cs" />
     <Compile Include="GeodesicGrid\CellSet.cs" />

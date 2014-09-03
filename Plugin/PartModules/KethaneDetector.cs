@@ -163,10 +163,10 @@ namespace Kethane.PartModules
                 {
                     var detected = false;
                     var cell = MapOverlay.GetCellUnder(vessel.mainBody, vessel.transform.position);
-                    if (resources.All(r => KethaneData.Current.ResourceData[r][vessel.mainBody.name].IsCellScanned(cell))) { return; }
+                    if (resources.All(r => KethaneData.Current.ResourceData[r][vessel.mainBody].IsCellScanned(cell))) { return; }
                     foreach (var resource in resources)
                     {
-                        KethaneData.Current.ResourceData[resource][vessel.mainBody.name].ScanCell(cell);
+                        KethaneData.Current.ResourceData[resource][vessel.mainBody].ScanCell(cell);
                         if (KethaneData.Current.GetCellDeposit(resource, vessel.mainBody, cell) != null)
                         {
                             detected = true;
