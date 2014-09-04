@@ -18,8 +18,8 @@ namespace Kethane.PartModules
 
         public override void OnStart(PartModule.StartState state)
         {
-            deployStates = Misc.SetUpAnimation(DeployAnimation, this.part);
-            runningStates = Misc.SetUpAnimation(RunningAnimation, this.part);
+            deployStates = this.part.SetUpAnimation(DeployAnimation);
+            runningStates = this.part.SetUpAnimation(RunningAnimation);
 
             foreach (var runningState in runningStates)
             {

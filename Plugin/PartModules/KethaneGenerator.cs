@@ -67,8 +67,8 @@ namespace Kethane.PartModules
             if (state == StartState.Editor) { return; }
             this.part.force_activate();
 
-            fanStates = Misc.SetUpAnimation("generatorFan_anim", part);
-            slatStates = Misc.SetUpAnimation("generatorSlats_anim", part);
+            fanStates = this.part.SetUpAnimation("generatorFan_anim");
+            slatStates = this.part.SetUpAnimation("generatorSlats_anim");
 
             foreach (var fanState in fanStates)
             {
@@ -102,7 +102,7 @@ namespace Kethane.PartModules
 
         public override void OnFixedUpdate()
         {
-            var resources = Misc.GetConnectedResources(part, "ElectricCharge");
+            var resources = part.GetConnectedResources("ElectricCharge");
             var demand = Enabled ? logistic((float)(resources.Sum(r => r.amount) / resources.Sum(r => r.maxAmount))) : 0;
 
             if (demand < 0.1f) { demand = 0; }

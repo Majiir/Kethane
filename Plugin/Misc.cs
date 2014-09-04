@@ -8,7 +8,7 @@ namespace Kethane
 {
     internal static class Misc
     {
-        public static List<PartResource> GetConnectedResources(Part part, String resourceName)
+        public static List<PartResource> GetConnectedResources(this Part part, String resourceName)
         {
             var resourceDef = PartResourceLibrary.Instance.GetDefinition(resourceName);
             var resources = new List<PartResource>();
@@ -18,7 +18,7 @@ namespace Kethane
 
         public static float Dot(this Vector3 lhs, Vector3 rhs) { return Vector3.Dot(lhs, rhs); }
 
-        public static AnimationState[] SetUpAnimation(string animationName, Part part)
+        public static AnimationState[] SetUpAnimation(this Part part, string animationName)
         {
             var states = new List<AnimationState>();
             foreach (var animation in part.FindModelAnimators(animationName))

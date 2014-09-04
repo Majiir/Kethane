@@ -45,8 +45,8 @@ namespace Kethane.PartModules
 
         public override void OnStart(PartModule.StartState state)
         {
-            openAnimationStates = Misc.SetUpAnimation(OpenAnimation, this.part);
-            heatAnimationStates = Misc.SetUpAnimation(HeatAnimation, this.part);
+            openAnimationStates = this.part.SetUpAnimation(OpenAnimation);
+            heatAnimationStates = this.part.SetUpAnimation(HeatAnimation);
         }
 
         public override void OnUpdate()

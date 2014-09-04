@@ -187,7 +187,7 @@ namespace Kethane.PartModules
             if (!IsEnabled && !AlwaysActive) { return; }
 
             var rates = outputRates.Select(r => r * -1).Concat(inputRates).Select(r => r * TimeWarp.fixedDeltaTime).ToArray();
-            var ratio = rates.Where(r => !r.Optional).Select(r => Misc.GetConnectedResources(this.part, r.Resource).Select(c => r.Rate > 0 ? c.amount : c.maxAmount - c.amount).DefaultIfEmpty().Max() / Math.Abs(r.Rate)).Where(r => r < 1).DefaultIfEmpty(1).Min();
+            var ratio = rates.Where(r => !r.Optional).Select(r => this.part.GetConnectedResources(r.Resource).Select(c => r.Rate > 0 ? c.amount : c.maxAmount - c.amount).DefaultIfEmpty().Max() / Math.Abs(r.Rate)).Where(r => r < 1).DefaultIfEmpty(1).Min();
 
             var heatsink = this.part.Modules.OfType<HeatSinkAnimator>().SingleOrDefault();
             if (heatsink != null)

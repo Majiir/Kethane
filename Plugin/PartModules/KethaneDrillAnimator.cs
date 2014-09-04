@@ -20,8 +20,8 @@ namespace Kethane.PartModules
 
         public override void OnStart(PartModule.StartState state)
         {
-            deployStates = Misc.SetUpAnimation(DeployAnimation, this.part);
-            drillStates = Misc.SetUpAnimation(DrillAnimation, this.part);
+            deployStates = this.part.SetUpAnimation(DeployAnimation);
+            drillStates = this.part.SetUpAnimation(DrillAnimation);
 
             if (CurrentState == ExtractorState.Deploying) { CurrentState = ExtractorState.Retracted; }
             else if (CurrentState == ExtractorState.Retracting) { CurrentState = ExtractorState.Deployed; }
