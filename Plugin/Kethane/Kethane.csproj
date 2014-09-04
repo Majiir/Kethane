@@ -47,25 +47,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BodyResourceData.cs" />
-    <Compile Include="EnumerableExtensions\Edges.cs" />
-    <Compile Include="EnumerableExtensions\AppendPrepend.cs" />
-    <Compile Include="EnumerableExtensions\MinMaxBy.cs" />
-    <Compile Include="EnumerableExtensions\Pair.cs" />
-    <Compile Include="EnumerableExtensions\Repeat.cs" />
-    <Compile Include="EnumerableExtensions\ReverseComparer.cs" />
     <Compile Include="Generators\RandomExtensions.cs" />
-    <Compile Include="GeodesicGrid\BoundsMap.cs" />
-    <Compile Include="GeodesicGrid\Cell.cs" />
     <Compile Include="Generators\CellularResourceGenerator.cs" />
     <Compile Include="PartModules\PartExtensions.cs" />
     <Compile Include="ResourceData.cs" />
     <Compile Include="Utilities\CompatibilityChecker.cs" />
-    <Compile Include="GeodesicGrid\CellMap.cs" />
-    <Compile Include="GeodesicGrid\CellSet.cs" />
-    <Compile Include="GeodesicGrid\ChildType.cs" />
-    <Compile Include="GeodesicGrid\IntMath.cs" />
-    <Compile Include="GeodesicGrid\Triangle.cs" />
-    <Compile Include="GeodesicGrid\TriangleHit.cs" />
     <Compile Include="Utilities\InstallCleanup.cs" />
     <Compile Include="Generators\LegacyResourceGenerator.cs" />
     <Compile Include="PartModules\HeatSinkAnimator.cs" />
@@ -103,7 +89,12 @@
   <ItemGroup>
     <EmbeddedResource Include="Resources\AlphaUnlitVertexColored.txt" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\KethaneGeodesicGrid\KethaneGeodesicGrid.csproj">
+      <Project>{0df219bc-39f0-4af8-9085-1a4120d8d536}</Project>
+      <Name>KethaneGeodesicGrid</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
