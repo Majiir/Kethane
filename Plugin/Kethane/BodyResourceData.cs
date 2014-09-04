@@ -38,14 +38,14 @@ namespace Kethane
         public static BodyResourceData Load(IResourceGenerator generator, CelestialBody body, ConfigNode bodyNode)
         {
             var resources = generator.Load(body, bodyNode.GetNode("GeneratorData"));
-            var scans = new CellSet(MapOverlay.GridLevel);
+            var scans = new CellSet(KethaneData.GridLevel);
 
             var scanMask = bodyNode.GetValue("ScanMask");
             if (scanMask != null)
             {
                 try
                 {
-                    scans = new CellSet(MapOverlay.GridLevel, Misc.FromBase64String(scanMask));
+                    scans = new CellSet(KethaneData.GridLevel, Misc.FromBase64String(scanMask));
                 }
                 catch (FormatException e)
                 {

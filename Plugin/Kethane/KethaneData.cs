@@ -8,6 +8,8 @@ namespace Kethane
 {
     public class KethaneData : ScenarioModule
     {
+        public const int GridLevel = 5;
+
         public static KethaneData Current
         {
             get

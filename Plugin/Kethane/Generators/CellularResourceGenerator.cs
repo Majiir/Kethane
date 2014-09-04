@@ -10,7 +10,7 @@ namespace Kethane.Generators
         {
             if (node == null)
             {
-                var amounts = new CellMap<double>(MapOverlay.GridLevel);
+                var amounts = new CellMap<double>(KethaneData.GridLevel);
                 Initialize(body, amounts);
                 return new BodyResources(amounts);
             }
@@ -19,8 +19,8 @@ namespace Kethane.Generators
                 var bytes = Misc.FromBase64String(node.GetValue("amounts"));
                 ensureBigEndian(bytes);
 
-                var amounts = new CellMap<double>(MapOverlay.GridLevel);
-                var count = Cell.CountAtLevel(MapOverlay.GridLevel);
+                var amounts = new CellMap<double>(KethaneData.GridLevel);
+                var count = Cell.CountAtLevel(KethaneData.GridLevel);
                 for (uint i = 0; i < count; i++) {
                     amounts[new Cell(i)] = BitConverter.ToDouble(bytes, (int)i * 8);
                 }
@@ -59,7 +59,7 @@ namespace Kethane.Generators
 
             public ConfigNode Save()
             {
-                var count = Cell.CountAtLevel(MapOverlay.GridLevel);
+                var count = Cell.CountAtLevel(KethaneData.GridLevel);
 
                 var bytes = new byte[count * 8];
                 for (uint i = 0; i < count; i++) {
