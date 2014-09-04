@@ -53,6 +53,7 @@
     <Compile Include="EnumerableExtensions\Pair.cs" />
     <Compile Include="EnumerableExtensions\Repeat.cs" />
     <Compile Include="EnumerableExtensions\ReverseComparer.cs" />
+    <Compile Include="Generators\RandomExtensions.cs" />
     <Compile Include="GeodesicGrid\BoundsMap.cs" />
     <Compile Include="GeodesicGrid\Cell.cs" />
     <Compile Include="Generators\CellularResourceGenerator.cs" />

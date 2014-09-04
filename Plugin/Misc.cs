@@ -33,16 +33,6 @@ namespace Kethane
             return states.ToArray();
         }
 
-        public static float Range(this System.Random random, float min, float max)
-        {
-            return (float)random.Range((double)min, max);
-        }
-
-        public static double Range(this System.Random random, double min, double max)
-        {
-            return random.NextDouble() * (max - min) + min;
-        }
-
         public static void Add<T>(this List<T> list, params T[] values)
         {
             list.AddRange(values);
