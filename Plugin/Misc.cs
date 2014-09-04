@@ -28,24 +28,6 @@ namespace Kethane
             return altitudeTrue;
         }
 
-        public static double NormalizeAngle(double a)
-        {
-            a = a % 360;
-            if (a < 0)
-                a += 360;
-            return a;
-        }
-
-        public static Vector2 CartesianToPolar(Vector3 point)
-        {
-            Vector2 polar = new Vector2();
-            polar.y = Mathf.Atan2(point.x, point.z);
-            float xzLen = new Vector2(point.x, point.z).magnitude;
-            polar.x = Mathf.Atan2(-point.y, xzLen);
-            polar *= Mathf.Rad2Deg;
-            return polar;
-        }
-
         public static List<PartResource> GetConnectedResources(Part part, String resourceName)
         {
             var resourceDef = PartResourceLibrary.Instance.GetDefinition(resourceName);

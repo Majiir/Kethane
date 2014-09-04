@@ -37,10 +37,10 @@ namespace Kethane.PartModules
             BaseT = BaseT.FindChild(BaseTransform);
 
             Vector3 bodyCoords = BaseT.InverseTransformPoint(body.transform.position);
-            Vector2 pos = Misc.CartesianToPolar(bodyCoords);
+            Vector2 pos = cartesianToPolar(bodyCoords);
 
-            var alpha = (float)Misc.NormalizeAngle(pos.x + 90);
-            var beta = (float)Misc.NormalizeAngle(pos.y);
+            var alpha = (float)normalizeAngle(pos.x + 90);
+            var beta = (float)normalizeAngle(pos.y);
 
             Transform RotH = BaseT.FindChild(HeadingTransform);
             Transform RotV = RotH.FindChild(ElevationTransform);
@@ -58,6 +58,24 @@ namespace Kethane.PartModules
 
             if (float.IsNaN(RotH.localRotation.w)) { RotH.localRotation = Quaternion.identity; }
             if (float.IsNaN(RotV.localRotation.w)) { RotV.localRotation = Quaternion.identity; }
+        }
+
+        private static double normalizeAngle(double a)
+        {
+            a = a % 360;
+            if (a < 0)
+                a += 360;
+            return a;
+        }
+
+        private static Vector2 cartesianToPolar(Vector3 point)
+        {
+            Vector2 polar = new Vector2();
+            polar.y = Mathf.Atan2(point.x, point.z);
+            float xzLen = new Vector2(point.x, point.z).magnitude;
+            polar.x = Mathf.Atan2(-point.y, xzLen);
+            polar *= Mathf.Rad2Deg;
+            return polar;
         }
     }
 }
