@@ -142,40 +142,10 @@ namespace Kethane
 
         #endregion
 
-        #region BitArray extensions
-
-        public static IEnumerable<bool> GetTypedEnumerator(this System.Collections.BitArray bits)
-        {
-            for (int i = 0; i < bits.Length; i++)
-            {
-                yield return bits[i];
-            }
-        }
-
-        #endregion
-
         public static string GetInformationalVersion(this System.Reflection.Assembly assembly)
         {
             return System.Diagnostics.FileVersionInfo.GetVersionInfo(assembly.Location).ProductVersion;
         }
-
-        #region Stream extensions
-
-        public static byte[] ReadFully(this Stream input)
-        {
-            byte[] buffer = new byte[16 * 1024];
-            using (MemoryStream ms = new MemoryStream())
-            {
-                int read;
-                while ((read = input.Read(buffer, 0, buffer.Length)) > 0)
-                {
-                    ms.Write(buffer, 0, read);
-                }
-                return ms.ToArray();
-            }
-        }
-
-        #endregion
 
         #region Encoding
 
