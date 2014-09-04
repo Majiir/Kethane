@@ -8,26 +8,6 @@ namespace Kethane
 {
     internal static class Misc
     {
-        /// <summary>
-        /// Get true altitude above terrain (from MuMech lib)
-        /// Also from: http://kerbalspaceprogram.com/forum/index.php?topic=10324.msg161923#msg161923
-        /// </summary>
-        public static double GetTrueAltitude(Vessel vessel)
-        {
-            Vector3 CoM = vessel.findWorldCenterOfMass();
-            Vector3 up = (CoM - vessel.mainBody.position).normalized;
-            double altitudeASL = vessel.mainBody.GetAltitude(CoM);
-            double altitudeTrue = 0.0;
-            RaycastHit sfc;
-            if (Physics.Raycast(CoM, -up, out sfc, (float)altitudeASL + 10000.0F, 1 << 15))
-                altitudeTrue = sfc.distance;
-            else if (vessel.mainBody.pqsController != null)
-                altitudeTrue = vessel.mainBody.GetAltitude(CoM) - (vessel.mainBody.pqsController.GetSurfaceHeight(QuaternionD.AngleAxis(vessel.mainBody.GetLongitude(CoM), Vector3d.down) * QuaternionD.AngleAxis(vessel.mainBody.GetLatitude(CoM), Vector3d.forward) * Vector3d.right) - vessel.mainBody.pqsController.radius);
-            else
-                altitudeTrue = vessel.mainBody.GetAltitude(CoM);
-            return altitudeTrue;
-        }
-
         public static List<PartResource> GetConnectedResources(Part part, String resourceName)
         {
             var resourceDef = PartResourceLibrary.Instance.GetDefinition(resourceName);

@@ -124,7 +124,7 @@ namespace Kethane.PartModules
             Events["EnableSounds"].active = !ScanningSound;
             Events["DisableSounds"].active = ScanningSound;
 
-            if (Misc.GetTrueAltitude(vessel) <= this.DetectingHeight)
+            if (getTrueAltitude(vessel) <= this.DetectingHeight)
             {
                 if (IsDetecting)
                 {
@@ -149,7 +149,7 @@ namespace Kethane.PartModules
 
         public override void OnFixedUpdate()
         {
-            double Altitude = Misc.GetTrueAltitude(vessel);
+            double Altitude = getTrueAltitude(vessel);
             if (IsDetecting && this.vessel != null && this.vessel.gameObject.activeSelf && Altitude <= this.DetectingHeight)
             {
                 var energyRequest = PowerConsumption * TimeWarp.fixedDeltaTime;
@@ -184,6 +184,24 @@ namespace Kethane.PartModules
             {
                 this.powerRatio = 0;
             }
+        }
+
+        // Get true altitude above terrain (from MuMech lib)
+        // Also from: http://kerbalspaceprogram.com/forum/index.php?topic=10324.msg161923#msg161923
+        private static double getTrueAltitude(Vessel vessel)
+        {
+            Vector3 CoM = vessel.findWorldCenterOfMass();
+            Vector3 up = (CoM - vessel.mainBody.position).normalized;
+            double altitudeASL = vessel.mainBody.GetAltitude(CoM);
+            double altitudeTrue = 0.0;
+            RaycastHit sfc;
+            if (Physics.Raycast(CoM, -up, out sfc, (float)altitudeASL + 10000.0F, 1 << 15))
+                altitudeTrue = sfc.distance;
+            else if (vessel.mainBody.pqsController != null)
+                altitudeTrue = vessel.mainBody.GetAltitude(CoM) - (vessel.mainBody.pqsController.GetSurfaceHeight(QuaternionD.AngleAxis(vessel.mainBody.GetLongitude(CoM), Vector3d.down) * QuaternionD.AngleAxis(vessel.mainBody.GetLatitude(CoM), Vector3d.forward) * Vector3d.right) - vessel.mainBody.pqsController.radius);
+            else
+                altitudeTrue = vessel.mainBody.GetAltitude(CoM);
+            return altitudeTrue;
         }
     }
 }
