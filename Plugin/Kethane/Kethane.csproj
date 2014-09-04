@@ -74,15 +74,15 @@
     <Compile Include="PartModules\KethaneParticleDynamics.cs" />
     <Compile Include="Scenarios\KethaneScanningTutorial.cs" />
     <Compile Include="PartModules\KethaneWetMassIndicator.cs" />
-    <Compile Include="MapOverlay.cs" />
+    <Compile Include="UserInterface\MapOverlay.cs" />
     <Compile Include="Misc.cs" />
     <Compile Include="PartModules\OrthogonalIntake.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ResourceDefinition.cs" />
     <Compile Include="SettingsManager.cs" />
-    <Compile Include="TerrainData.cs" />
+    <Compile Include="UserInterface\TerrainData.cs" />
     <Compile Include="PartModules\TimedMovingAverage.cs" />
-    <Compile Include="WindowToggle.cs" />
+    <Compile Include="UserInterface\WindowToggle.cs" />
     <Compile Include="Toolbar\ToolbarWrapper.cs" />
     <Compile Include="Utilities\TutorialInstaller.cs" />
   </ItemGroup>

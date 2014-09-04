@@ -1,6 +1,6 @@
 ﻿using Kethane.Toolbar;
 
-namespace Kethane
+namespace Kethane.UserInterface
 {
     public class WindowToggle
     {

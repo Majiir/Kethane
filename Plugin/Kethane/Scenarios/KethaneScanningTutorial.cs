@@ -1,5 +1,6 @@
 ﻿using Kethane.GeodesicGrid;
 using Kethane.PartModules;
+using Kethane.UserInterface;
 using System;
 using System.Linq;
 using UnityEngine;

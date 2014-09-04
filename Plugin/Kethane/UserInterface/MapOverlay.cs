@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
-namespace Kethane
+namespace Kethane.UserInterface
 {
     [KSPAddon(KSPAddon.Startup.EveryScene, false)]
     public class MapOverlay : MonoBehaviour

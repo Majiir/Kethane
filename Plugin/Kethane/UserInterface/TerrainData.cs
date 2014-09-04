@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Kethane
+namespace Kethane.UserInterface
 {
     public class TerrainData
     {
