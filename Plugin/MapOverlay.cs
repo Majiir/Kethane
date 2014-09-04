@@ -548,12 +548,12 @@ namespace Kethane
                 {
                     for (var i = 0; i < 5; i++)
                     {
-                        triangles.Add(t + 1 + i, t + 1 + (i + 1) % 5, t);
+                        triangles.AddRange(new[] { t + 1 + i, t + 1 + (i + 1) % 5, t });
                     }
                 }
                 else
                 {
-                    triangles.Add(t + 0, t + 1, t + 2, t + 2, t + 3, t + 4, t + 4, t + 5, t + 0, t + 0, t + 2, t + 4);
+                    triangles.AddRange(new[] { t + 0, t + 1, t + 2, t + 2, t + 3, t + 4, t + 4, t + 5, t + 0, t + 0, t + 2, t + 4 });
                 }
             }
 

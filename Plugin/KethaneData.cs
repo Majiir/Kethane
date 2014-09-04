@@ -69,7 +69,7 @@ namespace Kethane
         {
             var timer = System.Diagnostics.Stopwatch.StartNew();
 
-            configNode.AddValue("Version", System.Reflection.Assembly.GetExecutingAssembly().GetInformationalVersion());
+            configNode.AddValue("Version", System.Diagnostics.FileVersionInfo.GetVersionInfo(System.Reflection.Assembly.GetExecutingAssembly().Location).ProductVersion);
 
             foreach (var resource in resources)
             {

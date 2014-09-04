@@ -8,13 +8,6 @@ namespace Kethane
 {
     internal static class Misc
     {
-        public static float Dot(this Vector3 lhs, Vector3 rhs) { return Vector3.Dot(lhs, rhs); }
-
-        public static void Add<T>(this List<T> list, params T[] values)
-        {
-            list.AddRange(values);
-        }
-
         #region Parsing utility methods
 
         public static float Parse(string s, float defaultValue)
@@ -88,11 +81,6 @@ namespace Kethane
         }
 
         #endregion
-
-        public static string GetInformationalVersion(this System.Reflection.Assembly assembly)
-        {
-            return System.Diagnostics.FileVersionInfo.GetVersionInfo(assembly.Location).ProductVersion;
-        }
 
         #region Encoding
 

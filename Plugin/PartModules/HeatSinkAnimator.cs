@@ -92,7 +92,7 @@ namespace Kethane.PartModules
 
             var surfaceVelocity = this.vessel.GetSrfVelocity();
             var radiatorNormal = this.part.transform.InverseTransformDirection(RadiatorNormal);
-            var airSpeed = (surfaceVelocity - surfaceVelocity.Dot(radiatorNormal) * radiatorNormal).magnitude;
+            var airSpeed = (surfaceVelocity - Vector3.Dot(surfaceVelocity, radiatorNormal) * radiatorNormal).magnitude;
 
             var deployAmount = Mathf.Clamp01(openAnimationStates.First().normalizedTime);
             var rate = InternalDissipation + deployAmount * (HeatSinkDissipation + pressure * (PressureDissipation + AirSpeedDissipation * airSpeed));
