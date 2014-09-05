@@ -20,7 +20,7 @@ namespace Kethane.Utilities
             {
                 path = Path.ChangeExtension(path, null);
             }
-            var text = new StreamReader(assembly.GetManifestResourceStream("Kethane.LICENSE.txt")).ReadToEnd();
+            var text = new StreamReader(assembly.GetManifestResourceStream("Kethane.Kethane-LICENSE.txt")).ReadToEnd();
             File.WriteAllText(path + "-LICENSE.txt", text);
         }
     }
