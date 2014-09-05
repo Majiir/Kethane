@@ -84,6 +84,7 @@
     <Compile Include="PartModules\TimedMovingAverage.cs" />
     <Compile Include="UserInterface\WindowToggle.cs" />
     <Compile Include="Toolbar\ToolbarWrapper.cs" />
+    <Compile Include="Utilities\LicenseSentinel.cs" />
     <Compile Include="Utilities\TutorialInstaller.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -94,6 +95,11 @@
       <Project>{0df219bc-39f0-4af8-9085-1a4120d8d536}</Project>
       <Name>KethaneGeodesicGrid</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="LICENSE.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
