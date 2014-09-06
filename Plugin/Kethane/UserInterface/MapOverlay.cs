@@ -438,7 +438,6 @@ namespace Kethane.UserInterface
                 {
                     var vessel = FlightGlobals.ActiveVessel;
                     if (vessel != null && vessel.mainBody != body) { vessel = null; }
-                    var deposit = vessel == null ? null : KethaneData.Current.GetCellDeposit(resource.Resource, body, GetCellUnder(body, vessel.transform.position));
 
                     GUILayout.BeginVertical(GUI.skin.box);
 
