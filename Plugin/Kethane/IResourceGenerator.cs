@@ -18,7 +18,7 @@ namespace Kethane
 
     internal class EmptyResourceGenerator : IResourceGenerator
     {
-        private readonly IBodyResources bodyResources = new BodyResources();
+        private static readonly IBodyResources bodyResources = new BodyResources();
 
         public EmptyResourceGenerator() { }
         public EmptyResourceGenerator(ConfigNode node) { }
