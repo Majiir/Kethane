@@ -19,6 +19,11 @@ namespace Kethane.GeodesicGrid
             values = Cell.AtLevel(level).Select(selector).ToArray();
         }
 
+        public CellMap(CellMap<T> other)
+        {
+            values = other.values.ToArray();
+        }
+
         public int Level
         {
             get { return new Cell((uint)values.Length - 1).Level; }

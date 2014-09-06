@@ -12,7 +12,7 @@ namespace Kethane.Generators
             {
                 var amounts = new CellMap<double>(KethaneData.GridLevel);
                 Initialize(body, amounts);
-                return new BodyResources(amounts);
+                return new BodyResources(new CellMap<double>(amounts));
             }
             else
             {
