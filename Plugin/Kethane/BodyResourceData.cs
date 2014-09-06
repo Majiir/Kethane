@@ -6,23 +6,14 @@ namespace Kethane
 {
     public class BodyResourceData
     {
-        private readonly IBodyResources resources;
         private readonly CellSet scans;
+
+        public IBodyResources Resources { get; private set; }
 
         protected BodyResourceData(IBodyResources resources, CellSet scans)
         {
-            this.resources = resources;
+            Resources = resources;
             this.scans = scans;
-        }
-
-        public double MaxDepositQuantity
-        {
-            get { return resources.MaxQuantity; }
-        }
-
-        public ICellResource GetCellDeposit(Cell cell)
-        {
-            return resources.GetResource(cell);
         }
 
         public bool IsCellScanned(Cell cell)
@@ -60,7 +51,7 @@ namespace Kethane
         {
             bodyNode.AddValue("ScanMask", Misc.ToBase64String(scans.ToByteArray()));
 
-            var node = resources.Save() ?? new ConfigNode();
+            var node = Resources.Save() ?? new ConfigNode();
             node.name = "GeneratorData";
             bodyNode.AddNode(node);
         }

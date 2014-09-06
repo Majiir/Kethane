@@ -77,30 +77,20 @@ namespace Kethane.Generators
                 return node;
             }
 
-            public ICellResource GetResource(Cell cell)
-            {
-                if (amounts[cell] <= 0) { return null; }
-                return new CellResource(this, cell);
-            }
-
             public double MaxQuantity { get; private set; }
 
-            private class CellResource : ICellResource
+            public double? GetQuantity(Cell cell)
             {
-                private readonly BodyResources resources;
-                private readonly Cell cell;
+                double? amount = amounts[cell];
+                return amount > 0 ? amount : null;
+            }
 
-                public CellResource(BodyResources resources, Cell cell)
-                {
-                    this.resources = resources;
-                    this.cell = cell;
-                }
-
-                public double Quantity
-                {
-                    get { return resources.amounts[cell]; }
-                    set { resources.amounts[cell] = value; }
-                }
+            public double Extract(Cell cell, double amount)
+            {
+                var current = amounts[cell];
+                var delta = Math.Min(current, Math.Max(0, amount));
+                amounts[cell] = current - delta;
+                return delta;
             }
         }
     }

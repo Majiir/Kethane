@@ -240,9 +240,9 @@ namespace Kethane.UserInterface
 
         private void refreshCellColor(Cell cell, CelestialBody body, Color32[] colors, KethaneData data)
         {
-            var deposit = data.GetCellDeposit(resource.Resource, body, cell);
-            var scanned = data[resource.Resource][body].IsCellScanned(cell);
             var bodyResources = data[resource.Resource][body];
+            var deposit = bodyResources.Resources.GetQuantity(cell);
+            var scanned = bodyResources.IsCellScanned(cell);
             var color = (revealAll ? deposit != null : scanned) ? getDepositColor(resource, bodyResources, deposit) : colorUnknown;
             setCellColor(cell, color, colors);
         }
@@ -256,12 +256,12 @@ namespace Kethane.UserInterface
             }
         }
 
-        private static Color32 getDepositColor(ResourceDefinition definition, BodyResourceData bodyResources, ICellResource deposit)
+        private static Color32 getDepositColor(ResourceDefinition definition, BodyResourceData bodyResources, double? deposit)
         {
             Color32 color;
             if (deposit != null)
             {
-                var ratio = (float)(deposit.Quantity / bodyResources.MaxDepositQuantity);
+                var ratio = (float)(deposit.Value / bodyResources.Resources.MaxQuantity);
                 color = (Color32)(definition.ColorFull * ratio + definition.ColorEmpty * (1 - ratio));
             }
             else
@@ -380,8 +380,8 @@ namespace Kethane.UserInterface
                 GUILayout.FlexibleSpace();
                 if (revealAll || KethaneData.Current[definition.Resource][body].IsCellScanned(cell))
                 {
-                    var deposit = KethaneData.Current.GetCellDeposit(definition.Resource, body, cell);
-                    GUILayout.Label(deposit != null ? String.Format("{0:N1}", deposit.Quantity) : "(none)");
+                    var deposit = KethaneData.Current[definition.Resource][body].Resources.GetQuantity(cell);
+                    GUILayout.Label(deposit != null ? String.Format("{0:N1}", deposit.Value) : "(none)");
                 }
                 else
                 {
@@ -495,14 +495,14 @@ namespace Kethane.UserInterface
                     foreach (var cell in Cell.AtLevel(KethaneData.GridLevel))
                     {
                         var scanned = KethaneData.Current[resource.Resource][body].IsCellScanned(cell);
-                        var deposit = KethaneData.Current.GetCellDeposit(resource.Resource, body, cell);
+                        var deposit = KethaneData.Current[resource.Resource][body].Resources.GetQuantity(cell);
 
                         sb.Append(String.Format("{0},{1},", body.name, resource.Resource));
                         sb.Append(cells[cell]);
                         sb.Append(scanned ? "true" : "false");
                         if ((revealAll || scanned) && deposit != null)
                         {
-                            sb.Append(String.Format(CultureInfo.InvariantCulture, ",{0}", deposit.Quantity));
+                            sb.Append(String.Format(CultureInfo.InvariantCulture, ",{0}", deposit.Value));
                         }
                         else
                         {

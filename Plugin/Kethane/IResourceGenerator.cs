@@ -1,4 +1,5 @@
 ﻿using Kethane.GeodesicGrid;
+using System;
 
 namespace Kethane
 {
@@ -10,13 +11,9 @@ namespace Kethane
     public interface IBodyResources
     {
         ConfigNode Save();
-        ICellResource GetResource(Cell cell);
         double MaxQuantity { get; }
-    }
-
-    public interface ICellResource
-    {
-        double Quantity { get; set; }
+        double? GetQuantity(Cell cell);
+        double Extract(Cell cell, double amount);
     }
 
     internal class EmptyResourceGenerator : IResourceGenerator
@@ -32,7 +29,8 @@ namespace Kethane
         {
             public double MaxQuantity { get { return 0; } }
             public ConfigNode Save() { return new ConfigNode(); }
-            public ICellResource GetResource(Cell cell) { return null; }
+            public double? GetQuantity(Cell cell) { return null; }
+            public double Extract(Cell cell, double amount) { throw new Exception("No deposit here"); }
         }
     }
 }

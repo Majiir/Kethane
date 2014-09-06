@@ -107,7 +107,7 @@ namespace Kethane.Generators
                 MaxQuantity = resource.MaxQuantity;
             }
 
-            public ICellResource GetResource(Cell cell)
+            private Deposit getDeposit(Cell cell)
             {
                 var pos = cell.Position;
                 var lat = (float)(Math.Atan2(pos.y, Math.Sqrt(pos.x * pos.x + pos.z * pos.z)) * 180 / Math.PI);
@@ -117,6 +117,24 @@ namespace Kethane.Generators
                 var y = 90f - lat;
 
                 return deposits.FirstOrDefault(d => d.Shape.PointInPolygon(new Vector2(x, y)));
+            }
+
+            public double? GetQuantity(Cell cell)
+            {
+                var deposit = getDeposit(cell);
+                if (deposit == null) { return null; }
+                return deposit.Quantity;
+            }
+
+            public double Extract(Cell cell, double amount)
+            {
+                var deposit = getDeposit(cell);
+                if (deposit == null) { return 0; }
+
+                var current = deposit.Quantity;
+                var delta = Math.Min(current, Math.Max(0, amount));
+                deposit.Quantity = current - delta;
+                return delta;
             }
 
             public ConfigNode Save()
@@ -131,7 +149,7 @@ namespace Kethane.Generators
             }
         }
 
-        private class Deposit : ICellResource
+        private class Deposit
         {
             public Polygon Shape;
 

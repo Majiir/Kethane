@@ -1,8 +1,9 @@
-﻿using System;
+﻿using Kethane.GeodesicGrid;
+using Kethane.UserInterface;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using System.Collections.Generic;
-using Kethane.UserInterface;
 
 namespace Kethane.PartModules
 {
@@ -183,7 +184,7 @@ namespace Kethane.PartModules
                 {
                     if (animator.CurrentState == ExtractorState.Deployed)
                     {
-                        emitter.Emit = hit && GetDepositUnder("Kethane") != null;
+                        emitter.Emit = hit && getBodyResources("Kethane").GetQuantity(getCellUnder()) != null;
                     }
                     else
                     {
@@ -210,18 +211,25 @@ namespace Kethane.PartModules
 
             foreach (var resource in resources)
             {
-                var deposit = GetDepositUnder(resource.Name);
+                var cell = getCellUnder();
+                var bodyResources = getBodyResources(resource.Name);
+                var deposit = bodyResources.GetQuantity(cell);
                 if (deposit == null) { continue; }
 
                 double amount = TimeWarp.fixedDeltaTime * resource.Rate * energyRatio;
-                amount = Math.Min(amount, deposit.Quantity);
-                deposit.Quantity += this.part.RequestResource(resource.Name, -amount);
+                amount = Math.Min(amount, deposit.Value);
+                bodyResources.Extract(cell, -this.part.RequestResource(resource.Name, -amount));
             }
         }
 
-        private ICellResource GetDepositUnder(string resourceName)
+        private Cell getCellUnder()
         {
-            return KethaneData.Current.GetCellDeposit(resourceName, this.vessel.mainBody, MapOverlay.GetCellUnder(this.vessel.mainBody, this.vessel.transform.position));
+            return MapOverlay.GetCellUnder(this.vessel.mainBody, this.vessel.transform.position);
+        }
+
+        private IBodyResources getBodyResources(string resourceName)
+        {
+            return KethaneData.Current[resourceName][this.vessel.mainBody].Resources;
         }
 
         private bool raycastGround()

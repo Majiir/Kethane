@@ -168,7 +168,7 @@ namespace Kethane.PartModules
                     foreach (var resource in resources)
                     {
                         KethaneData.Current[resource][vessel.mainBody].ScanCell(cell);
-                        if (KethaneData.Current.GetCellDeposit(resource, vessel.mainBody, cell) != null)
+                        if (KethaneData.Current[resource][vessel.mainBody].Resources.GetQuantity(cell) != null)
                         {
                             detected = true;
                         }

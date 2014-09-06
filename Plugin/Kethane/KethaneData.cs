@@ -37,12 +37,6 @@ namespace Kethane
             get { return resources[resourceName]; }
         }
 
-        public ICellResource GetCellDeposit(string resourceName, CelestialBody body, Cell cell)
-        {
-            if (resourceName == null || body == null || !resources.ContainsKey(resourceName)) { return null; }
-            return resources[resourceName][body].GetCellDeposit(cell);
-        }
-
         public void ResetGeneratorConfig(ResourceDefinition resource)
         {
             resources[resource.Resource] = Kethane.ResourceData.Load(resource, new ConfigNode());
