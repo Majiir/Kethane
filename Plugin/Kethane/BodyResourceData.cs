@@ -28,6 +28,7 @@ namespace Kethane
 
         public static BodyResourceData Load(IResourceGenerator generator, CelestialBody body, ConfigNode bodyNode)
         {
+            if (bodyNode == null) { bodyNode = new ConfigNode(); }
             var resources = generator.Load(body, bodyNode.GetNode("GeneratorData"));
             var scans = new CellSet(KethaneData.GridLevel);
 

@@ -45,7 +45,7 @@ namespace Kethane
 
             foreach (var body in FlightGlobals.Bodies)
             {
-                var bodyNode = bodyNodes.SingleOrDefault(n => n.GetValue("Name") == body.name) ?? new ConfigNode();
+                var bodyNode = bodyNodes.SingleOrDefault(n => n.GetValue("Name") == body.name);
                 bodyResources[body] = BodyResourceData.Load(generator, body, bodyNode);
             }
 
