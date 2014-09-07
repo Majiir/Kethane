@@ -1,5 +1,5 @@
 ﻿
-namespace Kethane.GeodesicGrid
+namespace GeodesicGrid
 {
     internal static class IntMath
     {

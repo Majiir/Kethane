@@ -1,6 +1,6 @@
 ﻿using Vector3 = UnityEngine.Vector3;
 
-namespace Kethane.GeodesicGrid
+namespace GeodesicGrid
 {
     public struct TriangleHit
     {

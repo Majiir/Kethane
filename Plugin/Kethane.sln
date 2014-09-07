@@ -5,7 +5,7 @@ VisualStudioVersion = 12.0.21005.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kethane", "Kethane\Kethane.csproj", "{8D1501AC-6C11-459B-9561-6CC5E3EC15FE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KethaneGeodesicGrid", "KethaneGeodesicGrid\KethaneGeodesicGrid.csproj", "{0DF219BC-39F0-4AF8-9085-1A4120D8D536}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GeodesicGrid", "GeodesicGrid\GeodesicGrid.csproj", "{0DF219BC-39F0-4AF8-9085-1A4120D8D536}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -1,4 +1,4 @@
-﻿using Kethane.EnumerableExtensions;
+﻿using GeodesicGrid.EnumerableExtensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,7 +6,7 @@ using Ray = UnityEngine.Ray;
 using Transform = UnityEngine.Transform;
 using Vector3 = UnityEngine.Vector3;
 
-namespace Kethane.GeodesicGrid
+namespace GeodesicGrid
 {
     public struct Cell : IEquatable<Cell>
     {

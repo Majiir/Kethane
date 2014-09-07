@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Kethane.EnumerableExtensions
+namespace GeodesicGrid.EnumerableExtensions
 {
     internal class ReverseComparer<T> : IComparer<T>
     {

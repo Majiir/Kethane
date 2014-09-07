@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Kethane.GeodesicGrid
+namespace GeodesicGrid
 {
     public class CellMap<T> : IEnumerable<KeyValuePair<Cell, T>>
     {

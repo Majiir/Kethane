@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Kethane.EnumerableExtensions
+namespace GeodesicGrid.EnumerableExtensions
 {
     public static class EdgesEx
     {

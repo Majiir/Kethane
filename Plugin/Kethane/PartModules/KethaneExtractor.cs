@@ -1,4 +1,4 @@
-﻿using Kethane.GeodesicGrid;
+﻿using GeodesicGrid;
 using Kethane.UserInterface;
 using System;
 using System.Collections.Generic;

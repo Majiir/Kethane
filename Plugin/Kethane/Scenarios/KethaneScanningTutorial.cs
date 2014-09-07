@@ -1,4 +1,4 @@
-﻿using Kethane.GeodesicGrid;
+﻿using GeodesicGrid;
 using Kethane.PartModules;
 using Kethane.UserInterface;
 using System;

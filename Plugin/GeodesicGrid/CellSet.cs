@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace Kethane.GeodesicGrid
+namespace GeodesicGrid
 {
     public class CellSet : IEnumerable<Cell>
     {

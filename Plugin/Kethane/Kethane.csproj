@@ -87,9 +87,9 @@
     <EmbeddedResource Include="Resources\AlphaUnlitVertexColored.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\KethaneGeodesicGrid\KethaneGeodesicGrid.csproj">
+    <ProjectReference Include="..\GeodesicGrid\GeodesicGrid.csproj">
       <Project>{0df219bc-39f0-4af8-9085-1a4120d8d536}</Project>
-      <Name>KethaneGeodesicGrid</Name>
+      <Name>GeodesicGrid</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

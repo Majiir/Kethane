@@ -1,5 +1,5 @@
 ﻿
-namespace Kethane.EnumerableExtensions
+namespace GeodesicGrid.EnumerableExtensions
 {
     public struct Pair<T>
     {

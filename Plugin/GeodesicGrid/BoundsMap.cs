@@ -1,9 +1,9 @@
-﻿using Kethane.EnumerableExtensions;
+﻿using GeodesicGrid.EnumerableExtensions;
 using System;
 using System.Linq;
 using Mathf = UnityEngine.Mathf;
 
-namespace Kethane.GeodesicGrid
+namespace GeodesicGrid
 {
     public class BoundsMap
     {

@@ -1,5 +1,5 @@
 ﻿
-namespace Kethane.GeodesicGrid
+namespace GeodesicGrid
 {
     public enum ChildType : byte
     {

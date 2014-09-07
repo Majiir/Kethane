@@ -7,8 +7,8 @@
     <ProjectGuid>{0DF219BC-39F0-4AF8-9085-1A4120D8D536}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>KethaneGeodesicGrid</RootNamespace>
-    <AssemblyName>KethaneGeodesicGrid</AssemblyName>
+    <RootNamespace>GeodesicGrid</RootNamespace>
+    <AssemblyName>GeodesicGrid</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -42,14 +42,14 @@
     <Compile Include="EnumerableExtensions\Pair.cs" />
     <Compile Include="EnumerableExtensions\Repeat.cs" />
     <Compile Include="EnumerableExtensions\ReverseComparer.cs" />
-    <Compile Include="GeodesicGrid\BoundsMap.cs" />
-    <Compile Include="GeodesicGrid\Cell.cs" />
-    <Compile Include="GeodesicGrid\CellMap.cs" />
-    <Compile Include="GeodesicGrid\CellSet.cs" />
-    <Compile Include="GeodesicGrid\ChildType.cs" />
-    <Compile Include="GeodesicGrid\IntMath.cs" />
-    <Compile Include="GeodesicGrid\Triangle.cs" />
-    <Compile Include="GeodesicGrid\TriangleHit.cs" />
+    <Compile Include="BoundsMap.cs" />
+    <Compile Include="Cell.cs" />
+    <Compile Include="CellMap.cs" />
+    <Compile Include="CellSet.cs" />
+    <Compile Include="ChildType.cs" />
+    <Compile Include="IntMath.cs" />
+    <Compile Include="Triangle.cs" />
+    <Compile Include="TriangleHit.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
