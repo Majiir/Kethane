@@ -35,6 +35,7 @@
     <Reference Include="Assembly-CSharp, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
     </Reference>
+    <Reference Include="GeodesicGrid" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -85,12 +86,6 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\AlphaUnlitVertexColored.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\GeodesicGrid\GeodesicGrid.csproj">
-      <Project>{0df219bc-39f0-4af8-9085-1a4120d8d536}</Project>
-      <Name>GeodesicGrid</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Kethane-LICENSE.txt">
