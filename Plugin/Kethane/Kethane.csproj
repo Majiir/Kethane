@@ -35,6 +35,9 @@
     <Reference Include="Assembly-CSharp, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
     </Reference>
+    <Reference Include="Assembly-CSharp-firstpass, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+    </Reference>
     <Reference Include="GeodesicGrid" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -80,7 +83,6 @@
     <Compile Include="UserInterface\TerrainData.cs" />
     <Compile Include="PartModules\TimedMovingAverage.cs" />
     <Compile Include="UserInterface\WindowToggle.cs" />
-    <Compile Include="Toolbar\ToolbarWrapper.cs" />
     <Compile Include="Utilities\LicenseSentinel.cs" />
     <Compile Include="Utilities\TutorialInstaller.cs" />
   </ItemGroup>

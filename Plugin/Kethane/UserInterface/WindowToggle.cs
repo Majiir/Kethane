@@ -1,5 +1,4 @@
-﻿using Kethane.Toolbar;
-
+﻿
 namespace Kethane.UserInterface
 {
     public class WindowToggle
@@ -8,30 +7,19 @@ namespace Kethane.UserInterface
 
         public WindowToggle()
         {
+            var tex = GameDatabase.Instance.GetTexture("Kethane/toolbar", false);
+            var button = ApplicationLauncher.Instance.AddModApplication(onToggleOn, onToggleOff, null, null, null, null, ApplicationLauncher.AppScenes.MAPVIEW | ApplicationLauncher.AppScenes.TRACKSTATION, tex);
+            button.SetTrue();
+        }
+
+        private void onToggleOn()
+        {
             IsVisible = true;
-
-            var button = ToolbarManager.Instance.add("Kethane", "toggle");
-            button.TexturePath = "Kethane/toolbar";
-            refresh(button);
-            button.Visibility = new MapViewVisibility();
-            button.OnClick += e =>
-            {
-                IsVisible = !IsVisible;
-                refresh(button);
-            };
         }
 
-        private void refresh(IButton button)
+        private void onToggleOff()
         {
-            button.ToolTip = (IsVisible ? "Hide" : "Show") + " Kethane controls";
-        }
-
-        private class MapViewVisibility : IVisibility
-        {
-            public bool Visible
-            {
-                get { return (HighLogic.LoadedScene == GameScenes.FLIGHT || HighLogic.LoadedScene == GameScenes.TRACKSTATION) && MapView.MapIsEnabled; }
-            }
+            IsVisible = false;
         }
     }
 }

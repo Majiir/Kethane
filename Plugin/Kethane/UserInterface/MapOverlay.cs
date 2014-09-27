@@ -1,5 +1,4 @@
 ﻿using GeodesicGrid;
-using Kethane.Toolbar;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -32,7 +31,7 @@ namespace Kethane.UserInterface
         private static Rect controlWindowPos = new Rect(0, 0, 160, 0);
         private static bool revealAll = false;
         private static bool expandWindow = true;
-        private static WindowToggle toolbar = findToolbar();
+        private static WindowToggle toolbar;
 
         private static readonly Color32 colorEmpty = Misc.Parse(SettingsManager.GetValue("ColorEmpty"), new Color32(128, 128, 128, 192));
         private static readonly Color32 colorUnknown = Misc.Parse(SettingsManager.GetValue("ColorUnknown"), new Color32(0, 0, 0, 128));
@@ -79,6 +78,10 @@ namespace Kethane.UserInterface
             }
             else if (HighLogic.LoadedScene == GameScenes.FLIGHT || HighLogic.LoadedScene == GameScenes.TRACKSTATION)
             {
+                if (toolbar == null)
+                {
+                    toolbar = new WindowToggle();
+                }
                 startMapOverlay();
             }
         }
@@ -269,20 +272,6 @@ namespace Kethane.UserInterface
                 color = colorEmpty;
             }
             return color;
-        }
-
-        private static WindowToggle findToolbar()
-        {
-            if (ToolbarManager.ToolbarAvailable)
-            {
-                Debug.Log("[Kethane] Toolbar instance found. Using new interface.");
-                return new WindowToggle();
-            }
-            else
-            {
-                Debug.LogWarning("[Kethane] Could not find Toolbar instance. Reverting to legacy interface.");
-                return null;
-            }
         }
 
         public void OnGUI()
