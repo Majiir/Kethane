@@ -264,6 +264,15 @@ namespace Kethane.UserInterface
             GUILayout.Label(String.Format("{0:F1} {1}, {2:F1} {3}", Math.Abs(lat), lat < 0 ? "S" : "N", Math.Abs(lon), lon < 0 ? "W" : "E"));
             GUILayout.EndHorizontal();
 
+            mouseWindowContents(cell);
+
+            GUILayout.EndVertical();
+        }
+
+        private void mouseWindowContents(Cell cell)
+        {
+            GUILayout.BeginVertical();
+
             foreach (var definition in KethaneController.ResourceDefinitions)
             {
                 GUILayout.BeginHorizontal();
@@ -290,6 +299,19 @@ namespace Kethane.UserInterface
         {
             GUILayout.BeginVertical();
 
+            ShowOverlay = GUILayout.Toggle(ShowOverlay, "Show Grid Overlay");
+
+            controlWindowContents();
+
+            GUILayout.EndVertical();
+
+            GUI.DragWindow(new Rect(0, 0, controlWindowPos.width, controlWindowPos.height));
+        }
+
+        private void controlWindowContents()
+        {
+            GUILayout.BeginVertical();
+
             GUILayout.BeginHorizontal();
 
             var defs = KethaneController.ResourceDefinitions.Select(d => d.Resource).ToList();
@@ -311,8 +333,6 @@ namespace Kethane.UserInterface
             GUI.enabled = true;
 
             GUILayout.EndHorizontal();
-
-            ShowOverlay = GUILayout.Toggle(ShowOverlay, "Show Grid Overlay");
 
             if (debugEnabled)
             {
@@ -348,8 +368,6 @@ namespace Kethane.UserInterface
             }
 
             GUILayout.EndVertical();
-
-            GUI.DragWindow(new Rect(0, 0, controlWindowPos.width, controlWindowPos.height));
         }
 
         private static void export()
