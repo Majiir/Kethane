@@ -30,7 +30,6 @@ namespace Kethane.UserInterface
         private static GUISkin defaultSkin = null;
         private static Rect controlWindowPos = new Rect(0, 0, 160, 0);
         private static bool revealAll = false;
-        private static bool expandWindow = true;
         private static ApplicationLauncherButton button;
 
         private static readonly Color32 colorEmpty = Misc.Parse(SettingsManager.GetValue("ColorEmpty"), new Color32(128, 128, 128, 192));
@@ -246,7 +245,7 @@ namespace Kethane.UserInterface
             var oldBackground = GUI.backgroundColor;
             GUI.backgroundColor = XKCDColors.Green;
 
-            controlWindowPos = GUILayout.Window(12358, controlWindowPos, controlWindow, expandWindow ? "Kethane Scan Map" : String.Empty);
+            controlWindowPos = GUILayout.Window(12358, controlWindowPos, controlWindow, "Kethane Scan Map");
 
             GUI.backgroundColor = oldBackground;
         }
@@ -292,68 +291,61 @@ namespace Kethane.UserInterface
         {
             GUILayout.BeginVertical();
 
-            if (!expandWindow)
+            GUILayout.BeginHorizontal();
+
+            var defs = KethaneController.ResourceDefinitions.Select(d => d.Resource).ToList();
+
+            GUI.enabled = defs.Count > 1;
+            if (GUILayout.Button("◀", GUILayout.ExpandWidth(false)))
             {
-                GUI.Label(new Rect(8, 15, 15, 20), "K");
+                SelectedResource = defs.LastOrDefault(s => s.CompareTo(SelectedResource) < 0) ?? defs.Last();
             }
-            else
+            GUI.enabled = true;
+
+            GUILayout.Label(SelectedResource, centeredStyle, GUILayout.ExpandWidth(true));
+
+            GUI.enabled = defs.Count > 1;
+            if (GUILayout.Button("▶", GUILayout.ExpandWidth(false)))
             {
-                GUILayout.BeginHorizontal();
+                SelectedResource = defs.FirstOrDefault(s => s.CompareTo(SelectedResource) > 0) ?? defs.First();
+            }
+            GUI.enabled = true;
 
-                var defs = KethaneController.ResourceDefinitions.Select(d => d.Resource).ToList();
+            GUILayout.EndHorizontal();
 
-                GUI.enabled = defs.Count > 1;
-                if (GUILayout.Button("◀", GUILayout.ExpandWidth(false)))
+            ShowOverlay = GUILayout.Toggle(ShowOverlay, "Show Grid Overlay");
+
+            if (debugEnabled)
+            {
+                var vessel = FlightGlobals.ActiveVessel;
+                if (vessel != null && vessel.mainBody != body) { vessel = null; }
+
+                GUILayout.BeginVertical(GUI.skin.box);
+
+                if (revealAll != GUILayout.Toggle(revealAll, "Reveal Unscanned Cells"))
                 {
-                    SelectedResource = defs.LastOrDefault(s => s.CompareTo(SelectedResource) < 0) ?? defs.Last();
+                    revealAll = !revealAll;
+                    refreshCellColors();
                 }
-                GUI.enabled = true;
 
-                GUILayout.Label(SelectedResource, centeredStyle, GUILayout.ExpandWidth(true));
-
-                GUI.enabled = defs.Count > 1;
-                if (GUILayout.Button("▶", GUILayout.ExpandWidth(false)))
+                if (GUILayout.Button("Reset " + (body ? body.name : "[null]") + " Data"))
                 {
-                    SelectedResource = defs.FirstOrDefault(s => s.CompareTo(SelectedResource) > 0) ?? defs.First();
+                    KethaneData.Current[resource.Resource].ResetBodyData(body);
+                    refreshCellColors();
                 }
-                GUI.enabled = true;
 
-                GUILayout.EndHorizontal();
-
-                ShowOverlay = GUILayout.Toggle(ShowOverlay, "Show Grid Overlay");
-
-                if (debugEnabled)
+                if (GUILayout.Button("Reset Generator Config"))
                 {
-                    var vessel = FlightGlobals.ActiveVessel;
-                    if (vessel != null && vessel.mainBody != body) { vessel = null; }
-
-                    GUILayout.BeginVertical(GUI.skin.box);
-
-                    if (revealAll != GUILayout.Toggle(revealAll, "Reveal Unscanned Cells"))
-                    {
-                        revealAll = !revealAll;
-                        refreshCellColors();
-                    }
-
-                    if (GUILayout.Button("Reset " + (body ? body.name : "[null]") + " Data"))
-                    {
-                        KethaneData.Current[resource.Resource].ResetBodyData(body);
-                        refreshCellColors();
-                    }
-
-                    if (GUILayout.Button("Reset Generator Config"))
-                    {
-                        KethaneData.Current.ResetGeneratorConfig(resource);
-                        refreshCellColors();
-                    }
-
-                    if (GUILayout.Button("Export Data (" + (revealAll ? "All" : "Scanned") + ")"))
-                    {
-                        export();
-                    }
-
-                    GUILayout.EndVertical();
+                    KethaneData.Current.ResetGeneratorConfig(resource);
+                    refreshCellColors();
                 }
+
+                if (GUILayout.Button("Export Data (" + (revealAll ? "All" : "Scanned") + ")"))
+                {
+                    export();
+                }
+
+                GUILayout.EndVertical();
             }
 
             GUILayout.EndVertical();
