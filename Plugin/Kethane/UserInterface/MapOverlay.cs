@@ -53,7 +53,7 @@ namespace Kethane.UserInterface
         public void Awake()
         {
             var scene = HighLogic.LoadedScene;
-            if (scene != GameScenes.FLIGHT && scene != GameScenes.TRACKSTATION && scene != GameScenes.MAINMENU)
+            if (scene != GameScenes.FLIGHT && scene != GameScenes.TRACKSTATION)
             {
                 enabled = false;
             }
@@ -71,22 +71,11 @@ namespace Kethane.UserInterface
             overlayRenderer = gameObject.AddComponent<OverlayRenderer>();
             overlayRenderer.SetGridLevel(KethaneData.GridLevel);
 
-            if (HighLogic.LoadedScene == GameScenes.MAINMENU)
+            if (toolbar == null)
             {
-                overlayRenderer.IsVisible = startMenuOverlay();
+                toolbar = new WindowToggle();
             }
-            else if (HighLogic.LoadedScene == GameScenes.FLIGHT || HighLogic.LoadedScene == GameScenes.TRACKSTATION)
-            {
-                if (toolbar == null)
-                {
-                    toolbar = new WindowToggle();
-                }
-                startMapOverlay();
-            }
-        }
 
-        private void startMapOverlay()
-        {
             var node = ConfigNode.Load(KSPUtil.ApplicationRootPath + "GameData/Kethane/Grid.cfg");
             if (node == null) { return; }
             foreach (var body in FlightGlobals.Bodies)
@@ -97,54 +86,6 @@ namespace Kethane.UserInterface
                     bodyRadii[body] = result;
                 }
             }
-        }
-
-        private bool startMenuOverlay()
-        {
-            if (!Misc.Parse(SettingsManager.GetValue("ShowInMenu"), true)) { return false; }
-
-            var objects = GameObject.FindObjectsOfType(typeof(GameObject));
-            if (objects.Any(o => o.name == "LoadingBuffer")) { return false; }
-            var kerbin = objects.OfType<GameObject>().Where(b => b.name == "Kerbin").LastOrDefault();
-
-            if (kerbin == null)
-            {
-                Debug.LogWarning("[Kethane] Couldn't find Kerbin!");
-                return false;
-            }
-
-            overlayRenderer.SetTarget(kerbin.transform);
-            overlayRenderer.SetRadiusMultiplier(1.02f);
-
-            var random = new System.Random();
-            var colors = new CellMap<Color32>(KethaneData.GridLevel);
-
-            foreach (var cell in Cell.AtLevel(KethaneData.GridLevel))
-            {
-                var rand = random.Next(100);
-                Color32 color;
-                if (rand < 16)
-                {
-                    color = rand < 4 ? new Color32(21, 176, 26, 255) : colorEmpty;
-                    foreach (var neighbor in cell.GetNeighbors(KethaneData.GridLevel))
-                    {
-                        if (random.Next(2) < 1)
-                        {
-                            colors[neighbor] = color;
-                        }
-                    }
-                }
-                else
-                {
-                    color = colorUnknown;
-                }
-
-                colors[cell] = color;
-            }
-
-            overlayRenderer.SetCellColors(colors);
-
-            return true;
         }
 
         public void OnDestroy()
@@ -159,18 +100,9 @@ namespace Kethane.UserInterface
         {
             if (HighLogic.LoadedScene != GameScenes.FLIGHT && HighLogic.LoadedScene != GameScenes.TRACKSTATION)
             {
-                if (HighLogic.LoadedScene != GameScenes.MAINMENU)
-                {
-                    overlayRenderer.IsVisible = false;
-                }
                 return;
             }
 
-            updateMapView();
-        }
-
-        private void updateMapView()
-        {
             if (!MapView.MapIsEnabled || !ShowOverlay || MapView.MapCamera == null || KethaneData.Current == null)
             {
                 overlayRenderer.IsVisible = false;

@@ -51,6 +51,7 @@
     <Compile Include="Generators\CellularResourceGenerator.cs" />
     <Compile Include="PartModules\PartExtensions.cs" />
     <Compile Include="ResourceData.cs" />
+    <Compile Include="UserInterface\MainMenuOverlay.cs" />
     <Compile Include="UserInterface\OverlayRenderer.cs" />
     <Compile Include="Utilities\CompatibilityChecker.cs" />
     <Compile Include="Utilities\InstallCleanup.cs" />
