@@ -44,11 +44,6 @@ namespace Kethane.UserInterface
             SelectedResource = "Kethane";
         }
 
-        public static Cell GetCellUnder(CelestialBody body, Vector3 worldPosition)
-        {
-            return Cell.Containing(body.transform.InverseTransformPoint(worldPosition), KethaneData.GridLevel);
-        }
-
         public void Awake()
         {
             var scene = HighLogic.LoadedScene;

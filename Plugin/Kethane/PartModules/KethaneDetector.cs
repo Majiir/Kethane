@@ -163,7 +163,7 @@ namespace Kethane.PartModules
                 if (TimerEcho >= TimerThreshold)
                 {
                     var detected = false;
-                    var cell = MapOverlay.GetCellUnder(vessel.mainBody, vessel.transform.position);
+                    var cell = vessel.mainBody.GetCellUnder(vessel.transform.position);
                     if (resources.All(r => KethaneData.Current[r][vessel.mainBody].IsCellScanned(cell))) { return; }
                     foreach (var resource in resources)
                     {

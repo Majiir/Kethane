@@ -224,7 +224,7 @@ namespace Kethane.PartModules
 
         private Cell getCellUnder()
         {
-            return MapOverlay.GetCellUnder(this.vessel.mainBody, this.vessel.transform.position);
+            return this.vessel.mainBody.GetCellUnder(this.vessel.transform.position);
         }
 
         private IBodyResources getBodyResources(string resourceName)
