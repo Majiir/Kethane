@@ -144,9 +144,13 @@ namespace Kethane.UserInterface
 
         private void refreshCellColors()
         {
+            overlayRenderer.SetCellColors(getCellColors());
+        }
+
+        private CellMap<Color32> getCellColors()
+        {
             var data = KethaneData.Current;
-            var colors = new CellMap<Color32>(KethaneData.GridLevel, c => getCellColor(c, body, data));
-            overlayRenderer.SetCellColors(colors);
+            return new CellMap<Color32>(KethaneData.GridLevel, c => getCellColor(c, body, data));
         }
 
         private Color32 getCellColor(Cell cell, CelestialBody body, KethaneData data)
