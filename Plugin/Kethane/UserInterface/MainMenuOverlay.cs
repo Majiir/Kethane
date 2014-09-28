@@ -7,16 +7,14 @@ namespace Kethane.UserInterface
     [KSPAddon(KSPAddon.Startup.MainMenu, false)]
     internal class MainMenuOverlay : MonoBehaviour
     {
-        private OverlayRenderer overlayRenderer;
-
         protected void Start()
         {
-            overlayRenderer = gameObject.AddComponent<OverlayRenderer>();
+            var overlayRenderer = gameObject.AddComponent<OverlayRenderer>();
             overlayRenderer.SetGridLevel(KethaneData.GridLevel);
-            overlayRenderer.IsVisible = startMenuOverlay();
+            overlayRenderer.IsVisible = startMenuOverlay(overlayRenderer);
         }
 
-        private bool startMenuOverlay()
+        private bool startMenuOverlay(OverlayRenderer overlayRenderer)
         {
             if (!Misc.Parse(SettingsManager.GetValue("ShowInMenu"), true)) { return false; }
 
