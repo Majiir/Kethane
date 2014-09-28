@@ -100,6 +100,7 @@ namespace Kethane.UserInterface
         {
             if (HighLogic.LoadedScene != GameScenes.FLIGHT && HighLogic.LoadedScene != GameScenes.TRACKSTATION)
             {
+                Destroy(gameObject);
                 return;
             }
 
