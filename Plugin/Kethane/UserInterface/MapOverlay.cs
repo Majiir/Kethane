@@ -31,7 +31,7 @@ namespace Kethane.UserInterface
         private static Rect controlWindowPos = new Rect(0, 0, 160, 0);
         private static bool revealAll = false;
         private static bool expandWindow = true;
-        private static WindowToggle toolbar;
+        private static ApplicationLauncherButton button;
 
         private static readonly Color32 colorEmpty = Misc.Parse(SettingsManager.GetValue("ColorEmpty"), new Color32(128, 128, 128, 192));
         private static readonly Color32 colorUnknown = Misc.Parse(SettingsManager.GetValue("ColorUnknown"), new Color32(0, 0, 0, 128));
@@ -71,9 +71,10 @@ namespace Kethane.UserInterface
             overlayRenderer = gameObject.AddComponent<OverlayRenderer>();
             overlayRenderer.SetGridLevel(KethaneData.GridLevel);
 
-            if (toolbar == null)
+            if (button == null)
             {
-                toolbar = new WindowToggle();
+                var tex = GameDatabase.Instance.GetTexture("Kethane/toolbar", false);
+                button = ApplicationLauncher.Instance.AddModApplication(null, null, null, null, null, null, ApplicationLauncher.AppScenes.MAPVIEW | ApplicationLauncher.AppScenes.TRACKSTATION, tex);
             }
 
             var node = ConfigNode.Load(KSPUtil.ApplicationRootPath + "GameData/Kethane/Grid.cfg");
@@ -239,7 +240,7 @@ namespace Kethane.UserInterface
                 minMaxStyle.contentOffset = new Vector2(-1, 0);
             }
 
-            if (toolbar != null && !toolbar.IsVisible) { return; }
+            if (button == null || button.State != RUIToggleButton.ButtonState.TRUE) { return; }
 
             GUI.skin = defaultSkin;
             var oldBackground = GUI.backgroundColor;
@@ -289,12 +290,6 @@ namespace Kethane.UserInterface
 
         private void controlWindow(int windowID)
         {
-            if ((toolbar == null) && GUI.Button(new Rect(2, 2, 20, 15), expandWindow ? "\u25B4" : "\u25BE", minMaxStyle))
-            {
-                expandWindow = !expandWindow;
-                controlWindowPos = new Rect(controlWindowPos.xMin, controlWindowPos.yMin, expandWindow ? 160 : 24, 36);
-            }
-
             GUILayout.BeginVertical();
 
             if (!expandWindow)

@@ -84,7 +84,6 @@
     <Compile Include="SettingsManager.cs" />
     <Compile Include="UserInterface\TerrainData.cs" />
     <Compile Include="PartModules\TimedMovingAverage.cs" />
-    <Compile Include="UserInterface\WindowToggle.cs" />
     <Compile Include="Utilities\LicenseSentinel.cs" />
     <Compile Include="Utilities\TutorialInstaller.cs" />
   </ItemGroup>
