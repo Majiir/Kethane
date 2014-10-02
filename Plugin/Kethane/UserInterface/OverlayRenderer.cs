@@ -9,10 +9,11 @@ namespace Kethane.UserInterface
     {
         private Mesh mesh;
 
-        private int gridLevel = 0;
         private Func<Cell, float> heightMap = c => 1;
         private float radiusMultiplier = 1;
         private Transform target = null;
+
+        public int GridLevel { get; private set; }
 
         public bool IsVisible
         {
@@ -47,7 +48,7 @@ namespace Kethane.UserInterface
 
         public void SetHeightMap(Func<Cell, float> heightMap)
         {
-            SetGridLevelAndHeightMap(gridLevel, heightMap);
+            SetGridLevelAndHeightMap(GridLevel, heightMap);
         }
 
         public void SetGridLevelAndHeightMap(int gridLevel, Func<Cell, float> heightMap)
@@ -55,9 +56,9 @@ namespace Kethane.UserInterface
             if (gridLevel < 0) { throw new ArgumentOutOfRangeException("gridLevel"); }
             if (heightMap == null) { throw new ArgumentNullException("heightMap"); }
 
-            if (gridLevel != this.gridLevel)
+            if (gridLevel != GridLevel)
             {
-                this.gridLevel = gridLevel;
+                GridLevel = gridLevel;
                 updateTriangles();
             }
             else
@@ -153,12 +154,12 @@ namespace Kethane.UserInterface
         private void updateTriangles()
         {
             mesh.Clear();
-            mesh.vertices = new Vector3[Cell.CountAtLevel(gridLevel) * 6];
+            mesh.vertices = new Vector3[Cell.CountAtLevel(GridLevel) * 6];
             mesh.colors32 = new Color32[mesh.vertexCount];
 
             var triangles = new List<int>();
 
-            foreach (var cell in Cell.AtLevel(gridLevel))
+            foreach (var cell in Cell.AtLevel(GridLevel))
             {
                 var t = (int)cell.Index * 6;
                 if (cell.IsPentagon)
@@ -182,7 +183,7 @@ namespace Kethane.UserInterface
         {
             var vertices = new List<UnityEngine.Vector3>();
 
-            foreach (var cell in Cell.AtLevel(gridLevel))
+            foreach (var cell in Cell.AtLevel(GridLevel))
             {
                 var center = cell.Position * heightMap(cell);
 
@@ -194,7 +195,7 @@ namespace Kethane.UserInterface
                 var blend = 0.08f;
                 center *= blend;
 
-                foreach (var vertex in cell.GetVertices(gridLevel, heightMap))
+                foreach (var vertex in cell.GetVertices(GridLevel, heightMap))
                 {
                     vertices.Add(center + vertex * (1 - blend));
                 }
