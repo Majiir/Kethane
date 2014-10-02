@@ -437,7 +437,7 @@ namespace Kethane.UserInterface
 
             try
             {
-                var bodyTerrain = TerrainData.ForBody(body);
+                var bodyTerrain = TerrainData.ForBody(body, KethaneData.GridLevel);
                 heightRatioAt = c => Math.Max(1, bodyTerrain.GetHeightRatio(c));
             }
             catch (ArgumentException)

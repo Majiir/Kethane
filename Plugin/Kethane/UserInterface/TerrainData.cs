@@ -13,22 +13,22 @@ namespace Kethane.UserInterface
             bodies.Clear();
         }
 
-        public static TerrainData ForBody(CelestialBody body)
+        public static TerrainData ForBody(CelestialBody body, int level)
         {
             if (body == null) { throw new ArgumentException("Body may not be null"); }
-            if (!bodies.ContainsKey(body.name))
+            if (!bodies.ContainsKey(body.name) || bodies[body.name].heightRatios.Level < level)
             {
-                bodies[body.name] = new TerrainData(body);
+                bodies[body.name] = new TerrainData(body, level);
             }
             return bodies[body.name];
         }
 
         private readonly CellMap<float> heightRatios;
 
-        private TerrainData(CelestialBody body)
+        private TerrainData(CelestialBody body, int level)
         {
             if (body.pqsController == null) { throw new ArgumentException("Body doesn't have a PQS controller"); }
-            heightRatios = new CellMap<float>(KethaneData.GridLevel, c => (float)(body.pqsController.GetSurfaceHeight(c.Position) / body.pqsController.radius));
+            heightRatios = new CellMap<float>(level, c => (float)(body.pqsController.GetSurfaceHeight(c.Position) / body.pqsController.radius));
         }
 
         public float GetHeightRatio(Cell cell)
