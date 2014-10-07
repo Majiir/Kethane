@@ -53,8 +53,8 @@ namespace Kethane.Utilities
             \*-----------------------------------------------*/
 
             const int compatibleMajor = 0;
-            const int compatibleMinor = 24;
-            const int compatibleRevision = 2;
+            const int compatibleMinor = 25;
+            const int compatibleRevision = 0;
 
             return (Versioning.version_major == compatibleMajor) && (Versioning.version_minor == compatibleMinor) && (Versioning.Revision == compatibleRevision);
 
@@ -77,7 +77,7 @@ namespace Kethane.Utilities
         }
 
         // Version of the compatibility checker itself.
-        private static int _version = 3;
+        private static int _version = 4;
 
         public void Start()
         {
@@ -147,26 +147,46 @@ namespace Kethane.Utilities
             Array.Sort(incompatible);
             Array.Sort(incompatibleUnity);
 
-            String message = "Some installed mods may be incompatible with this version of Kerbal Space Program. Features may be broken or disabled. Please check for updates to the listed mods.";
+            String message = String.Empty;
 
-            if (incompatible.Length > 0)
+            if (IsWin64())
             {
-                Debug.LogWarning("[CompatibilityChecker] Incompatible mods detected: " + String.Join(", ", incompatible));
-                message += String.Format("\n\nThese mods are incompatible with KSP {0}.{1}.{2}:\n\n", Versioning.version_major, Versioning.version_minor, Versioning.Revision);
-                message += String.Join("\n", incompatible);
-            }
-
-            if (incompatibleUnity.Length > 0)
-            {
-                Debug.LogWarning("[CompatibilityChecker] Incompatible mods (Unity) detected: " + String.Join(", ", incompatibleUnity));
-                message += String.Format("\n\nThese mods are incompatible with Unity {0}:\n\n", Application.unityVersion);
-                message += String.Join("\n", incompatibleUnity);
+                message += "WARNING: You are using 64-bit KSP on Windows. This version of KSP is known to cause crashes. It's highly recommended that you use either 32-bit KSP on Windows or switch to Linux.";
             }
 
             if ((incompatible.Length > 0) || (incompatibleUnity.Length > 0))
             {
+                message += ((message == String.Empty) ? "Some" : "\n\nAdditionally, some") + " installed mods may be incompatible with this version of Kerbal Space Program. Features may be broken or disabled. Please check for updates to the listed mods.";
+
+                if (incompatible.Length > 0)
+                {
+                    Debug.LogWarning("[CompatibilityChecker] Incompatible mods detected: " + String.Join(", ", incompatible));
+                    message += String.Format("\n\nThese mods are incompatible with KSP {0}.{1}.{2}:\n\n", Versioning.version_major, Versioning.version_minor, Versioning.Revision);
+                    message += String.Join("\n", incompatible);
+                }
+
+                if (incompatibleUnity.Length > 0)
+                {
+                    Debug.LogWarning("[CompatibilityChecker] Incompatible mods (Unity) detected: " + String.Join(", ", incompatibleUnity));
+                    message += String.Format("\n\nThese mods are incompatible with Unity {0}:\n\n", Application.unityVersion);
+                    message += String.Join("\n", incompatibleUnity);
+                }
+            }
+
+            if ((incompatible.Length > 0) || (incompatibleUnity.Length > 0) || IsWin64())
+            {
                 PopupDialog.SpawnPopupDialog("Incompatible Mods Detected", message, "OK", true, HighLogic.Skin);
             }
+        }
+
+        public static bool IsWin64()
+        {
+            return (IntPtr.Size == 8) && (Environment.OSVersion.Platform == PlatformID.Win32NT);
+        }
+
+        public static bool IsAllCompatible()
+        {
+            return IsCompatible() && IsUnityCompatible() && !IsWin64();
         }
 
         private static IEnumerable<Type> getAllTypes()

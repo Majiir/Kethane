@@ -1,5 +1,4 @@
 ﻿using GeodesicGrid;
-using Kethane.Toolbar;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -18,12 +17,12 @@ namespace Kethane.UserInterface
 
         private CelestialBody body;
         private Dictionary<CelestialBody, double> bodyRadii = new Dictionary<CelestialBody, double>();
-        private Mesh mesh;
         private GUISkin skin;
         private Cell? hoverCell;
         private ResourceDefinition resource;
         private Func<Cell, float> heightAt;
         private BoundsMap bounds;
+        private OverlayRenderer overlayRenderer;
 
         private static RenderingManager renderingManager;
         private static GUIStyle centeredStyle = null;
@@ -31,8 +30,7 @@ namespace Kethane.UserInterface
         private static GUISkin defaultSkin = null;
         private static Rect controlWindowPos = new Rect(0, 0, 160, 0);
         private static bool revealAll = false;
-        private static bool expandWindow = true;
-        private static WindowToggle toolbar = findToolbar();
+        private static ApplicationLauncherButton button;
 
         private static readonly Color32 colorEmpty = Misc.Parse(SettingsManager.GetValue("ColorEmpty"), new Color32(128, 128, 128, 192));
         private static readonly Color32 colorUnknown = Misc.Parse(SettingsManager.GetValue("ColorUnknown"), new Color32(0, 0, 0, 128));
@@ -54,7 +52,7 @@ namespace Kethane.UserInterface
         public void Awake()
         {
             var scene = HighLogic.LoadedScene;
-            if (scene != GameScenes.FLIGHT && scene != GameScenes.TRACKSTATION && scene != GameScenes.MAINMENU)
+            if (scene != GameScenes.FLIGHT && scene != GameScenes.TRACKSTATION)
             {
                 enabled = false;
             }
@@ -69,24 +67,14 @@ namespace Kethane.UserInterface
 
             Instance = this;
 
-            if (HighLogic.LoadedScene == GameScenes.MAINMENU)
-            {
-                var success = startMenuOverlay();
-                if (gameObject.renderer != null)
-                {
-                    gameObject.renderer.enabled = success;
-                }
-            }
-            else if (HighLogic.LoadedScene == GameScenes.FLIGHT || HighLogic.LoadedScene == GameScenes.TRACKSTATION)
-            {
-                startMapOverlay();
-            }
-        }
+            overlayRenderer = gameObject.AddComponent<OverlayRenderer>();
+            overlayRenderer.SetGridLevel(KethaneData.GridLevel);
 
-        private void startMapOverlay()
-        {
-            setUpMesh();
-            gameObject.layer = 10;
+            if (button == null)
+            {
+                var tex = GameDatabase.Instance.GetTexture("Kethane/toolbar", false);
+                button = ApplicationLauncher.Instance.AddModApplication(null, null, null, null, null, null, ApplicationLauncher.AppScenes.MAPVIEW | ApplicationLauncher.AppScenes.TRACKSTATION, tex);
+            }
 
             var node = ConfigNode.Load(KSPUtil.ApplicationRootPath + "GameData/Kethane/Grid.cfg");
             if (node == null) { return; }
@@ -98,61 +86,6 @@ namespace Kethane.UserInterface
                     bodyRadii[body] = result;
                 }
             }
-        }
-
-        private bool startMenuOverlay()
-        {
-            if (!Misc.Parse(SettingsManager.GetValue("ShowInMenu"), true)) { return false; }
-
-            setUpMesh();
-
-            var objects = GameObject.FindObjectsOfType(typeof(GameObject));
-            if (objects.Any(o => o.name == "LoadingBuffer")) { return false; }
-            var kerbin = objects.OfType<GameObject>().Where(b => b.name == "Kerbin").LastOrDefault();
-
-            if (kerbin == null)
-            {
-                Debug.LogWarning("[Kethane] Couldn't find Kerbin!");
-                return false;
-            }
-
-            gameObject.layer = kerbin.layer;
-            gameObject.transform.parent = kerbin.transform;
-            gameObject.transform.localPosition = Vector3.zero;
-            gameObject.transform.localRotation = Quaternion.identity;
-            gameObject.transform.localScale = Vector3.one * 1020;
-
-            gameObject.renderer.enabled = true;
-
-            var random = new System.Random();
-            var colors = new Color32[mesh.vertexCount];
-
-            foreach (var cell in Cell.AtLevel(KethaneData.GridLevel))
-            {
-                var rand = random.Next(100);
-                Color32 color;
-                if (rand < 16)
-                {
-                    color = rand < 4 ? new Color32(21, 176, 26, 255) : colorEmpty;
-                    foreach (var neighbor in cell.GetNeighbors(KethaneData.GridLevel))
-                    {
-                        if (random.Next(2) < 1)
-                        {
-                            setCellColor(neighbor, color, colors);
-                        }
-                    }
-                }
-                else
-                {
-                    color = colorUnknown;
-                }
-
-                setCellColor(cell, color, colors);
-            }
-
-            mesh.colors32 = colors;
-
-            return true;
         }
 
         public void OnDestroy()
@@ -167,25 +100,17 @@ namespace Kethane.UserInterface
         {
             if (HighLogic.LoadedScene != GameScenes.FLIGHT && HighLogic.LoadedScene != GameScenes.TRACKSTATION)
             {
-                if (HighLogic.LoadedScene != GameScenes.MAINMENU)
-                {
-                    gameObject.renderer.enabled = false;
-                }
+                Destroy(gameObject);
                 return;
             }
 
-            updateMapView();
-        }
-
-        private void updateMapView()
-        {
             if (!MapView.MapIsEnabled || !ShowOverlay || MapView.MapCamera == null || KethaneData.Current == null)
             {
-                gameObject.renderer.enabled = false;
+                overlayRenderer.IsVisible = false;
                 return;
             }
 
-            gameObject.renderer.enabled = true;
+            overlayRenderer.IsVisible = true;
 
             var target = MapView.MapCamera.target;
 
@@ -195,18 +120,15 @@ namespace Kethane.UserInterface
             {
                 body = newBody;
 
-                refreshMesh();
-                refreshCollider();
+                heightAt = getHeightRatioMap();
+                bounds = new BoundsMap(heightAt, KethaneData.GridLevel);
+
+                overlayRenderer.SetHeightMap(heightAt);
 
                 var radius = bodyRadii.ContainsKey(body) ? bodyRadii[body] : 1.025;
                 var parent = ScaledSpace.Instance.scaledSpaceTransforms.FirstOrDefault(t => t.name == body.name);
-                if (parent != null)
-                {
-                    gameObject.transform.parent = parent;
-                }
-                gameObject.transform.localScale = Vector3.one * 1000f * (float)radius;
-                gameObject.transform.localPosition = Vector3.zero;
-                gameObject.transform.localRotation = Quaternion.identity;
+                overlayRenderer.SetRadiusMultiplier((float)radius);
+                overlayRenderer.SetTarget(parent);
             }
 
             if (bodyChanged || resource == null || resource.Resource != SelectedResource)
@@ -222,38 +144,23 @@ namespace Kethane.UserInterface
         public void RefreshCellColor(Cell cell, CelestialBody body)
         {
             if (body != this.body) { return; }
-            var colors = mesh.colors32;
-            refreshCellColor(cell, body, colors, KethaneData.Current);
-            mesh.colors32 = colors;
+            overlayRenderer.SetCellColor(cell, getCellColor(cell, body, KethaneData.Current));
         }
 
         private void refreshCellColors()
         {
-            var colors = new Color32[mesh.vertexCount];
             var data = KethaneData.Current;
-            foreach (var cell in Cell.AtLevel(KethaneData.GridLevel))
-            {
-                refreshCellColor(cell, body, colors, data);
-            }
-            mesh.colors32 = colors;
+            var colors = new CellMap<Color32>(KethaneData.GridLevel, c => getCellColor(c, body, data));
+            overlayRenderer.SetCellColors(colors);
         }
 
-        private void refreshCellColor(Cell cell, CelestialBody body, Color32[] colors, KethaneData data)
+        private Color32 getCellColor(Cell cell, CelestialBody body, KethaneData data)
         {
             var bodyResources = data[resource.Resource][body];
             var deposit = bodyResources.Resources.GetQuantity(cell);
             var scanned = bodyResources.IsCellScanned(cell);
             var color = (revealAll ? deposit != null : scanned) ? getDepositColor(resource, bodyResources, deposit) : colorUnknown;
-            setCellColor(cell, color, colors);
-        }
-
-        private static void setCellColor(Cell cell, Color32 color, Color32[] colors)
-        {
-            var idx = cell.Index * 6;
-            for (var i = idx; i < idx + 6; i++)
-            {
-                colors[i] = color;
-            }
+            return color;
         }
 
         private static Color32 getDepositColor(ResourceDefinition definition, BodyResourceData bodyResources, double? deposit)
@@ -269,20 +176,6 @@ namespace Kethane.UserInterface
                 color = colorEmpty;
             }
             return color;
-        }
-
-        private static WindowToggle findToolbar()
-        {
-            if (ToolbarManager.ToolbarAvailable)
-            {
-                Debug.Log("[Kethane] Toolbar instance found. Using new interface.");
-                return new WindowToggle();
-            }
-            else
-            {
-                Debug.LogWarning("[Kethane] Could not find Toolbar instance. Reverting to legacy interface.");
-                return null;
-            }
         }
 
         public void OnGUI()
@@ -346,13 +239,13 @@ namespace Kethane.UserInterface
                 minMaxStyle.contentOffset = new Vector2(-1, 0);
             }
 
-            if (toolbar != null && !toolbar.IsVisible) { return; }
+            if (button == null || button.State != RUIToggleButton.ButtonState.TRUE) { return; }
 
             GUI.skin = defaultSkin;
             var oldBackground = GUI.backgroundColor;
             GUI.backgroundColor = XKCDColors.Green;
 
-            controlWindowPos = GUILayout.Window(12358, controlWindowPos, controlWindow, expandWindow ? "Kethane Scan Map" : String.Empty);
+            controlWindowPos = GUILayout.Window(12358, controlWindowPos, controlWindow, "Kethane Scan Map");
 
             GUI.backgroundColor = oldBackground;
         }
@@ -396,76 +289,63 @@ namespace Kethane.UserInterface
 
         private void controlWindow(int windowID)
         {
-            if ((toolbar == null) && GUI.Button(new Rect(2, 2, 20, 15), expandWindow ? "\u25B4" : "\u25BE", minMaxStyle))
-            {
-                expandWindow = !expandWindow;
-                controlWindowPos = new Rect(controlWindowPos.xMin, controlWindowPos.yMin, expandWindow ? 160 : 24, 36);
-            }
-
             GUILayout.BeginVertical();
 
-            if (!expandWindow)
+            GUILayout.BeginHorizontal();
+
+            var defs = KethaneController.ResourceDefinitions.Select(d => d.Resource).ToList();
+
+            GUI.enabled = defs.Count > 1;
+            if (GUILayout.Button("◀", GUILayout.ExpandWidth(false)))
             {
-                GUI.Label(new Rect(8, 15, 15, 20), "K");
+                SelectedResource = defs.LastOrDefault(s => s.CompareTo(SelectedResource) < 0) ?? defs.Last();
             }
-            else
+            GUI.enabled = true;
+
+            GUILayout.Label(SelectedResource, centeredStyle, GUILayout.ExpandWidth(true));
+
+            GUI.enabled = defs.Count > 1;
+            if (GUILayout.Button("▶", GUILayout.ExpandWidth(false)))
             {
-                GUILayout.BeginHorizontal();
+                SelectedResource = defs.FirstOrDefault(s => s.CompareTo(SelectedResource) > 0) ?? defs.First();
+            }
+            GUI.enabled = true;
 
-                var defs = KethaneController.ResourceDefinitions.Select(d => d.Resource).ToList();
+            GUILayout.EndHorizontal();
 
-                GUI.enabled = defs.Count > 1;
-                if (GUILayout.Button("◀", GUILayout.ExpandWidth(false)))
+            ShowOverlay = GUILayout.Toggle(ShowOverlay, "Show Grid Overlay");
+
+            if (debugEnabled)
+            {
+                var vessel = FlightGlobals.ActiveVessel;
+                if (vessel != null && vessel.mainBody != body) { vessel = null; }
+
+                GUILayout.BeginVertical(GUI.skin.box);
+
+                if (revealAll != GUILayout.Toggle(revealAll, "Reveal Unscanned Cells"))
                 {
-                    SelectedResource = defs.LastOrDefault(s => s.CompareTo(SelectedResource) < 0) ?? defs.Last();
+                    revealAll = !revealAll;
+                    refreshCellColors();
                 }
-                GUI.enabled = true;
 
-                GUILayout.Label(SelectedResource, centeredStyle, GUILayout.ExpandWidth(true));
-
-                GUI.enabled = defs.Count > 1;
-                if (GUILayout.Button("▶", GUILayout.ExpandWidth(false)))
+                if (GUILayout.Button("Reset " + (body ? body.name : "[null]") + " Data"))
                 {
-                    SelectedResource = defs.FirstOrDefault(s => s.CompareTo(SelectedResource) > 0) ?? defs.First();
+                    KethaneData.Current[resource.Resource].ResetBodyData(body);
+                    refreshCellColors();
                 }
-                GUI.enabled = true;
 
-                GUILayout.EndHorizontal();
-
-                ShowOverlay = GUILayout.Toggle(ShowOverlay, "Show Grid Overlay");
-
-                if (debugEnabled)
+                if (GUILayout.Button("Reset Generator Config"))
                 {
-                    var vessel = FlightGlobals.ActiveVessel;
-                    if (vessel != null && vessel.mainBody != body) { vessel = null; }
-
-                    GUILayout.BeginVertical(GUI.skin.box);
-
-                    if (revealAll != GUILayout.Toggle(revealAll, "Reveal Unscanned Cells"))
-                    {
-                        revealAll = !revealAll;
-                        refreshCellColors();
-                    }
-
-                    if (GUILayout.Button("Reset " + (body ? body.name : "[null]") + " Data"))
-                    {
-                        KethaneData.Current[resource.Resource].ResetBodyData(body);
-                        refreshCellColors();
-                    }
-
-                    if (GUILayout.Button("Reset Generator Config"))
-                    {
-                        KethaneData.Current.ResetGeneratorConfig(resource);
-                        refreshCellColors();
-                    }
-
-                    if (GUILayout.Button("Export Data (" + (revealAll ? "All" : "Scanned") + ")"))
-                    {
-                        export();
-                    }
-
-                    GUILayout.EndVertical();
+                    KethaneData.Current.ResetGeneratorConfig(resource);
+                    refreshCellColors();
                 }
+
+                if (GUILayout.Button("Export Data (" + (revealAll ? "All" : "Scanned") + ")"))
+                {
+                    export();
+                }
+
+                GUILayout.EndVertical();
             }
 
             GUILayout.EndVertical();
@@ -534,49 +414,6 @@ namespace Kethane.UserInterface
             return null;
         }
 
-        private void setUpMesh()
-        {
-            var triangles = new List<int>();
-
-            foreach (var cell in Cell.AtLevel(KethaneData.GridLevel))
-            {
-                var t = (int)cell.Index * 6;
-                if (cell.IsPentagon)
-                {
-                    for (var i = 0; i < 5; i++)
-                    {
-                        triangles.AddRange(new[] { t + 1 + i, t + 1 + (i + 1) % 5, t });
-                    }
-                }
-                else
-                {
-                    triangles.AddRange(new[] { t + 0, t + 1, t + 2, t + 2, t + 3, t + 4, t + 4, t + 5, t + 0, t + 0, t + 2, t + 4 });
-                }
-            }
-
-            mesh = gameObject.AddComponent<MeshFilter>().mesh;
-            var renderer = gameObject.AddComponent<MeshRenderer>();
-
-            mesh.vertices = new Vector3[Cell.CountAtLevel(KethaneData.GridLevel) * 6];
-            mesh.triangles = triangles.ToArray();
-            mesh.colors32 = Enumerable.Repeat(colorUnknown, mesh.vertexCount).ToArray();
-            mesh.Optimize();
-
-            renderer.enabled = false;
-            renderer.castShadows = false;
-            renderer.receiveShadows = false;
-
-            var material = new Material(new System.IO.StreamReader(System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("Kethane.Resources.AlphaUnlitVertexColored.txt")).ReadToEnd());
-
-            var color = Color.white;
-            color.a = 0.4f;
-            material.color = color;
-
-            renderer.material = material;
-
-            refreshMesh();
-        }
-
         private Func<Cell, float> getHeightRatioMap()
         {
             Func<Cell, float> heightRatioAt;
@@ -592,39 +429,6 @@ namespace Kethane.UserInterface
             }
 
             return heightRatioAt;
-        }
-
-        private void refreshMesh()
-        {
-            var vertices = new List<UnityEngine.Vector3>();
-
-            heightAt = getHeightRatioMap();
-
-            foreach (var cell in Cell.AtLevel(KethaneData.GridLevel))
-            {
-                var center = cell.Position * heightAt(cell);
-
-                if (cell.IsPentagon)
-                {
-                    vertices.Add(center);
-                }
-
-                var blend = 0.08f;
-                center *= blend;
-
-                foreach (var vertex in cell.GetVertices(KethaneData.GridLevel, heightAt))
-                {
-                    vertices.Add(center + vertex * (1 - blend));
-                }
-            }
-
-            mesh.vertices = vertices.ToArray();
-            mesh.RecalculateBounds();
-        }
-
-        private void refreshCollider()
-        {
-            bounds = new BoundsMap(heightAt, KethaneData.GridLevel);
         }
     }
 }
