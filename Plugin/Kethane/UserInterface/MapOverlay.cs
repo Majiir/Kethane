@@ -55,7 +55,11 @@ namespace Kethane.UserInterface
             if (scene != GameScenes.FLIGHT && scene != GameScenes.TRACKSTATION)
             {
                 enabled = false;
+                return;
             }
+
+            GameEvents.onGUIApplicationLauncherReady.Add(onGUIApplicationLauncherReady);
+            GameEvents.onGameSceneLoadRequested.Add(onGameSceneLoadRequested);
         }
 
         public void Start()
@@ -69,12 +73,6 @@ namespace Kethane.UserInterface
 
             overlayRenderer = gameObject.AddComponent<OverlayRenderer>();
             overlayRenderer.SetGridLevel(KethaneData.GridLevel);
-
-            if (button == null)
-            {
-                var tex = GameDatabase.Instance.GetTexture("Kethane/toolbar", false);
-                button = ApplicationLauncher.Instance.AddModApplication(null, null, null, null, null, null, ApplicationLauncher.AppScenes.MAPVIEW | ApplicationLauncher.AppScenes.TRACKSTATION, tex);
-            }
 
             var node = ConfigNode.Load(KSPUtil.ApplicationRootPath + "GameData/Kethane/Grid.cfg");
             if (node == null) { return; }
@@ -94,6 +92,37 @@ namespace Kethane.UserInterface
             SettingsManager.SetValue("WindowLeft", MapOverlay.controlWindowPos.x);
             SettingsManager.SetValue("WindowTop", MapOverlay.controlWindowPos.y);
             SettingsManager.Save();
+
+            GameEvents.onGUIApplicationLauncherReady.Remove(onGUIApplicationLauncherReady);
+            GameEvents.onGameSceneLoadRequested.Remove(onGameSceneLoadRequested);
+
+            destroyButton();
+        }
+
+        private static void onGUIApplicationLauncherReady()
+        {
+            if (ApplicationLauncher.Ready)
+            {
+                if (button == null)
+                {
+                    var tex = GameDatabase.Instance.GetTexture("Kethane/toolbar", false);
+                    button = ApplicationLauncher.Instance.AddModApplication(null, null, null, null, null, null, ApplicationLauncher.AppScenes.MAPVIEW | ApplicationLauncher.AppScenes.TRACKSTATION, tex);
+                }
+            }
+        }
+
+        private static void onGameSceneLoadRequested(GameScenes sceneToLoad)
+        {
+            destroyButton();
+        }
+
+        private static void destroyButton()
+        {
+            if (button != null)
+            {
+                ApplicationLauncher.Instance.RemoveModApplication(button);
+                button = null;
+            }
         }
 
         public void Update()
