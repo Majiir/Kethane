@@ -32,6 +32,8 @@ namespace Kethane.UserInterface
         private static bool revealAll = false;
 
         private ApplicationLauncherButton button;
+        private bool buttonHover;
+        private bool windowHover;
 
         private static Texture2D buttonTex;
 
@@ -112,9 +114,19 @@ namespace Kethane.UserInterface
                     {
                         buttonTex = GameDatabase.Instance.GetTexture("Kethane/toolbar", false);
                     }
-                    button = ApplicationLauncher.Instance.AddModApplication(null, null, null, null, null, null, ApplicationLauncher.AppScenes.MAPVIEW | ApplicationLauncher.AppScenes.TRACKSTATION, buttonTex);
+                    button = ApplicationLauncher.Instance.AddModApplication(null, null, onHoverIn, onHoverOut, null, null, ApplicationLauncher.AppScenes.MAPVIEW | ApplicationLauncher.AppScenes.TRACKSTATION, buttonTex);
                 }
             }
+        }
+
+        private void onHoverIn()
+        {
+            buttonHover = true;
+        }
+
+        private void onHoverOut()
+        {
+            buttonHover = false;
         }
 
         private void onGameSceneLoadRequested(GameScenes sceneToLoad)
@@ -274,7 +286,19 @@ namespace Kethane.UserInterface
                 minMaxStyle.contentOffset = new Vector2(-1, 0);
             }
 
-            if (button == null || button.State != RUIToggleButton.ButtonState.TRUE) { return; }
+            if (buttonHover)
+            {
+                windowHover = true;
+            }
+            else if (windowHover)
+            {
+                windowHover = controlWindowPos.Contains(Event.current.mousePosition);
+            }
+
+            if (!windowHover)
+            {
+                if (button == null || button.State != RUIToggleButton.ButtonState.TRUE) { return; }
+            }
 
             GUI.skin = defaultSkin;
             var oldBackground = GUI.backgroundColor;
