@@ -47,8 +47,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BodyResourceData.cs" />
+    <Compile Include="EmptyResourceGenerator.cs" />
     <Compile Include="Generators\RandomExtensions.cs" />
     <Compile Include="Generators\CellularResourceGenerator.cs" />
+    <Compile Include="IBodyResources.cs" />
     <Compile Include="PartModules\PartExtensions.cs" />
     <Compile Include="ResourceData.cs" />
     <Compile Include="UserInterface\MainMenuOverlay.cs" />
