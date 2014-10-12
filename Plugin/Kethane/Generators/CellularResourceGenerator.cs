@@ -21,7 +21,8 @@ namespace Kethane.Generators
 
                 var amounts = new CellMap<double>(KethaneData.GridLevel);
                 var count = Cell.CountAtLevel(KethaneData.GridLevel);
-                for (uint i = 0; i < count; i++) {
+                for (uint i = 0; i < count; i++)
+                {
                     amounts[new Cell(i)] = BitConverter.ToDouble(bytes, (int)i * 8);
                 }
 
