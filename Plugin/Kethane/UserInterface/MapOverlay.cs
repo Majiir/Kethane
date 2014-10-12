@@ -30,7 +30,8 @@ namespace Kethane.UserInterface
         private static GUISkin defaultSkin = null;
         private static Rect controlWindowPos = new Rect(0, 0, 160, 0);
         private static bool revealAll = false;
-        private static ApplicationLauncherButton button;
+
+        private ApplicationLauncherButton button;
 
         private static readonly Color32 colorEmpty = Misc.Parse(SettingsManager.GetValue("ColorEmpty"), new Color32(128, 128, 128, 192));
         private static readonly Color32 colorUnknown = Misc.Parse(SettingsManager.GetValue("ColorUnknown"), new Color32(0, 0, 0, 128));
@@ -99,7 +100,7 @@ namespace Kethane.UserInterface
             destroyButton();
         }
 
-        private static void onGUIApplicationLauncherReady()
+        private void onGUIApplicationLauncherReady()
         {
             if (ApplicationLauncher.Ready)
             {
@@ -111,12 +112,12 @@ namespace Kethane.UserInterface
             }
         }
 
-        private static void onGameSceneLoadRequested(GameScenes sceneToLoad)
+        private void onGameSceneLoadRequested(GameScenes sceneToLoad)
         {
             destroyButton();
         }
 
-        private static void destroyButton()
+        private void destroyButton()
         {
             if (button != null)
             {
