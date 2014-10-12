@@ -33,6 +33,8 @@ namespace Kethane.UserInterface
 
         private ApplicationLauncherButton button;
 
+        private static Texture2D buttonTex;
+
         private static readonly Color32 colorEmpty = Misc.Parse(SettingsManager.GetValue("ColorEmpty"), new Color32(128, 128, 128, 192));
         private static readonly Color32 colorUnknown = Misc.Parse(SettingsManager.GetValue("ColorUnknown"), new Color32(0, 0, 0, 128));
         private static readonly bool debugEnabled = Misc.Parse(SettingsManager.GetValue("Debug"), false);
@@ -106,8 +108,11 @@ namespace Kethane.UserInterface
             {
                 if (button == null)
                 {
-                    var tex = GameDatabase.Instance.GetTexture("Kethane/toolbar", false);
-                    button = ApplicationLauncher.Instance.AddModApplication(null, null, null, null, null, null, ApplicationLauncher.AppScenes.MAPVIEW | ApplicationLauncher.AppScenes.TRACKSTATION, tex);
+                    if (buttonTex == null)
+                    {
+                        buttonTex = GameDatabase.Instance.GetTexture("Kethane/toolbar", false);
+                    }
+                    button = ApplicationLauncher.Instance.AddModApplication(null, null, null, null, null, null, ApplicationLauncher.AppScenes.MAPVIEW | ApplicationLauncher.AppScenes.TRACKSTATION, buttonTex);
                 }
             }
         }
