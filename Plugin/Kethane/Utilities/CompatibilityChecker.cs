@@ -53,7 +53,7 @@ namespace Kethane.Utilities
             \*-----------------------------------------------*/
 
             const int compatibleMajor = 0;
-            const int compatibleMinor = 25;
+            const int compatibleMinor = 90;
             const int compatibleRevision = 0;
 
             return (Versioning.version_major == compatibleMajor) && (Versioning.version_minor == compatibleMinor) && (Versioning.Revision == compatibleRevision);
@@ -69,7 +69,7 @@ namespace Kethane.Utilities
             |    BEGIN IMPLEMENTATION-SPECIFIC EDITS HERE.    |
             \*-----------------------------------------------*/
 
-            return Application.unityVersion == "4.5.2f1";
+            return Application.unityVersion == "4.5.5f1";
 
             /*-----------------------------------------------*\
             | IMPLEMENTERS SHOULD NOT EDIT BEYOND THIS POINT! |
