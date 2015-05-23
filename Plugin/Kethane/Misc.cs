@@ -72,7 +72,7 @@ namespace Kethane
         static MethodInfo RecurseFormat = typeof(ConfigNode).GetMethods(BindingFlags.NonPublic | BindingFlags.Static).Where(m => m.Name == "RecurseFormat" && m.GetParameters().Length == 1).FirstOrDefault();
         public static ConfigNode Parse(string s)
         {
-            var lines = s.Split(new char[]{'\n'});
+            var lines = s.Split(new char[]{'\n', '\r'});
             object obj = PreFormatConfig.Invoke(null, new object[] {lines});
             return (ConfigNode) RecurseFormat.Invoke(null, new object[] {obj});
         }
