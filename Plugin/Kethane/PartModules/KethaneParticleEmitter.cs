@@ -246,7 +246,7 @@ namespace Kethane.PartModules
         [KSPField(isPersistant = false)]
         public String Label;
 
-        public ConfigNode config;
+        public string configString;
 
         private GameObject obj;
         private ParticleAnimator animator;
@@ -255,10 +255,9 @@ namespace Kethane.PartModules
 
         public override void OnLoad(ConfigNode config)
         {
-            if (this.config == null)
+            if (this.configString == null)
             {
-                this.config = new ConfigNode();
-                config.CopyTo(this.config);
+                this.configString = config.ToString();
             }
         }
 
@@ -272,7 +271,7 @@ namespace Kethane.PartModules
         {
             if (part.partInfo == null) { return; }
             if (obj != null) { return; }
-
+            ConfigNode config = Misc.Parse(configString).GetNode("MODULE");
             var shaderName = config.GetValue("ShaderName");
             var textureName = config.GetValue("TextureName");
 
