@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Kethane.UserInterface
 {
-    [KSPAddon(KSPAddon.Startup.EveryScene, false)]
+    [KSPAddon(KSPAddon.Startup.MainMenu, true)]
     public class MapOverlay : MonoBehaviour
     {
         public static MapOverlay Instance { get; private set; }
@@ -30,6 +30,7 @@ namespace Kethane.UserInterface
         private static GUISkin defaultSkin = null;
         private static Rect controlWindowPos = new Rect(0, 0, 160, 0);
         private static bool revealAll = false;
+
         private static ApplicationLauncherButton button;
 
         private static readonly Color32 colorEmpty = Misc.Parse(SettingsManager.GetValue("ColorEmpty"), new Color32(128, 128, 128, 192));
@@ -51,30 +52,19 @@ namespace Kethane.UserInterface
 
         public void Awake()
         {
-            var scene = HighLogic.LoadedScene;
-            if (scene != GameScenes.FLIGHT && scene != GameScenes.TRACKSTATION)
-            {
-                enabled = false;
-            }
+            enabled = true;
         }
 
         public void Start()
         {
-            if (Instance != null)
-            {
-                Destroy(Instance.gameObject);
-            }
+            GameObject.DontDestroyOnLoad(this);
+
+            GameEvents.onGUIApplicationLauncherReady.Add(OnGUIAppLauncherReady);
 
             Instance = this;
 
             overlayRenderer = gameObject.AddComponent<OverlayRenderer>();
             overlayRenderer.SetGridLevel(KethaneData.GridLevel);
-
-            if (button == null)
-            {
-                var tex = GameDatabase.Instance.GetTexture("Kethane/toolbar", false);
-                button = ApplicationLauncher.Instance.AddModApplication(null, null, null, null, null, null, ApplicationLauncher.AppScenes.MAPVIEW | ApplicationLauncher.AppScenes.TRACKSTATION, tex);
-            }
 
             var node = ConfigNode.Load(KSPUtil.ApplicationRootPath + "GameData/Kethane/Grid.cfg");
             if (node == null) { return; }
@@ -94,13 +84,24 @@ namespace Kethane.UserInterface
             SettingsManager.SetValue("WindowLeft", MapOverlay.controlWindowPos.x);
             SettingsManager.SetValue("WindowTop", MapOverlay.controlWindowPos.y);
             SettingsManager.Save();
+
+            GameEvents.onGUIApplicationLauncherReady.Remove(OnGUIAppLauncherReady);
+            Instance = null;
+        }
+
+        void OnGUIAppLauncherReady ()
+        {
+            if (ApplicationLauncher.Ready && button == null)
+            {
+                var tex = GameDatabase.Instance.GetTexture("Kethane/toolbar", false);
+                button = ApplicationLauncher.Instance.AddModApplication(null, null, null, null, null, null, ApplicationLauncher.AppScenes.MAINMENU | ApplicationLauncher.AppScenes.MAPVIEW | ApplicationLauncher.AppScenes.TRACKSTATION, tex);
+            }
         }
 
         public void Update()
         {
             if (HighLogic.LoadedScene != GameScenes.FLIGHT && HighLogic.LoadedScene != GameScenes.TRACKSTATION)
             {
-                Destroy(gameObject);
                 return;
             }
 

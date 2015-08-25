@@ -26,7 +26,7 @@ namespace Kethane.PartModules
         [KSPField(isPersistant = true)]
         public bool IsDetecting;
 
-        public ConfigNode config;
+        public string configString;
 
         private List<string> resources;
 
@@ -105,13 +105,14 @@ namespace Kethane.PartModules
 
         public override void OnLoad(ConfigNode config)
         {
-            if (this.config == null)
+            if (this.configString == null)
             {
-                this.config = new ConfigNode();
-                config.CopyTo(this.config);
+                this.configString = config.ToString();
             }
 
-            resources = this.config.GetNodes("Resource").Select(n => n.GetValue("Name")).ToList();
+            config = Misc.Parse(configString).GetNode("MODULE");
+
+            resources = config.GetNodes("Resource").Select(n => n.GetValue("Name")).ToList();
             if (resources.Count == 0)
             {
                 resources = KethaneController.ResourceDefinitions.Select(r => r.Resource).ToList();
