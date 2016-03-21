@@ -32,6 +32,7 @@ namespace Kethane.UserInterface
         private static bool revealAll = false;
 
         private static bool enable_control_window = false;
+        private static bool hide_ui = false;
         private static ApplicationLauncherButton button;
 
         private static readonly Color32 colorEmpty = Misc.Parse(SettingsManager.GetValue("ColorEmpty"), new Color32(128, 128, 128, 192));
@@ -46,6 +47,16 @@ namespace Kethane.UserInterface
         static void button_OnFalse()
         {
             enable_control_window = false;
+        }
+
+        void onHideUI()
+        {
+            hide_ui = true;
+        }
+
+        void onShowUI ()
+        {
+            hide_ui = false;
         }
 
         static MapOverlay()
@@ -71,6 +82,8 @@ namespace Kethane.UserInterface
             GameObject.DontDestroyOnLoad(this);
 
             GameEvents.onGUIApplicationLauncherReady.Add(OnGUIAppLauncherReady);
+            GameEvents.onHideUI.Add (onHideUI);
+            GameEvents.onShowUI.Add (onShowUI);
 
             Instance = this;
 
@@ -97,6 +110,8 @@ namespace Kethane.UserInterface
             SettingsManager.Save();
 
             GameEvents.onGUIApplicationLauncherReady.Remove(OnGUIAppLauncherReady);
+            GameEvents.onHideUI.Remove (onHideUI);
+            GameEvents.onShowUI.Remove (onShowUI);
             Instance = null;
         }
 
@@ -195,6 +210,8 @@ namespace Kethane.UserInterface
         public void OnGUI()
         {
             if (HighLogic.LoadedScene != GameScenes.FLIGHT && HighLogic.LoadedScene != GameScenes.TRACKSTATION) { return; }
+
+            if (hide_ui) { return; }
 
             if (!MapView.MapIsEnabled || MapView.MapCamera == null) { return; }
 
