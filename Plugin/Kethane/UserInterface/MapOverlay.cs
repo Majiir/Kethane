@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using KSP.UI.Screens;
 
 namespace Kethane.UserInterface
 {
@@ -31,11 +32,22 @@ namespace Kethane.UserInterface
         private static Rect controlWindowPos = new Rect(0, 0, 160, 0);
         private static bool revealAll = false;
 
+        private static bool buttonState = false;
         private static ApplicationLauncherButton button;
 
         private static readonly Color32 colorEmpty = Misc.Parse(SettingsManager.GetValue("ColorEmpty"), new Color32(128, 128, 128, 192));
         private static readonly Color32 colorUnknown = Misc.Parse(SettingsManager.GetValue("ColorUnknown"), new Color32(0, 0, 0, 128));
         private static readonly bool debugEnabled = Misc.Parse(SettingsManager.GetValue("Debug"), false);
+
+        static void button_OnTrue()
+        {
+            buttonState = true;
+        }
+
+        static void button_OnFalse()
+        {
+            buttonState = false;
+        }
 
         static MapOverlay()
         {
@@ -95,6 +107,8 @@ namespace Kethane.UserInterface
             {
                 var tex = GameDatabase.Instance.GetTexture("Kethane/toolbar", false);
                 button = ApplicationLauncher.Instance.AddModApplication(null, null, null, null, null, null, ApplicationLauncher.AppScenes.MAINMENU | ApplicationLauncher.AppScenes.MAPVIEW | ApplicationLauncher.AppScenes.TRACKSTATION, tex);
+                button.onTrue = button_OnTrue;
+                button.onFalse = button_OnFalse;
             }
         }
 
@@ -128,9 +142,8 @@ namespace Kethane.UserInterface
                 overlayRenderer.SetHeightMap(heightAt);
 
                 var radius = bodyRadii.ContainsKey(body) ? bodyRadii[body] : 1.025;
-                var parent = ScaledSpace.Instance.scaledSpaceTransforms.FirstOrDefault(t => t.name == body.name);
                 overlayRenderer.SetRadiusMultiplier((float)radius);
-                overlayRenderer.SetTarget(parent);
+                overlayRenderer.SetTarget(body.MapObject.transform);
             }
 
             if (bodyChanged || resource == null || resource.Resource != SelectedResource)
@@ -139,7 +152,7 @@ namespace Kethane.UserInterface
                 refreshCellColors();
             }
 
-            var ray = MapView.MapCamera.camera.ScreenPointToRay(Input.mousePosition);
+            var ray = PlanetariumCamera.Camera.ScreenPointToRay(Input.mousePosition);
             hoverCell = Cell.Raycast(ray, KethaneData.GridLevel, bounds, heightAt, gameObject.transform);
         }
 
@@ -241,7 +254,7 @@ namespace Kethane.UserInterface
                 minMaxStyle.contentOffset = new Vector2(-1, 0);
             }
 
-            if (button == null || button.State != RUIToggleButton.ButtonState.TRUE) { return; }
+            if (button == null || !buttonState) { return; }
 
             GUI.skin = defaultSkin;
             var oldBackground = GUI.backgroundColor;
@@ -400,15 +413,15 @@ namespace Kethane.UserInterface
 
         private static CelestialBody getTargetBody(MapObject target)
         {
-            if (target.type == MapObject.MapObjectType.CELESTIALBODY)
+            if (target.type == MapObject.ObjectType.CelestialBody)
             {
                 return target.celestialBody;
             }
-            else if (target.type == MapObject.MapObjectType.MANEUVERNODE)
+            else if (target.type == MapObject.ObjectType.ManeuverNode)
             {
                 return target.maneuverNode.patch.referenceBody;
             }
-            else if (target.type == MapObject.MapObjectType.VESSEL)
+            else if (target.type == MapObject.ObjectType.Vessel)
             {
                 return target.vessel.mainBody;
             }

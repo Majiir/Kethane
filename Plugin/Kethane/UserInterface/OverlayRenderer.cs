@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace Kethane.UserInterface
 {
@@ -138,7 +139,7 @@ namespace Kethane.UserInterface
             var renderer = gameObject.AddComponent<MeshRenderer>();
 
             renderer.enabled = false;
-            renderer.castShadows = false;
+            renderer.shadowCastingMode = ShadowCastingMode.Off;
             renderer.receiveShadows = false;
 
             var material = new Material(new System.IO.StreamReader(System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("Kethane.Resources.AlphaUnlitVertexColored.txt")).ReadToEnd());
