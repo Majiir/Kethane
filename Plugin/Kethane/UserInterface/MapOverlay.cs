@@ -25,7 +25,6 @@ namespace Kethane.UserInterface
         private BoundsMap bounds;
         private OverlayRenderer overlayRenderer;
 
-        private static RenderingManager renderingManager;
         private static GUIStyle centeredStyle = null;
         private static GUIStyle minMaxStyle = null;
         private static GUISkin defaultSkin = null;
@@ -196,17 +195,6 @@ namespace Kethane.UserInterface
         public void OnGUI()
         {
             if (HighLogic.LoadedScene != GameScenes.FLIGHT && HighLogic.LoadedScene != GameScenes.TRACKSTATION) { return; }
-
-            if (renderingManager == null)
-            {
-                renderingManager = (RenderingManager)GameObject.FindObjectOfType(typeof(RenderingManager));
-            }
-
-            if (renderingManager != null)
-            {
-                var obj = renderingManager.uiElementsToDisable.FirstOrDefault();
-                if (obj != null && !obj.activeSelf) { return; }
-            }
 
             if (!MapView.MapIsEnabled || MapView.MapCamera == null) { return; }
 
