@@ -31,7 +31,7 @@ namespace Kethane.UserInterface
         private static Rect controlWindowPos = new Rect(0, 0, 160, 0);
         private static bool revealAll = false;
 
-        private static bool buttonState = false;
+        private static bool enable_control_window = false;
         private static ApplicationLauncherButton button;
 
         private static readonly Color32 colorEmpty = Misc.Parse(SettingsManager.GetValue("ColorEmpty"), new Color32(128, 128, 128, 192));
@@ -40,12 +40,12 @@ namespace Kethane.UserInterface
 
         static void button_OnTrue()
         {
-            buttonState = true;
+            enable_control_window = true;
         }
 
         static void button_OnFalse()
         {
-            buttonState = false;
+            enable_control_window = false;
         }
 
         static MapOverlay()
@@ -100,7 +100,7 @@ namespace Kethane.UserInterface
             Instance = null;
         }
 
-        void OnGUIAppLauncherReady ()
+        void OnGUIAppLauncherReady()
         {
             if (ApplicationLauncher.Ready && button == null)
             {
@@ -242,7 +242,7 @@ namespace Kethane.UserInterface
                 minMaxStyle.contentOffset = new Vector2(-1, 0);
             }
 
-            if (button == null || !buttonState) { return; }
+            if (button == null || !enable_control_window) { return; }
 
             GUI.skin = defaultSkin;
             var oldBackground = GUI.backgroundColor;
