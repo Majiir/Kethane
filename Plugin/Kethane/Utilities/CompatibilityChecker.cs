@@ -159,11 +159,6 @@ namespace Kethane.Utilities
 
             String message = String.Empty;
 
-            if (IsWin64())
-            {
-                message += "WARNING: You are using 64-bit KSP on Windows. This version of KSP is known to cause crashes. It's highly recommended that you use either 32-bit KSP on Windows or switch to Linux.";
-            }
-
             if ((incompatible.Length > 0) || (incompatibleUnity.Length > 0))
             {
                 message += ((message == String.Empty) ? "Some" : "\n\nAdditionally, some") + " installed mods may be incompatible with this version of Kerbal Space Program. Features may be broken or disabled. Please check for updates to the listed mods.";
@@ -183,20 +178,15 @@ namespace Kethane.Utilities
                 }
             }
 
-            if ((incompatible.Length > 0) || (incompatibleUnity.Length > 0) || IsWin64())
+            if ((incompatible.Length > 0) || (incompatibleUnity.Length > 0))
             {
                 PopupDialog.SpawnPopupDialog(new Vector2(0, 0), new Vector2(0, 0), "Incompatible Mods Detected", message, "OK", true, HighLogic.UISkin);
             }
         }
 
-        public static bool IsWin64()
-        {
-            return (IntPtr.Size == 8) && (Environment.OSVersion.Platform == PlatformID.Win32NT);
-        }
-
         public static bool IsAllCompatible()
         {
-            return IsCompatible() && IsUnityCompatible() && !IsWin64();
+            return IsCompatible() && IsUnityCompatible();
         }
 
         private static IEnumerable<Type> getAllTypes()
