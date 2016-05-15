@@ -1,0 +1,10 @@
+#! /bin/sh
+
+list="$1"
+dst="$2"
+
+cat "$list" | while read file; do
+	dir=`dirname "$file"`
+	mkdir -p "$dst"/"$dir"
+	cp "$file" "$dst"/"$dir"
+done
