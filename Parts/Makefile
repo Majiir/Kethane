@@ -26,6 +26,6 @@ info:
 	@echo "    Plugin:   ${PLUGINDIR}"
 
 install: all
-	./copy-files files ${KGAMEDATA}/Parts
+	./copy-files files "${KGAMEDATA}/Parts"
 
 .PHONY: all clean info install

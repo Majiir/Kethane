@@ -75,7 +75,7 @@ info:
 
 bin/Kethane.dll: ${K_FILES} Kethane-LICENSE.txt Resources/AlphaUnlitVertexColored.shader
 	@mkdir -p bin
-	${GMCS} ${GMCSFLAGS} -t:library -lib:${MANAGED} \
+	${GMCS} ${GMCSFLAGS} -t:library -lib:"${MANAGED}" \
 		-r:Assembly-CSharp,Assembly-CSharp-firstpass \
 		-r:UnityEngine,UnityEngine.UI \
 		-r:KSPUtil \
@@ -90,8 +90,8 @@ clean:
 	test -d bin && rmdir bin || true
 
 install: all
-	mkdir -p ${PLUGINDIR}
-	cp ${TARGETS} ${PLUGINDIR}
+	mkdir -p "${PLUGINDIR}"
+	cp ${TARGETS} "${PLUGINDIR}"
 #cp ${TARGETS} bin/Kethane.version ${PLUGINDIR}
 
 .PHONY: all clean install
