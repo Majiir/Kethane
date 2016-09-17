@@ -15,7 +15,7 @@ namespace Kethane.Utilities
             if (assemblies.Any())
             {
                 var badPaths = assemblies.Select(a => a.path).Select(p => Uri.UnescapeDataString(new Uri(Path.GetFullPath(KSPUtil.ApplicationRootPath)).MakeRelativeUri(new Uri(p)).ToString().Replace('/', Path.DirectorySeparatorChar)));
-                PopupDialog.SpawnPopupDialog("Incorrect Kethane Installation", "Kethane has been installed incorrectly and will not function properly. All Kethane files should be located in KSP/GameData/Kethane. Do not move any files from inside the Kethane folder.\n\nIncorrect path(s):\n" + String.Join("\n", badPaths.ToArray()), "OK", false, HighLogic.Skin);
+                PopupDialog.SpawnPopupDialog(new Vector2(0, 0), new Vector2(0, 0), "Incorrect Kethane Installation", "Kethane has been installed incorrectly and will not function properly. All Kethane files should be located in KSP/GameData/Kethane. Do not move any files from inside the Kethane folder.\n\nIncorrect path(s):\n" + String.Join("\n", badPaths.ToArray()), "OK", false, HighLogic.UISkin);
             }
         }
     }

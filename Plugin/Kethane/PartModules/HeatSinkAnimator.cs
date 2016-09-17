@@ -5,13 +5,14 @@ using UnityEngine;
 
 namespace Kethane.PartModules
 {
-    public class HeatSinkAnimator : PartModule
+    public class HeatSinkAnimator : PartModule, IMultipleDragCube
     {
         [KSPField(isPersistant = false)]
         public string HeatAnimation;
 
         [KSPField(isPersistant = false)]
         public string OpenAnimation;
+		public string deployAnimationName;	// for FAR
 
         [KSPField(isPersistant = false)]
         public float OpenTemperature;
@@ -43,10 +44,16 @@ namespace Kethane.PartModules
         private float lastRequested;
         private float dissipated;
 
-        public override void OnStart(PartModule.StartState state)
-        {
+		void FindAnimations()
+		{
+			deployAnimationName = OpenAnimation;
             openAnimationStates = this.part.SetUpAnimation(OpenAnimation);
             heatAnimationStates = this.part.SetUpAnimation(HeatAnimation);
+		}
+
+        public override void OnStart(PartModule.StartState state)
+        {
+            FindAnimations();
         }
 
         public override void OnUpdate()
@@ -97,6 +104,8 @@ namespace Kethane.PartModules
             var deployAmount = Mathf.Clamp01(openAnimationStates.First().normalizedTime);
             var rate = InternalDissipation + deployAmount * (HeatSinkDissipation + pressure * (PressureDissipation + AirSpeedDissipation * airSpeed));
 
+			SetDragState (deployAmount);
+
             temperature = (float) (outsideTemp + (temperature - outsideTemp) * Math.Exp(-rate * TimeWarp.fixedDeltaTime));
 
             CoolingEfficiency = requested == 0 ? 1 : dissipated / requested;
@@ -115,5 +124,40 @@ namespace Kethane.PartModules
             dissipated += heat;
             return heat;
         }
+
+		void SetDragState (float t)
+		{
+			part.DragCubes.SetCubeWeight ("A", t);
+			part.DragCubes.SetCubeWeight ("B", 1 - t);
+		}
+
+		public string[] GetDragCubeNames()
+		{
+			return new string[] {"A", "B"};
+		}
+
+		public void AssumeDragCubePosition(string name)
+		{
+			FindAnimations();
+
+			float time = 0f;
+
+			switch (name) {
+				case "A":
+					time = 1f;
+					break;
+				case "B":
+					time = 0f;
+					break;
+			}
+			foreach (var state in openAnimationStates) {
+				state.normalizedTime = time;
+			}
+		}
+
+		public bool UsesProceduralDragCubes()
+		{
+			return false;
+		}
     }
 }

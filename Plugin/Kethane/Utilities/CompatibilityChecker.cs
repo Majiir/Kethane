@@ -1,25 +1,25 @@
 ﻿/**
- * Copyright (c) 2014, Majiir
+ * Copyright (c) 2016, Majiir, ferram4
  * All rights reserved.
- * 
- * Redistribution and use in source and binary forms, with or without modification, are permitted 
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are permitted
  * provided that the following conditions are met:
- * 
- * 1. Redistributions of source code must retain the above copyright notice, this list of 
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this list of
  * conditions and the following disclaimer.
- * 
- * 2. Redistributions in binary form must reproduce the above copyright notice, this list of 
- * conditions and the following disclaimer in the documentation and/or other materials provided 
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright notice, this list of
+ * conditions and the following disclaimer in the documentation and/or other materials provided
  * with the distribution.
- * 
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR 
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR
  * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
- * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR 
- * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY 
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
- * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
@@ -38,7 +38,7 @@ namespace Kethane.Utilities
     /**
      * This utility displays a warning with a list of mods that determine themselves
      * to be incompatible with the current running version of Kerbal Space Program.
-     * 
+     *
      * See this forum thread for details:
      * http://forum.kerbalspaceprogram.com/threads/65395-Voluntarily-Locking-Plugins-to-a-Particular-KSP-Version
      */
@@ -52,11 +52,19 @@ namespace Kethane.Utilities
             |    BEGIN IMPLEMENTATION-SPECIFIC EDITS HERE.    |
             \*-----------------------------------------------*/
 
-            const int compatibleMajor = 1;
-            const int compatibleMinor = 0;
-            const int compatibleRevision = 4;
-
-            return (Versioning.version_major == compatibleMajor) && (Versioning.version_minor == compatibleMinor) && (Versioning.Revision == compatibleRevision);
+            // TODO: Implement your own compatibility check.
+            //
+            // If you want to disable some behavior when incompatible, other parts of the plugin
+            // should query this method:
+            //
+            //    if (!CompatibilityChecker.IsCompatible()) {
+            //        ...disable some features...
+            //    }
+            //
+            // Even if you don't lock down functionality, you should return true if your users
+            // can expect a future update to be available.
+            //
+            return Versioning.version_minor == 1 && Versioning.version_major == 1;
 
             /*-----------------------------------------------*\
             | IMPLEMENTERS SHOULD NOT EDIT BEYOND THIS POINT! |
@@ -69,7 +77,9 @@ namespace Kethane.Utilities
             |    BEGIN IMPLEMENTATION-SPECIFIC EDITS HERE.    |
             \*-----------------------------------------------*/
 
-            return Application.unityVersion == "4.6.4f1";
+            // TODO: Implement your own Unity compatibility check.
+            //
+            return true;
 
             /*-----------------------------------------------*\
             | IMPLEMENTERS SHOULD NOT EDIT BEYOND THIS POINT! |
@@ -77,7 +87,7 @@ namespace Kethane.Utilities
         }
 
         // Version of the compatibility checker itself.
-        private static int _version = 4;
+        private static int _version = 5;
 
         public void Start()
         {
@@ -149,11 +159,6 @@ namespace Kethane.Utilities
 
             String message = String.Empty;
 
-            if (IsWin64())
-            {
-                message += "WARNING: You are using 64-bit KSP on Windows. This version of KSP is known to cause crashes. It's highly recommended that you use either 32-bit KSP on Windows or switch to Linux.";
-            }
-
             if ((incompatible.Length > 0) || (incompatibleUnity.Length > 0))
             {
                 message += ((message == String.Empty) ? "Some" : "\n\nAdditionally, some") + " installed mods may be incompatible with this version of Kerbal Space Program. Features may be broken or disabled. Please check for updates to the listed mods.";
@@ -173,20 +178,15 @@ namespace Kethane.Utilities
                 }
             }
 
-            if ((incompatible.Length > 0) || (incompatibleUnity.Length > 0) || IsWin64())
+            if ((incompatible.Length > 0) || (incompatibleUnity.Length > 0))
             {
-                PopupDialog.SpawnPopupDialog("Incompatible Mods Detected", message, "OK", true, HighLogic.Skin);
+                PopupDialog.SpawnPopupDialog(new Vector2(0, 0), new Vector2(0, 0), "Incompatible Mods Detected", message, "OK", true, HighLogic.UISkin);
             }
-        }
-
-        public static bool IsWin64()
-        {
-            return (IntPtr.Size == 8) && (Environment.OSVersion.Platform == PlatformID.Win32NT);
         }
 
         public static bool IsAllCompatible()
         {
-            return IsCompatible() && IsUnityCompatible() && !IsWin64();
+            return IsCompatible() && IsUnityCompatible();
         }
 
         private static IEnumerable<Type> getAllTypes()

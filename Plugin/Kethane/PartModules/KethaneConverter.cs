@@ -190,7 +190,7 @@ namespace Kethane.PartModules
             var ratio = rates.Where(r => !r.Optional).Select(r => this.part.GetConnectedResources(r.Resource).Select(c => r.Rate > 0 ? c.amount : c.maxAmount - c.amount).DefaultIfEmpty().Max() / Math.Abs(r.Rate)).Where(r => r < 1).DefaultIfEmpty(1).Min();
 
             var heatsink = this.part.Modules.OfType<HeatSinkAnimator>().SingleOrDefault();
-            if (heatsink != null)
+            if (ratio > 0 && heatsink != null)
             {
                 var heatRequest = (float)ratio * HeatProduction * TimeWarp.fixedDeltaTime;
                 ratio *= heatsink.AddHeat(heatRequest) / heatRequest;
