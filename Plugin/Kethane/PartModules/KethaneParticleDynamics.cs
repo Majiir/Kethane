@@ -33,6 +33,8 @@ namespace Kethane.PartModules
         [KSPField(isPersistant = false)]
         public float SizeGrowPressureExponent;
 
+        const float AtmkPa = 101.325f;
+
         private KethaneParticleEmitter emitter;
 
         public override void OnStart(StartState state)
@@ -44,7 +46,7 @@ namespace Kethane.PartModules
         public override void OnUpdate()
         {
             if (emitter == null) { return; }
-            var pressure = (float)FlightGlobals.getStaticPressure(emitter.EmitterTransform.position);
+            var pressure = (float)FlightGlobals.getStaticPressure(emitter.EmitterTransform.position) / AtmkPa;
             emitter.Damping = (float)Math.Exp(DampingPressureExponent * pressure);
             emitter.Force = FlightGlobals.getGeeForceAtPosition(emitter.EmitterTransform.position) * (GravityConstant + GravityPressure * pressure);
             emitter.MaxEnergy = MaxEnergyConstant + MaxEnergyPressure * pressure;

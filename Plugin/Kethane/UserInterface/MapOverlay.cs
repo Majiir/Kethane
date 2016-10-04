@@ -5,10 +5,11 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using KSP.UI.Screens;
 
 namespace Kethane.UserInterface
 {
-    [KSPAddon(KSPAddon.Startup.EveryScene, false)]
+    [KSPAddon(KSPAddon.Startup.MainMenu, true)]
     public class MapOverlay : MonoBehaviour
     {
         public static MapOverlay Instance { get; private set; }
@@ -24,17 +25,39 @@ namespace Kethane.UserInterface
         private BoundsMap bounds;
         private OverlayRenderer overlayRenderer;
 
-        private static RenderingManager renderingManager;
         private static GUIStyle centeredStyle = null;
         private static GUIStyle minMaxStyle = null;
         private static GUISkin defaultSkin = null;
         private static Rect controlWindowPos = new Rect(0, 0, 160, 0);
         private static bool revealAll = false;
+
+        private static bool enable_control_window = false;
+        private static bool hide_ui = false;
         private static ApplicationLauncherButton button;
 
         private static readonly Color32 colorEmpty = Misc.Parse(SettingsManager.GetValue("ColorEmpty"), new Color32(128, 128, 128, 192));
         private static readonly Color32 colorUnknown = Misc.Parse(SettingsManager.GetValue("ColorUnknown"), new Color32(0, 0, 0, 128));
         private static readonly bool debugEnabled = Misc.Parse(SettingsManager.GetValue("Debug"), false);
+
+        static void button_OnTrue()
+        {
+            enable_control_window = true;
+        }
+
+        static void button_OnFalse()
+        {
+            enable_control_window = false;
+        }
+
+        void onHideUI()
+        {
+            hide_ui = true;
+        }
+
+        void onShowUI ()
+        {
+            hide_ui = false;
+        }
 
         static MapOverlay()
         {
@@ -51,30 +74,21 @@ namespace Kethane.UserInterface
 
         public void Awake()
         {
-            var scene = HighLogic.LoadedScene;
-            if (scene != GameScenes.FLIGHT && scene != GameScenes.TRACKSTATION)
-            {
-                enabled = false;
-            }
+            enabled = true;
         }
 
         public void Start()
         {
-            if (Instance != null)
-            {
-                Destroy(Instance.gameObject);
-            }
+            GameObject.DontDestroyOnLoad(this);
+
+            GameEvents.onGUIApplicationLauncherReady.Add(OnGUIAppLauncherReady);
+            GameEvents.onHideUI.Add (onHideUI);
+            GameEvents.onShowUI.Add (onShowUI);
 
             Instance = this;
 
             overlayRenderer = gameObject.AddComponent<OverlayRenderer>();
             overlayRenderer.SetGridLevel(KethaneData.GridLevel);
-
-            if (button == null)
-            {
-                var tex = GameDatabase.Instance.GetTexture("Kethane/toolbar", false);
-                button = ApplicationLauncher.Instance.AddModApplication(null, null, null, null, null, null, ApplicationLauncher.AppScenes.MAPVIEW | ApplicationLauncher.AppScenes.TRACKSTATION, tex);
-            }
 
             var node = ConfigNode.Load(KSPUtil.ApplicationRootPath + "GameData/Kethane/Grid.cfg");
             if (node == null) { return; }
@@ -94,13 +108,29 @@ namespace Kethane.UserInterface
             SettingsManager.SetValue("WindowLeft", MapOverlay.controlWindowPos.x);
             SettingsManager.SetValue("WindowTop", MapOverlay.controlWindowPos.y);
             SettingsManager.Save();
+
+            GameEvents.onGUIApplicationLauncherReady.Remove(OnGUIAppLauncherReady);
+            GameEvents.onHideUI.Remove (onHideUI);
+            GameEvents.onShowUI.Remove (onShowUI);
+            Instance = null;
+        }
+
+        void OnGUIAppLauncherReady()
+        {
+            if (ApplicationLauncher.Ready && button == null)
+            {
+                var tex = GameDatabase.Instance.GetTexture("Kethane/toolbar", false);
+                button = ApplicationLauncher.Instance.AddModApplication(null, null, null, null, null, null, ApplicationLauncher.AppScenes.MAINMENU | ApplicationLauncher.AppScenes.MAPVIEW | ApplicationLauncher.AppScenes.TRACKSTATION, tex);
+                button.onTrue = button_OnTrue;
+                button.onFalse = button_OnFalse;
+            }
         }
 
         public void Update()
         {
             if (HighLogic.LoadedScene != GameScenes.FLIGHT && HighLogic.LoadedScene != GameScenes.TRACKSTATION)
             {
-                Destroy(gameObject);
+                overlayRenderer.IsVisible = false;
                 return;
             }
 
@@ -126,9 +156,8 @@ namespace Kethane.UserInterface
                 overlayRenderer.SetHeightMap(heightAt);
 
                 var radius = bodyRadii.ContainsKey(body) ? bodyRadii[body] : 1.025;
-                var parent = ScaledSpace.Instance.scaledSpaceTransforms.FirstOrDefault(t => t.name == body.name);
                 overlayRenderer.SetRadiusMultiplier((float)radius);
-                overlayRenderer.SetTarget(parent);
+                overlayRenderer.SetTarget(body.MapObject.transform);
             }
 
             if (bodyChanged || resource == null || resource.Resource != SelectedResource)
@@ -137,7 +166,7 @@ namespace Kethane.UserInterface
                 refreshCellColors();
             }
 
-            var ray = MapView.MapCamera.camera.ScreenPointToRay(Input.mousePosition);
+            var ray = PlanetariumCamera.Camera.ScreenPointToRay(Input.mousePosition);
             hoverCell = Cell.Raycast(ray, KethaneData.GridLevel, bounds, heightAt, gameObject.transform);
         }
 
@@ -182,16 +211,7 @@ namespace Kethane.UserInterface
         {
             if (HighLogic.LoadedScene != GameScenes.FLIGHT && HighLogic.LoadedScene != GameScenes.TRACKSTATION) { return; }
 
-            if (renderingManager == null)
-            {
-                renderingManager = (RenderingManager)GameObject.FindObjectOfType(typeof(RenderingManager));
-            }
-
-            if (renderingManager != null)
-            {
-                var obj = renderingManager.uiElementsToDisable.FirstOrDefault();
-                if (obj != null && !obj.activeSelf) { return; }
-            }
+            if (hide_ui) { return; }
 
             if (!MapView.MapIsEnabled || MapView.MapCamera == null) { return; }
 
@@ -239,7 +259,7 @@ namespace Kethane.UserInterface
                 minMaxStyle.contentOffset = new Vector2(-1, 0);
             }
 
-            if (button == null || button.State != RUIToggleButton.ButtonState.TRUE) { return; }
+            if (button == null || !enable_control_window) { return; }
 
             GUI.skin = defaultSkin;
             var oldBackground = GUI.backgroundColor;
@@ -398,15 +418,15 @@ namespace Kethane.UserInterface
 
         private static CelestialBody getTargetBody(MapObject target)
         {
-            if (target.type == MapObject.MapObjectType.CELESTIALBODY)
+            if (target.type == MapObject.ObjectType.CelestialBody)
             {
                 return target.celestialBody;
             }
-            else if (target.type == MapObject.MapObjectType.MANEUVERNODE)
+            else if (target.type == MapObject.ObjectType.ManeuverNode)
             {
                 return target.maneuverNode.patch.referenceBody;
             }
-            else if (target.type == MapObject.MapObjectType.VESSEL)
+            else if (target.type == MapObject.ObjectType.Vessel)
             {
                 return target.vessel.mainBody;
             }

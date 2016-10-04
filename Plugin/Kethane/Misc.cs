@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Reflection;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace Kethane
@@ -63,6 +66,15 @@ namespace Kethane
         {
             if (s == null) { return defaultValue; }
             return ConfigNode.ParseColor32(s);
+        }
+
+        static MethodInfo PreFormatConfig = typeof(ConfigNode).GetMethods(BindingFlags.NonPublic | BindingFlags.Static).Where(m => m.Name == "PreFormatConfig" && m.GetParameters().Length == 1).FirstOrDefault();
+        static MethodInfo RecurseFormat = typeof(ConfigNode).GetMethods(BindingFlags.NonPublic | BindingFlags.Static).Where(m => m.Name == "RecurseFormat" && m.GetParameters().Length == 1).FirstOrDefault();
+        public static ConfigNode Parse(string s)
+        {
+            var lines = s.Split(new char[]{'\n', '\r'});
+            object obj = PreFormatConfig.Invoke(null, new object[] {lines});
+            return (ConfigNode) RecurseFormat.Invoke(null, new object[] {obj});
         }
 
         public static ParticleRenderMode Parse(string s, ParticleRenderMode defaultValue)

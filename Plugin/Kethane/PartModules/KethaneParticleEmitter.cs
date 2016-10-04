@@ -246,19 +246,18 @@ namespace Kethane.PartModules
         [KSPField(isPersistant = false)]
         public String Label;
 
-        public ConfigNode config;
+        public string configString;
 
         private GameObject obj;
         private ParticleAnimator animator;
         private ParticleEmitter emitter;
-        private new ParticleRenderer renderer;
+        private ParticleRenderer renderer;
 
         public override void OnLoad(ConfigNode config)
         {
-            if (this.config == null)
+            if (this.configString == null)
             {
-                this.config = new ConfigNode();
-                config.CopyTo(this.config);
+                this.configString = config.ToString();
             }
         }
 
@@ -272,19 +271,21 @@ namespace Kethane.PartModules
         {
             if (part.partInfo == null) { return; }
             if (obj != null) { return; }
-
+            ConfigNode config = Misc.Parse(configString).GetNode("MODULE");
             var shaderName = config.GetValue("ShaderName");
             var textureName = config.GetValue("TextureName");
 
             obj = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            obj.collider.enabled = false;
-            obj.renderer.material.color = new Color(0, 0, 0, 0);
-            obj.renderer.material.shader = Shader.Find("Transparent/Diffuse");
+			var c = obj.GetComponent<Collider>();
+            c.enabled = false;
+			var r = obj.GetComponent<Renderer>();
+            r.material.color = new Color(0, 0, 0, 0);
+            r.material.shader = Shader.Find("Transparent/Diffuse");
             obj.transform.parent = part.transform;
             obj.transform.localRotation = Quaternion.identity;
 
             animator = (ParticleAnimator)obj.AddComponent<ParticleAnimator>();
-            emitter = (ParticleEmitter)obj.AddComponent("MeshParticleEmitter");
+            emitter = (ParticleEmitter)obj.AddComponent<MeshParticleEmitter>();
             renderer = (ParticleRenderer)obj.AddComponent<ParticleRenderer>();
 
             var material = new Material(Shader.Find(shaderName));
@@ -294,10 +295,10 @@ namespace Kethane.PartModules
             renderer.materials = new Material[] { material };
             animator.colorAnimation = new Color[5];
 
-            if (Misc.Parse(config.GetValue("Collision"), false))
-            {
-                obj.AddComponent("WorldParticleCollider");
-            }
+            //if (Misc.Parse(config.GetValue("Collision"), false))
+            //{
+            //    obj.AddComponent<WorldParticleCollider>();
+            //}
 
             AngularVelocity         = Misc.Parse(config.GetValue("AngularVelocity"), 0f);
             CameraVelocityScale     = Misc.Parse(config.GetValue("CameraVelocityScale"), 0f);

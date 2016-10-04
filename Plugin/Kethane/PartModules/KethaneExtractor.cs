@@ -55,7 +55,7 @@ namespace Kethane.PartModules
         [KSPField(isPersistant = false)]
         public float TailOffset;
 
-        public ConfigNode config;
+        public string configString;
 
         private Transform headTransform;
         private Transform tailTransform;
@@ -95,13 +95,13 @@ namespace Kethane.PartModules
 
         public override void OnLoad(ConfigNode config)
         {
-            if (this.config == null)
+            if (this.configString == null)
             {
-                this.config = new ConfigNode();
-                config.CopyTo(this.config);
+                this.configString = config.ToString();
             }
+            config = Misc.Parse(configString).GetNode("MODULE");
 
-            resources = this.config.GetNodes("Resource").Select(n => new Resource(n)).ToList();
+            resources = config.GetNodes("Resource").Select(n => new Resource(n)).ToList();
         }
 
         [KSPEvent(guiActive = true, guiName = "Deploy Drill", active = true, externalToEVAOnly = true, guiActiveUnfocused = true, unfocusedRange = 1.5f)]

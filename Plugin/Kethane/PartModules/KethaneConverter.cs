@@ -41,7 +41,7 @@ namespace Kethane.PartModules
         [KSPField(isPersistant = true)]
         public bool IsEnabled;
 
-        public ConfigNode config;
+        public string configString;
 
         private ResourceRate[] inputRates;
         private ResourceRate[] outputRates;
@@ -113,10 +113,9 @@ namespace Kethane.PartModules
 
         public override void OnLoad(ConfigNode config)
         {
-            if (this.config == null)
+            if (this.configString == null)
             {
-                this.config = new ConfigNode();
-                config.CopyTo(this.config);
+                this.configString = config.ToString();
             }
 
             loadConfig();
@@ -124,6 +123,7 @@ namespace Kethane.PartModules
 
         private void loadConfig()
         {
+            ConfigNode config = Misc.Parse(configString).GetNode("MODULE");
             var definitions = PartResourceLibrary.Instance.resourceDefinitions;
 
             inputRates = loadRates(config.GetNode("InputRates")).ToArray();
@@ -190,7 +190,7 @@ namespace Kethane.PartModules
             var ratio = rates.Where(r => !r.Optional).Select(r => this.part.GetConnectedResources(r.Resource).Select(c => r.Rate > 0 ? c.amount : c.maxAmount - c.amount).DefaultIfEmpty().Max() / Math.Abs(r.Rate)).Where(r => r < 1).DefaultIfEmpty(1).Min();
 
             var heatsink = this.part.Modules.OfType<HeatSinkAnimator>().SingleOrDefault();
-            if (heatsink != null)
+            if (ratio > 0 && heatsink != null)
             {
                 var heatRequest = (float)ratio * HeatProduction * TimeWarp.fixedDeltaTime;
                 ratio *= heatsink.AddHeat(heatRequest) / heatRequest;
